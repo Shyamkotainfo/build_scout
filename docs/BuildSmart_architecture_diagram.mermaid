@@ -1,0 +1,180 @@
+flowchart TB
+    %% =========================================================
+    %% BUILDSMART - AGENTIC SOLUTION REUSE PLATFORM
+    %% =========================================================
+
+    USER["👤 User / Architect / Developer<br/>Solution Idea or Requirement"]
+
+    UI["🖥️ Frontend<br/>Next.js / React"]
+    API["⚡ FastAPI<br/>REST API"]
+
+    USER --> UI
+    UI --> API
+
+    %% =========================================================
+    %% AGENTIC ORCHESTRATION
+    %% =========================================================
+    subgraph AGENTS["🤖 AGENTIC AI LAYER"]
+        SUP["🎯 Supervisor Agent<br/>Plan • Delegate • Coordinate"]
+        DEC["🧩 Decomposition Agent<br/>Requirement → Components"]
+        RES["🔎 Research Agent<br/>Discover Candidates"]
+        EVA["📊 Evaluation Agent<br/>Evaluate Evidence"]
+        DSA["⚖️ Decision Agent<br/>REUSE / ADAPT / BUILD"]
+        BLA["🏗️ Blueprint Agent<br/>Architecture & Implementation Plan"]
+        VAL["✅ Validation Agent<br/>Verify Evidence & Decisions"]
+
+        SUP --> DEC
+        DEC --> RES
+        RES --> EVA
+        EVA --> DSA
+        DSA --> BLA
+        BLA --> VAL
+
+        DSA -. "Insufficient evidence" .-> RES
+        VAL -. "Validation failed" .-> SUP
+    end
+
+    API --> SUP
+
+    %% =========================================================
+    %% LLM
+    %% =========================================================
+    LLM["🧠 LLM<br/>Amazon Bedrock / Model Provider"]
+    AGENT_STATE["🗂️ Agent State & Execution Context"]
+
+    AGENTS --> LLM
+    SUP --> AGENT_STATE
+
+    %% =========================================================
+    %% MCP / TOOL LAYER
+    %% =========================================================
+    subgraph MCP["🔌 MCP / TOOL LAYER"]
+        MCPCLIENT["MCP Client / Tool Adapter"]
+
+        GH["🐙 GitHub MCP<br/>Repository & Code Discovery"]
+        WEB["🌐 Web Search MCP<br/>Public Ecosystem Search"]
+        AWS["☁️ AWS Documentation MCP<br/>Cloud Reference Architecture"]
+        PKG["📦 Package Metadata Tool<br/>PyPI / npm / Maven / NuGet"]
+        LIC["📜 License Evidence Tool<br/>ClearlyDefined / SPDX"]
+        SEC["🛡️ Security Evidence Tool<br/>OpenSSF / CVE / NVD"]
+        RANK["📈 Candidate Ranking Tool<br/>Deterministic Scoring"]
+    end
+
+    RES --> MCPCLIENT
+    EVA --> MCPCLIENT
+    VAL --> MCPCLIENT
+
+    MCPCLIENT --> GH
+    MCPCLIENT --> WEB
+    MCPCLIENT --> AWS
+    MCPCLIENT --> PKG
+    MCPCLIENT --> LIC
+    MCPCLIENT --> SEC
+    MCPCLIENT --> RANK
+
+    %% =========================================================
+    %% PUBLIC ECOSYSTEM
+    %% =========================================================
+    subgraph SOURCES["🌍 PUBLIC ECOSYSTEM"]
+        GHS["GitHub Repositories"]
+        DOCS["Public Documentation"]
+        CLOUD["Cloud Reference Architectures"]
+        REG["Package Registries"]
+        LICENSES["License Data"]
+        SECURITY["Security / Vulnerability Data"]
+        PAPERS["Research / Technical References"]
+    end
+
+    GH --> GHS
+    WEB --> DOCS
+    WEB --> PAPERS
+    AWS --> CLOUD
+    PKG --> REG
+    LIC --> LICENSES
+    SEC --> SECURITY
+
+    %% =========================================================
+    %% DATA / KNOWLEDGE
+    %% =========================================================
+    subgraph DATA["🗄️ BUILDSMART DATA & KNOWLEDGE"]
+        DB["PostgreSQL<br/>Analysis • Components • Candidates • Decisions"]
+        VECTOR["pgvector<br/>Semantic Search / Candidate Similarity"]
+        EVID["Evidence Store<br/>Source • Claim • Timestamp • Confidence"]
+        TRACE["Agent Trace<br/>Agent Runs • Tool Calls • Status • Latency"]
+    end
+
+    API --> DB
+    AGENTS --> DB
+    EVA --> EVID
+    MCPCLIENT --> EVID
+    AGENTS --> TRACE
+    DB --> VECTOR
+
+    %% =========================================================
+    %% OUTPUT
+    %% =========================================================
+    subgraph OUTPUT["📋 BUILDSMART OUTPUT"]
+        COMP["Requirement Decomposition"]
+        CAND["Candidate Comparison"]
+        DECISION["Build vs Reuse Analysis"]
+        CONF["Confidence & Evidence"]
+        BLUE["Implementation Blueprint"]
+        EFFORT["Effort Estimate<br/>From Scratch vs With Reuse"]
+    end
+
+    VAL --> COMP
+    VAL --> CAND
+    VAL --> DECISION
+    VAL --> CONF
+    VAL --> BLUE
+    VAL --> EFFORT
+
+    OUTPUT --> UI
+
+    %% =========================================================
+    %% OBSERVABILITY
+    %% =========================================================
+    subgraph OBS["📈 OBSERVABILITY & FEEDBACK"]
+        LOG["Logs"]
+        METRIC["Metrics"]
+        FEEDBACK["User Feedback"]
+    end
+
+    TRACE --> LOG
+    TRACE --> METRIC
+    UI --> FEEDBACK
+    FEEDBACK -. "Improve future evaluations" .-> AGENTS
+
+    %% =========================================================
+    %% SECURITY
+    %% =========================================================
+    subgraph SEC_LAYER["🔐 SECURITY & GOVERNANCE"]
+        SECRETS["Secrets / Environment"]
+        ALLOW["MCP Allow-list"]
+        READONLY["Read-only External Access"]
+        AUDIT["Audit / Tool Trace"]
+    end
+
+    SECRETS --> MCPCLIENT
+    ALLOW --> MCPCLIENT
+    READONLY --> GH
+    AUDIT --> TRACE
+
+    %% =========================================================
+    %% STYLES
+    %% =========================================================
+    classDef user fill:#EAF2FF,stroke:#2563EB,stroke-width:2px,color:#111827
+    classDef agent fill:#F3E8FF,stroke:#7C3AED,stroke-width:2px,color:#111827
+    classDef tool fill:#E8F5E9,stroke:#16A34A,stroke-width:2px,color:#111827
+    classDef source fill:#FFF7ED,stroke:#EA580C,stroke-width:2px,color:#111827
+    classDef data fill:#ECFEFF,stroke:#0891B2,stroke-width:2px,color:#111827
+    classDef output fill:#F0FDF4,stroke:#15803D,stroke-width:2px,color:#111827
+    classDef infra fill:#F8FAFC,stroke:#475569,stroke-width:2px,color:#111827
+
+    class USER,UI,API user
+    class SUP,DEC,RES,EVA,DSA,BLA,VAL,LLM,AGENT_STATE agent
+    class MCPCLIENT,GH,WEB,AWS,PKG,LIC,SEC,RANK tool
+    class GHS,DOCS,CLOUD,REG,LICENSES,SECURITY,PAPERS source
+    class DB,VECTOR,EVID,TRACE data
+    class COMP,CAND,DECISION,CONF,BLUE,EFFORT output
+    class LOG,METRIC,FEEDBACK,SECRETS,ALLOW,READONLY,AUDIT infra
