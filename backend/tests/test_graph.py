@@ -13,10 +13,13 @@ Requires GROQ_API_KEY to be set in backend/.env.
 import pytest
 
 from agents.graph import (
+    BLUEPRINT_NODE,
+    DECISION_NODE,
     DECOMPOSITION_NODE,
     EVALUATION_NODE,
     RESEARCH_NODE,
     SUPERVISOR_NODE,
+    VALIDATION_NODE,
     build_buildsmart_graph,
 )
 from agents.state import BuildSmartState, create_initial_state
@@ -86,6 +89,12 @@ def test_graph_contains_expected_nodes(compiled_graph) -> None:
     assert EVALUATION_NODE in node_names, (
         f"Expected '{EVALUATION_NODE}' in graph nodes. Got: {node_names}"
     )
+    assert DECISION_NODE in node_names, (
+        f"Expected '{DECISION_NODE}' in graph nodes. Got: {node_names}"
+    )
+    assert BLUEPRINT_NODE in node_names, (
+        f"Expected '{BLUEPRINT_NODE}' in graph nodes. Got: {node_names}"
+    )
 
 
 def test_graph_executes_successfully(result_state: BuildSmartState) -> None:
@@ -144,36 +153,53 @@ def test_supervisor_output_preserved_after_decomposition(
     )
 
 
-def test_final_status_is_evaluated(result_state: BuildSmartState) -> None:
-    """TEST 10 — Final status is 'EVALUATED'."""
-    assert result_state["status"] == "EVALUATED", (
-        f"Expected final status 'EVALUATED', got: {result_state['status']!r}"
+def test_final_status_is_validated(result_state: BuildSmartState) -> None:
+    """TEST 10 — Final status is 'VALIDATED'."""
+    assert result_state["status"] == "VALIDATED", (
+        f"Expected final status 'VALIDATED', got: {result_state['status']!r}"
     )
 
 
-def test_final_current_agent_is_evaluation(result_state: BuildSmartState) -> None:
-    """TEST 11 — Final current_agent is 'EvaluationAgent'."""
-    assert result_state["current_agent"] == "EvaluationAgent", (
-        f"Expected 'EvaluationAgent', got: {result_state['current_agent']!r}"
+def test_final_current_agent_is_validation(result_state: BuildSmartState) -> None:
+    """TEST 11 — Final current_agent is 'ValidationAgent'."""
+    assert result_state["current_agent"] == "ValidationAgent", (
+        f"Expected 'ValidationAgent', got: {result_state['current_agent']!r}"
     )
 
 
 def test_agent_history_contains_all_agents(result_state: BuildSmartState) -> None:
-    """TEST 12 — agent_history contains all agents up to EvaluationAgent."""
+    """TEST 12 — agent_history contains all agents up to BlueprintAgent."""
     history = result_state["agent_history"]
     assert "SupervisorAgent" in history
     assert "DecompositionAgent" in history
     assert "ResearchAgent" in history
     assert "EvaluationAgent" in history
+    assert "DecisionAgent" in history
+    assert "BlueprintAgent" in history
+    assert "ValidationAgent" in history
     
     assert history.index("SupervisorAgent") < history.index("DecompositionAgent")
     assert history.index("DecompositionAgent") < history.index("ResearchAgent")
     assert history.index("ResearchAgent") < history.index("EvaluationAgent")
+    assert history.index("EvaluationAgent") < history.index("DecisionAgent")
+    assert history.index("DecisionAgent") < history.index("BlueprintAgent")
+    assert history.index("BlueprintAgent") < history.index("ValidationAgent")
 
-def test_research_and_evaluation_populated_state(result_state: BuildSmartState) -> None:
-    """TEST 13 — Research and Evaluation populated their state fields."""
+def test_agents_populated_state(result_state: BuildSmartState) -> None:
+    """TEST 13 — Research, Evaluation, Decision, Blueprint, and Validation populated state."""
     assert "candidates" in result_state
     assert isinstance(result_state["candidates"], list)
     
     assert "evaluations" in result_state
     assert isinstance(result_state["evaluations"], list)
+
+    assert "decisions" in result_state
+    assert isinstance(result_state["decisions"], list)
+
+    assert "blueprint" in result_state
+    assert isinstance(result_state["blueprint"], dict)
+    assert len(result_state["blueprint"]) > 0, "Blueprint should not be empty"
+
+    assert "validation_result" in result_state
+    assert isinstance(result_state["validation_result"], dict)
+    assert len(result_state["validation_result"]) > 0, "Validation should not be empty"
