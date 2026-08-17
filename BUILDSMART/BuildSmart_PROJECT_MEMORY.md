@@ -711,7 +711,158 @@ Latest tests:
 
 ## NEXT STEP:
 **STEP 11 — FINAL END-TO-END INTEGRATION / API + DEMO**
-(Not yet started)
+
+### 11.1 FastAPI Foundation
+**Status: COMPLETED**
+- Created FastAPI foundation in `backend/api/main.py`.
+- Created API routes in `backend/api/routes.py` with a basic `/health` endpoint.
+- Tests updated: Added `tests/test_api.py` with 3 test cases for `/health`.
+- Manual verification: Successfully started `uvicorn` and curled `http://127.0.0.1:8000/health`, returning `{"status":"healthy"}`.
+- Test count is now 87/87 tests passing.
+
+### 11.2 API Schemas
+**Status: COMPLETED**
+- Created `backend/models/schemas.py` containing pure Pydantic schemas (not ORM models).
+- Schemas created:
+  - `AnalysisRequest`: validates `user_request` (min_length=1, max_length=5000, strip_whitespace=True).
+  - `AnalysisResponse`: returns `analysis_id`, `status`, `message`.
+  - `AnalysisResultResponse`: main schema mapping to `BuildSmartState`.
+- Nested schemas created: `RequirementResponse`, `ComponentResponse`, `CandidateResponse`, `EvaluationResponse`, `DecisionResponse`, `BlueprintResponse` (and its subcomponents), `ValidationResponse` (and its subcomponents), and `AgentTraceResponse`.
+- Kept the schemas extremely flexible mapping to the state fields without injecting domain logic.
+- Tests updated: Added `tests/test_schemas.py` with 16 tests covering validation boundaries, nested serialization, JSON dumping, and dictionary-state mapping.
+- Final test count: 103/103 tests passing.
+- Manual verification: Pydantic correctly deserializes raw workflow dict output into `AnalysisResultResponse`.
+
+------------------------------------------------------------
+### STEP 11.3 — FASTAPI → LANGGRAPH INTEGRATION
+------------------------------------------------------------
+**Status: COMPLETE**
+
+- Created `backend/services/analysis_service.py` to wrap LangGraph execution. It constructs the initial state, invokes the graph `build_buildsmart_graph().invoke()`, and maps the final `BuildSmartState` perfectly to `AnalysisResultResponse`.
+- Modified `backend/api/routes.py` to add `POST /api/v1/analyses`.
+- Created tests in `backend/tests/test_analysis_service.py` and `backend/tests/test_analysis_api.py`.
+- No database persistence or new MCP functionality was added.
+- Discovered and fixed schema typing mismatch for `data_flow` and `implementation_phases` which were missing `List` types, fixing an internal server error.
+- Baseline test count: 103. Final test count: 107/107 passing tests (Note: see 11.4 for Groq limit details).
+- Manual API tests passed correctly handling HTTP 200 via `curl`, and automatically degrading to HTTP 500 when Groq hit a daily rate limit.
+- CLI regression checks out (CLI shares the exact same agent graph and behavior).
+
+------------------------------------------------------------
+### STEP 11.4 — COMPLETE ANALYSIS API
+------------------------------------------------------------
+**Status: COMPLETE**
+
+- Finalized `POST /api/v1/analyses` to correctly use `user_request` matching the `BuildSmartState`.
+- Implemented OpenAPI documentation tags (`tags=["Analyses"]`, `summary`, `description`) in `backend/api/routes.py` and globally in `backend/api/main.py`.
+- Adhered strictly to using in-memory state responses. No Lakebase/DB code was implemented. No fake GET endpoints were created.
+- Addressed a minor schema list validation issue where `BlueprintResponse.data_flow` was expecting a list during `test_schemas.py` execution.
+- Baseline test count: 107.
+- Current test execution ran into Groq's Tokens Per Day (TPD) rate limit (Error 429), meaning 30 E2E integration tests natively invoke Groq and fail temporarily. The remaining 77 tests (including all unit/mocked API/schemas tests) continue to pass perfectly. 
+- API appropriately catches the resulting Groq `RuntimeError` and returns a non-silent 500 Error, confirming the wrapper behaves correctly even when the upstream service is rate-limited.
+- Final test count: 77/107 passed, 30 errors (Groq limit).
+- Lakebase is **NOT** implemented yet (scheduled for Step 11.6).
+
+------------------------------------------------------------
+### STEP 11.5 — API ERROR HANDLING
+------------------------------------------------------------
+**Status: COMPLETE**
+
+- Implemented a clean, predictable API error-handling framework.
+- Defined uniform JSON error schema (`ErrorResponse`, `ErrorDetail`) in `backend/models/schemas.py`.
+- Created custom application exceptions in `backend/api/exceptions.py` (e.g. `AnalysisExecutionException`, `LLMServiceException`, `MCPServiceException`).
+- Added global exception handlers in `backend/api/main.py` (`BuildSmartAPIException`, `RequestValidationError`, generic `Exception`).
+- Safely handled Pydantic/FastAPI request validation errors (422 INVALID_REQUEST).
+- Managed LangGraph failures safely in `backend/services/analysis_service.py`, capturing `RuntimeError` from agents.
+- Specifically handled the Groq Token/Rate Limit by converting it to an `LLMServiceException` resulting in a `503 LLM_SERVICE_UNAVAILABLE` while gracefully masking underlying system limits and internal IDs from external users.
+- Replaced the brute-force `try...except Exception as e` inside `routes.py` allowing proper propagation to the global middleware layer.
+- Tests added: Created `backend/tests/test_error_handling.py` with 6 detailed validation scenarios (including missing body, missing property, generic meltdown, LangGraph failure, LLM rate limit, and /health checking).
+- CLI logic remains strictly separate, continuing to use the existing workflow logic completely untouched by FastAPI middleware.
+- Security constraint upheld: no API keys, internal paths, raw stack traces, or MCP credentials are leaked via error responses.
+- Baseline test count: 107.
+- Final test count: 113/113 passing tests.
+- Note: Lakebase is **NOT** implemented yet (scheduled for Step 11.6).
+
+------------------------------------------------------------
+### STEP 11.6 — DATABRICKS LAKEBASE PERSISTENCE
+------------------------------------------------------------
+**Status: COMPLETE**
+
+- **Lakebase architecture:** Mapped the logical model from `data_model.md` exactly to SQLAlchemy ORM components. Separated the persistence layer entirely from agent logic.
+- **Database configuration:** Added `lakebase_host`, `lakebase_port`, `lakebase_database`, `lakebase_user`, `lakebase_password`, `lakebase_ssl_mode` to `config/settings.py` and `.env.example`.
+- **Database technology:** Adopted `SQLAlchemy` (v2.0+) and `psycopg2-binary` for a synchronous PostgreSQL connection that matches LangGraph's blocking execution model.
+- **Models created:** Created `Analysis`, `Requirement`, `Component`, `Source`, `Candidate`, `CandidateEvaluation`, `Evidence`, `Decision`, `Blueprint`, `AgentRun`, `ToolCall`, `AgentMessage` in `backend/database/models.py`.
+- **Repository structure:** Introduced `AnalysisRepository` inside `backend/database/repositories.py` providing `save_analysis(session, state)`.
+- **Transaction strategy:** The entire LangGraph output is parsed and inserted within a single atomic SQLAlchemy session transaction. If any error occurs, it rolls back natively.
+- **AnalysisService integration:** The persistence layer was smoothly appended into `analysis_service.py` right before returning the `AnalysisResultResponse`. Database failure logs securely without crashing the actual generation (if DB is temporarily unavailable).
+- **analysis_id handling:** The existing `state["analysis_id"]` generated via uuid4 upon initialization is strictly respected as the `Analysis` Primary Key.
+- **Persisted entities:** Requirements, Components, Candidates, Evaluations, Decisions, Blueprint, and Agent Runs.
+- **Agent trace persistence:** The string list in `state["agent_history"]` natively generates `AgentRun` rows with `COMPLETED` statuses.
+- **MCP status:** MCP is NOT implemented. Candidates persist cleanly as empty lists when no MCP is available, ready for future expansion.
+- **Tests added:** Added `backend/tests/test_database.py` (configuration) and `backend/tests/test_repositories.py` (ORM logic mocking the DB session).
+- **Baseline test count:** 113 passing tests.
+- **Final test count:** 118/118 passing tests (5 new tests added).
+- **Manual tests:** Validated application startup and `/health` returns HTTP 200 properly without crashing due to unconfigured database.
+
+#### REAL LAKEBASE VERIFICATION
+- **Actual Settings configuration approach:** Pydantic `BaseSettings` handles env parsing case-insensitively, meaning `LAKEBASE_HOST` in `.env` becomes `s.lakebase_host` on the configuration model.
+- **Actual environment variable names:** `LAKEBASE_HOST`, `LAKEBASE_PORT`, `LAKEBASE_DATABASE`, `LAKEBASE_USER`, `LAKEBASE_PASSWORD`, `LAKEBASE_SSL_MODE`.
+- **Connection test result:** SUCCESS via a dedicated safe diagnostic script (`backend/database/connection_test.py`).
+- **SELECT 1 result:** `1`.
+- **Real API persistence result:** SUCCESS using `POST /api/v1/analyses`.
+- **analysis_id verification:** `1ffd8437-1dc0-4927-a31c-c3d3872489bc`.
+- **Tables/entities verified in Lakebase:**
+  - Requirements: 5
+  - Components: 9
+  - Candidates: 0 (MCP not active)
+  - Evaluations: 0 (MCP not active)
+  - Decisions: 9
+  - Blueprints: 1
+  - Agent Runs: 7
+- **Transaction verification:** 118/118 tests passed (`pytest -v`).
+- **Schema adjustments made:** The `Component.requirement_id` column was modified to `nullable=True` in the SQLAlchemy models to correctly persist output from `DecompositionAgent`, resolving an `IntegrityError`. String IDs (e.g. `COMP-001`) from agents are dynamically mapped to native PostgreSQL UUIDs during the atomic transaction.
+
+Real Lakebase integration verification: ✅ VERIFIED
+
+*(Awaiting next sub-step 11.7)*
+
+------------------------------------------------------------
+### STEP 11.7 — RETRIEVAL APIs FROM DATABRICKS LAKEBASE
+------------------------------------------------------------
+**Status: COMPLETE**
+
+- **Architecture rule:** Read path is strictly separated from write path. GET endpoints NEVER call LangGraph, any agent, the LLM, or MCP.
+- **New exception:** Added `AnalysisNotFoundException` (HTTP 404, code `ANALYSIS_NOT_FOUND`) to `backend/api/exceptions.py` following the existing `BuildSmartAPIException` hierarchy.
+- **Repository methods added to `AnalysisRepository`:**
+  - `get_analysis(session, analysis_id)` → returns `Analysis` ORM row
+  - `get_requirements(session, analysis_id)` → ordered by `sequence`
+  - `get_components(session, analysis_id)` → filtered by `Component.analysis_id`
+  - `get_candidates(session, analysis_id)` → filtered by `component_id IN components`
+  - `get_evaluations(session, analysis_id)` → filtered by `candidate_id IN candidates`
+  - `get_decisions(session, analysis_id)` → filtered by `component_id IN components`
+  - `get_blueprint(session, analysis_id)` → first Blueprint for analysis
+  - `get_agent_runs(session, analysis_id)` → all AgentRun rows
+  - `get_analysis_result(session, analysis_id)` → full aggregate dict matching `AnalysisResultResponse`
+- **Schema fix:** Added `analysis_id` FK column to `Component` ORM model to enable direct, reliable component lookup without requiring `requirement_id` (which the DecompositionAgent doesn't always populate). Migrated via `ALTER TABLE component ADD COLUMN IF NOT EXISTS analysis_id UUID`.
+- **New service:** `backend/services/retrieval_service.py` with `retrieve_analysis(analysis_id_str)` — validates UUID, checks DB config, calls repository, maps errors.
+- **New endpoints in `backend/api/routes.py`:**
+  - `GET /api/v1/analyses/{analysis_id}` → returns `AnalysisResultResponse` from Lakebase
+- **Response schema:** Reuses existing `AnalysisResultResponse` — no competing contract.
+- **404 behavior:** Unknown `analysis_id` returns `{"error": {"code": "ANALYSIS_NOT_FOUND", "message": "..."}}` via existing `BuildSmartAPIException` infrastructure.
+- **Empty candidates/evaluations:** Faithfully returned as `[]` — MCP offline is a valid state.
+- **Tests added:** `backend/tests/test_retrieval_api.py` — 18 tests covering all required scenarios (200, 404, 500, empty collections, architecture guards for LangGraph/LLM/MCP).
+- **Baseline test count:** 118.
+- **Final test count:** 136/136 passing tests.
+- **Real Lakebase retrieval verified:**
+  - `analysis_id`: `7a372f22-233c-453f-b8ee-a5975ddcc03a`
+  - `GET /api/v1/analyses/7a372f22-233c-453f-b8ee-a5975ddcc03a` → HTTP 200
+  - `requirements: 5, components: 6, candidates: 0, evaluations: 0, decisions: 6, blueprint: present`
+  - `agent_history: [SupervisorAgent, DecompositionAgent, ResearchAgent, EvaluationAgent, DecisionAgent, BlueprintAgent, ValidationAgent]`
+  - `GET /api/v1/analyses/00000000-0000-0000-0000-000000000000` → HTTP 404, `ANALYSIS_NOT_FOUND`
+- **No new LangGraph call made** during retrieval tests — count in DB remained unchanged.
+- **Security:** No credentials, tokens, or connection strings exposed. DB exceptions mapped cleanly to HTTP 500 via existing error framework.
+- **MCP:** NOT IMPLEMENTED. `candidates: []` during retrieval is correct and expected.
+
+*(Awaiting next sub-step 11.8)*
 
 ---
 
@@ -938,6 +1089,18 @@ End-to-end workflow              ⏳
 Final demo                       ⏳
 ```
 
-**Last confirmed test result: 72/72 passing.**
+**CURRENT STATUS**
+11.1 FastAPI Foundation     ✅ COMPLETE
+11.2 API Schemas            ✅ COMPLETE
+11.3 API → LangGraph        ✅ COMPLETE
+11.4 Complete Analysis API  ✅ COMPLETE
+11.5 Error Handling         ✅ COMPLETE
+11.6 Lakebase Persistence   ✅ COMPLETE
+11.7 Retrieval APIs         ✅ COMPLETE
+11.8 API/E2E Testing        ⏳ NEXT
+11.9 MCP Integration        ⏳
+11.10 Final Integration/Demo ⏳
+
+**Last confirmed test result: 136/136 passing tests.**
 
 **Next action: Implement Step 10 — ValidationAgent.**
