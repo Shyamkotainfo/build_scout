@@ -40,6 +40,42 @@ class Settings(BaseSettings):
         description="Command to run the Web Search MCP server (e.g. 'npx -y @modelcontextprotocol/server-brave-search').",
     )
 
+    lakebase_host: str | None = Field(
+        default=None,
+        description="Databricks Lakebase host address (PostgreSQL compatible).",
+    )
+    lakebase_port: int = Field(
+        default=5432,
+        description="Databricks Lakebase connection port.",
+    )
+    lakebase_database: str | None = Field(
+        default=None,
+        description="Databricks Lakebase database name.",
+    )
+    lakebase_user: str | None = Field(
+        default=None,
+        description="Databricks Lakebase username.",
+    )
+    lakebase_password: str | None = Field(
+        default=None,
+        description="Databricks Lakebase password/token.",
+    )
+    lakebase_ssl_mode: str = Field(
+        default="require",
+        description="Databricks Lakebase SSL mode (default: require).",
+    )
+
+    @property
+    def database_url(self) -> str | None:
+        """Returns the PostgreSQL connection URL for Lakebase, if configured."""
+        if not self.lakebase_host:
+            return None
+        return (
+            f"postgresql://{self.lakebase_user}:{self.lakebase_password}"
+            f"@{self.lakebase_host}:{self.lakebase_port}/{self.lakebase_database}"
+            f"?sslmode={self.lakebase_ssl_mode}"
+        )
+
 
 def get_settings() -> Settings:
     """Return a validated Settings instance.
