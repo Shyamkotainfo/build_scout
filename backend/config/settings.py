@@ -31,6 +31,15 @@ class Settings(BaseSettings):
         description="Groq model identifier to use for all LLM calls.",
     )
 
+    mcp_github_command: str | None = Field(
+        default=None,
+        description="Command to run the GitHub MCP server (e.g. 'npx -y @modelcontextprotocol/server-github').",
+    )
+    mcp_web_command: str | None = Field(
+        default=None,
+        description="Command to run the Web Search MCP server (e.g. 'npx -y @modelcontextprotocol/server-brave-search').",
+    )
+
 
 def get_settings() -> Settings:
     """Return a validated Settings instance.
