@@ -35,9 +35,25 @@ class Settings(BaseSettings):
         default=None,
         description="Command to run the GitHub MCP server (e.g. 'npx -y @modelcontextprotocol/server-github').",
     )
-    mcp_web_command: str | None = Field(
+    mcp_tavily_command: str | None = Field(
         default=None,
-        description="Command to run the Web Search MCP server (e.g. 'npx -y @modelcontextprotocol/server-brave-search').",
+        description="Command to run the Web Search MCP server (e.g. 'npx -y @toolsdk.ai/tavily-mcp').",
+    )
+    tavily_api_key: str | None = Field(
+        default=None,
+        description="API key for Tavily Search, passed to the Tavily MCP server.",
+    )
+    mcp_request_timeout_seconds: int = Field(
+        default=30,
+        description="Maximum seconds to wait for an MCP tool call to complete.",
+    )
+    mcp_max_retries: int = Field(
+        default=2,
+        description="Maximum number of retries for an MCP tool call on failure.",
+    )
+    mcp_max_result_size: int = Field(
+        default=50000,
+        description="Maximum length of characters to return from an MCP tool call.",
     )
 
     lakebase_host: str | None = Field(

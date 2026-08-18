@@ -76,7 +76,7 @@ class MCPToolClient:
                 {
                     "name": tool.name,
                     "description": tool.description,
-                    "inputSchema": tool.inputSchema,
+                    "inputSchema": getattr(tool, "inputSchema", getattr(tool, "input_schema", {})),
                 }
                 for tool in result.tools
             ]

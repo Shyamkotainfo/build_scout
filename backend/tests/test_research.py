@@ -2,24 +2,26 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from agents.state import BuildSmartState
-from mcp_integration.client import MCPToolClient
+from mcp_integration.manager import mcp_manager
 
 
 @pytest.fixture
-def mock_mcp_client():
-    client = MagicMock(spec=MCPToolClient)
-    client.name = "test_mcp"
-    client.list_tools = AsyncMock(return_value=[{"name": "search_repositories", "description": "search"}])
-    client.call_tool = AsyncMock(return_value="raw search result text")
-    return client
-
+def mock_search_tools():
+    with patch("agents.research.search_github", new_callable=AsyncMock) as mock_gh, \
+         patch("agents.research.search_web", new_callable=AsyncMock) as mock_web:
+        mock_gh.return_value = {
+            "status": "SUCCESS",
+            "result_summary": {"content": "raw github result text"}
+        }
+        mock_web.return_value = {
+            "status": "SUCCESS",
+            "result_summary": {"content": "raw web result text"}
+        }
+        yield mock_gh, mock_web
 
 @pytest.fixture
-def mock_research_agent(mock_mcp_client):
-    with patch("agents.research.MCPToolClient") as mcp_cls:
-        mcp_cls.return_value = mock_mcp_client
-        
-        # Mock the LLM to return a predictable JSON string
+def mock_research_agent(mock_search_tools):
+    # Mock the LLM to return a predictable JSON string
         mock_response = MagicMock()
         mock_response.content = '''
         {

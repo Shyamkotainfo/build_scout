@@ -18,7 +18,8 @@ from agents.state import BuildSmartState
 from config.settings import get_settings
 from llm.client import get_llm
 from llm.prompts import RESEARCH_SYSTEM_PROMPT
-from mcp_integration.client import MCPToolClient
+from tools.github import search_github
+from tools.web_search import search_web
 
 logger = logging.getLogger(__name__)
 
@@ -59,72 +60,51 @@ class ResearchAgent:
         # Use JSON mode for structural extraction
         self.llm_json = self.llm.bind(response_format={"type": "json_object"})
 
-    async def _query_mcp_source(self, client: MCPToolClient, tool_name: str, args: Dict[str, Any]) -> str:
-        """Helper to invoke an MCP tool and gracefully handle failures."""
-        try:
-            return await client.call_tool(tool_name, args)
-        except Exception as e:
-            logger.warning(f"MCP tool '{tool_name}' on '{client.name}' failed: {e}")
-            return ""
-
-    async def _find_tool_by_keyword(self, client: MCPToolClient, keywords: list[str]) -> str | None:
-        """Dynamically discover a tool by matching keywords in its name."""
-        try:
-            tools = await client.list_tools()
-            for tool in tools:
-                name = tool.get("name", "").lower()
-                if all(kw in name for kw in keywords):
-                    return tool["name"]
-        except Exception as e:
-            logger.warning(f"Failed to list tools on '{client.name}': {e}")
-        return None
-
     async def _research_component(
         self,
-        component: Dict[str, Any],
-        github_client: MCPToolClient | None,
-        web_client: MCPToolClient | None,
-    ) -> list[Dict[str, Any]]:
-        """Research a single component and return normalized candidate dicts."""
+        component: Dict[str, Any]
+    ) -> tuple[list[Dict[str, Any]], list[Dict[str, Any]]]:
+        """Research a single component and return normalized candidate dicts + traces."""
         comp_id = component.get("id")
         comp_name = component.get("name", "")
         comp_desc = component.get("description", "")
         
         # Simple dynamic query formulation based on component details
-        query = f"open source {comp_name.replace('_', ' ').lower()} {comp_desc}"
+        query = f"{comp_name.replace('_', ' ').lower()} {comp_desc}"
         # Keep query concise to improve search results
         query = " ".join(query.split()[:8])
         
         raw_results = []
+        traces = []
         
-        # Query GitHub MCP
-        if github_client:
-            tool_name = await self._find_tool_by_keyword(github_client, ["search", "repositories"])
-            if not tool_name:
-                tool_name = "search_repositories" # Fallback
-            gh_result = await self._query_mcp_source(
-                github_client, 
-                tool_name, 
-                {"query": query}
+        # Query GitHub MCP via tools adapter
+        try:
+            trace = await search_github(query=query, per_page=5)
+            traces.append(trace)
+            
+            if trace["status"] == "SUCCESS" and trace["result_summary"].get("content"):
+                raw_results.append(f"--- GITHUB RESULTS ---\n{trace['result_summary']['content']}")
+        except Exception as e:
+            # MCPManager handles timeouts and configuration errors gracefully via exceptions,
+            # but we catch them here so ResearchAgent doesn't crash the workflow.
+            logger.warning(f"GitHub MCP research failed for {comp_id}: {e}")
+
+        # Query Tavily MCP via tools adapter
+        try:
+            trace = await search_web(
+                query=query + " open source architecture github",
+                search_depth="advanced",
+                max_results=5
             )
-            if gh_result:
-                raw_results.append(f"--- GITHUB RESULTS ---\n{gh_result}")
-                
-        # Query Web MCP
-        if web_client:
-            tool_name = await self._find_tool_by_keyword(web_client, ["search"])
-            if not tool_name:
-                tool_name = "brave_web_search" # Fallback
-            web_result = await self._query_mcp_source(
-                web_client, 
-                tool_name, 
-                {"query": query + " github"}
-            )
-            if web_result:
-                raw_results.append(f"--- WEB RESULTS ---\n{web_result}")
+            traces.append(trace)
+            
+            if trace["status"] == "SUCCESS" and trace["result_summary"].get("content"):
+                raw_results.append(f"--- WEB RESULTS ---\n{trace['result_summary']['content']}")
+        except Exception as e:
+            logger.warning(f"Tavily MCP research failed for {comp_id}: {e}")
                 
         if not raw_results:
-            return []
+            return [], traces
             
         combined_raw = "\n\n".join(raw_results)
         
@@ -142,10 +122,10 @@ class ResearchAgent:
             result_json = response.content
             parsed = ResearchResult.model_validate_json(result_json)
             # Serialize back to dicts to match state contract
-            return [c.model_dump() for c in parsed.candidates]
+            return [c.model_dump() for c in parsed.candidates], traces
         except Exception as e:
             logger.error(f"Failed to normalize research for {comp_id}: {e}")
-            return []
+            return [], traces
 
     def run(self, state: BuildSmartState) -> BuildSmartState:
         """Execute the ResearchAgent synchronously.
@@ -158,22 +138,15 @@ class ResearchAgent:
     async def _arun(self, state: BuildSmartState) -> BuildSmartState:
         state["status"] = "RESEARCHING"
         components = state.get("components", [])
-        
-        # Setup MCP clients
-        github_client = None
-        if self.settings.mcp_github_command:
-            github_client = MCPToolClient(self.settings.mcp_github_command, "github")
-            
-        web_client = None
-        if self.settings.mcp_web_command:
-            web_client = MCPToolClient(self.settings.mcp_web_command, "web")
             
         all_candidates = []
         seen_urls = set()
+        agent_traces = []
         
         # To avoid being rate limited and for V1 scope, process sequentially or in limited batches
         for comp in components:
-            comp_candidates = await self._research_component(comp, github_client, web_client)
+            comp_candidates, traces = await self._research_component(comp)
+            agent_traces.extend(traces)
             
             # Deduplicate by URL
             for cand in comp_candidates:
@@ -181,6 +154,17 @@ class ResearchAgent:
                 if url and url not in seen_urls:
                     seen_urls.add(url)
                     all_candidates.append(cand)
+                    
+        # Store traces
+        if "traces" not in state:
+            state["traces"] = []
+            
+        state["traces"].append({
+            "agent_name": "ResearchAgent",
+            "status": "SUCCESS",
+            "execution_order": len(state["traces"]) + 1,
+            "tool_calls": agent_traces
+        })
                     
         # Update State
         state["candidates"] = all_candidates

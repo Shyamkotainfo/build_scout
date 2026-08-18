@@ -24,6 +24,19 @@ class MCPServiceException(BuildSmartAPIException):
     def __init__(self, message: str = "A required external service is temporarily unavailable.", analysis_id: Optional[str] = None):
         super().__init__("MCP_SERVICE_UNAVAILABLE", message, 503, analysis_id)
 
+class MCPTimeoutException(MCPServiceException):
+    """Raised when an MCP tool call exceeds the configured timeout."""
+    def __init__(self, message: str = "The external service timed out.", analysis_id: Optional[str] = None):
+        super().__init__(message, analysis_id)
+        self.code = "MCP_TIMEOUT"
+
+class MCPConfigurationException(MCPServiceException):
+    """Raised when an MCP server or tool is not allowed by configuration."""
+    def __init__(self, message: str = "The requested tool or server is not configured.", analysis_id: Optional[str] = None):
+        super().__init__(message, analysis_id)
+        self.code = "MCP_CONFIGURATION_ERROR"
+        self.status_code = 500
+
 class AnalysisNotFoundException(BuildSmartAPIException):
     """Raised when an analysis_id does not exist in Lakebase."""
     def __init__(self, analysis_id: str):
