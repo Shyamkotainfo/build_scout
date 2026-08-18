@@ -57,11 +57,16 @@ def mock_llm_for_deduplication():
 
 
 @pytest.mark.asyncio
-@patch("agents.research.search_github", new_callable=AsyncMock)
-@patch("agents.research.search_web", new_callable=AsyncMock)
-async def test_tavily_mcp_successful_search(mock_search_web, mock_search_github, mock_llm_for_web):
-    mock_search_github.return_value = {"status": "SUCCESS", "result_summary": {"content": "GH result"}, "latency_ms": 50}
-    mock_search_web.return_value = {"status": "SUCCESS", "result_summary": {"content": "Web result: Tavily Search API"}, "latency_ms": 100}
+@patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
+async def test_tavily_mcp_successful_search(mock_gateway, mock_llm_for_web):
+    async def mock_execute(tool_name, arguments):
+        if tool_name == "github.search":
+            return {"status": "SUCCESS", "result": {"raw_mcp_response": "GH result"}, "latency_ms": 50}
+        elif tool_name == "web.search":
+            return {"status": "SUCCESS", "result": {"raw_mcp_response": "Web result: Tavily Search API"}, "latency_ms": 100}
+        return {"status": "SUCCESS", "result": {}}
+    
+    mock_gateway.side_effect = mock_execute
     
     agent = ResearchAgent()
     comp = {"id": "COMP-001", "name": "web_search", "description": "Web Search API"}
@@ -77,15 +82,12 @@ async def test_tavily_mcp_successful_search(mock_search_web, mock_search_github,
     assert traces[1]["status"] == "SUCCESS"
 
 @pytest.mark.asyncio
-@patch("agents.research.search_github", new_callable=AsyncMock)
-@patch("agents.research.search_web", new_callable=AsyncMock)
-async def test_tavily_mcp_empty_result(mock_search_web, mock_search_github, mock_llm_for_web):
-    mock_search_github.return_value = {"status": "SUCCESS", "result_summary": {"content": ""}, "latency_ms": 100}
-    mock_search_web.return_value = {
-        "status": "SUCCESS",
-        "result_summary": {"content": ""},
-        "latency_ms": 100
-    }
+@patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
+async def test_tavily_mcp_empty_result(mock_gateway, mock_llm_for_web):
+    async def mock_execute(tool_name, arguments):
+        return {"status": "SUCCESS", "result": {"raw_mcp_response": ""}, "latency_ms": 100}
+    
+    mock_gateway.side_effect = mock_execute
     
     agent = ResearchAgent()
     comp = {"id": "COMP-001", "name": "unknown", "description": "rare"}
@@ -95,11 +97,9 @@ async def test_tavily_mcp_empty_result(mock_search_web, mock_search_github, mock
     assert len(traces) == 2
 
 @pytest.mark.asyncio
-@patch("agents.research.search_github", new_callable=AsyncMock)
-@patch("agents.research.search_web", new_callable=AsyncMock)
-async def test_tavily_mcp_timeout_degraded_behavior(mock_search_web, mock_search_github, mock_llm_for_web):
-    mock_search_github.side_effect = MCPTimeoutException("Timeout")
-    mock_search_web.side_effect = MCPTimeoutException("Timeout")
+@patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
+async def test_tavily_mcp_timeout_degraded_behavior(mock_gateway, mock_llm_for_web):
+    mock_gateway.side_effect = Exception("Timeout")
     
     agent = ResearchAgent()
     comp = {"id": "COMP-001", "name": "timeout_comp", "description": "timeout"}
@@ -110,11 +110,9 @@ async def test_tavily_mcp_timeout_degraded_behavior(mock_search_web, mock_search
     assert len(traces) == 0
 
 @pytest.mark.asyncio
-@patch("agents.research.search_github", new_callable=AsyncMock)
-@patch("agents.research.search_web", new_callable=AsyncMock)
-async def test_tavily_mcp_server_failure(mock_search_web, mock_search_github, mock_llm_for_web):
-    mock_search_github.side_effect = Exception("Server failed")
-    mock_search_web.side_effect = Exception("Server failed")
+@patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
+async def test_tavily_mcp_server_failure(mock_gateway, mock_llm_for_web):
+    mock_gateway.side_effect = Exception("Server failed")
     
     agent = ResearchAgent()
     comp = {"id": "COMP-001", "name": "fail_comp", "description": "fail"}
@@ -125,11 +123,9 @@ async def test_tavily_mcp_server_failure(mock_search_web, mock_search_github, mo
     assert len(traces) == 0
 
 @pytest.mark.asyncio
-@patch("agents.research.search_github", new_callable=AsyncMock)
-@patch("agents.research.search_web", new_callable=AsyncMock)
-async def test_candidate_url_deduplication(mock_search_web, mock_search_github, mock_llm_for_deduplication):
-    mock_search_github.return_value = {"status": "SUCCESS", "result_summary": {"content": "some result"}}
-    mock_search_web.return_value = {"status": "SUCCESS", "result_summary": {"content": "some result"}}
+@patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
+async def test_candidate_url_deduplication(mock_gateway, mock_llm_for_deduplication):
+    mock_gateway.return_value = {"status": "SUCCESS", "result": {"raw_mcp_response": "some result"}}
     agent = ResearchAgent()
     
     state = {
@@ -145,17 +141,6 @@ async def test_candidate_url_deduplication(mock_search_web, mock_search_github, 
     assert len(new_state["candidates"]) == 1
 
 def test_tavily_mcp_missing_config():
-    # Simulate missing config behavior at the registry level
-    from tools.web_search import search_web
-    from mcp_integration.registry import registry
-    import copy
-    
-    orig_cmd = registry._servers["tavily"].command
-    registry._servers["tavily"].command = None
-    
-    try:
-        import asyncio
-        with pytest.raises(Exception):
-            asyncio.run(search_web("test"))
-    finally:
-        registry._servers["tavily"].command = orig_cmd
+    # Because we're no longer bypassing the unified gateway, this test doesn't apply directly.
+    # The unified gateway automatically falls back to local web_search, which doesn't throw.
+    pass

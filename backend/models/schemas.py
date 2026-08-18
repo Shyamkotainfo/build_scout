@@ -105,6 +105,19 @@ class AgentTraceResponse(BaseModel):
     execution_order: int
     tool_calls: List[Dict[str, Any]] = Field(default_factory=list)
 
+class LLMMetricsResponse(BaseModel):
+    total_calls: int = 0
+    successful_calls: int = 0
+    failed_calls: int = 0
+    total_retries: int = 0
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    total_tokens: int = 0
+    total_latency_ms: int = 0
+    average_latency_ms: int = 0
+    context_compactions: int = 0
+    total_cost: Optional[float] = None
+
 class AnalysisResultResponse(BaseModel):
     analysis_id: str
     user_request: str
@@ -120,3 +133,4 @@ class AnalysisResultResponse(BaseModel):
     validation_result: Optional[ValidationResponse] = Field(default_factory=ValidationResponse)
     agent_history: List[str] = Field(default_factory=list)
     traces: List[AgentTraceResponse] = Field(default_factory=list)
+    llm_metrics: Optional[LLMMetricsResponse] = None

@@ -7,17 +7,22 @@ from mcp_integration.manager import mcp_manager
 
 @pytest.fixture
 def mock_search_tools():
-    with patch("agents.research.search_github", new_callable=AsyncMock) as mock_gh, \
-         patch("agents.research.search_web", new_callable=AsyncMock) as mock_web:
-        mock_gh.return_value = {
-            "status": "SUCCESS",
-            "result_summary": {"content": "raw github result text"}
-        }
-        mock_web.return_value = {
-            "status": "SUCCESS",
-            "result_summary": {"content": "raw web result text"}
-        }
-        yield mock_gh, mock_web
+    with patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock) as mock_gateway:
+        async def mock_execute(tool_name, arguments):
+            if tool_name == "github.search":
+                return {
+                    "status": "SUCCESS",
+                    "result": {"raw_mcp_response": "raw github result text"}
+                }
+            elif tool_name == "web.search":
+                return {
+                    "status": "SUCCESS",
+                    "result": {"raw_mcp_response": "raw web result text"}
+                }
+            return {"status": "FAILED"}
+        
+        mock_gateway.side_effect = mock_execute
+        yield mock_gateway
 
 @pytest.fixture
 def mock_research_agent(mock_search_tools):

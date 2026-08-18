@@ -18,8 +18,8 @@ from agents.state import BuildSmartState
 from config.settings import get_settings
 from llm.client import get_llm
 from llm.prompts import RESEARCH_SYSTEM_PROMPT
-from tools.github import search_github
-from tools.web_search import search_web
+from llm.retry import ainvoke_with_retry
+from tools.gateway import tool_gateway
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,8 @@ class ResearchAgent:
 
     async def _research_component(
         self,
-        component: Dict[str, Any]
+        component: Dict[str, Any],
+        analysis_id: str = "unknown"
     ) -> tuple[list[Dict[str, Any]], list[Dict[str, Any]]]:
         """Research a single component and return normalized candidate dicts + traces."""
         comp_id = component.get("id")
@@ -74,39 +75,54 @@ class ResearchAgent:
         # Keep query concise to improve search results
         query = " ".join(query.split()[:8])
         
-        raw_results = []
         traces = []
+        raw_results = []
+        category = component.get("category", "").upper()
         
-        # Query GitHub MCP via tools adapter
-        try:
-            trace = await search_github(query=query, per_page=5)
-            traces.append(trace)
-            
-            if trace["status"] == "SUCCESS" and trace["result_summary"].get("content"):
-                raw_results.append(f"--- GITHUB RESULTS ---\n{trace['result_summary']['content']}")
-        except Exception as e:
-            # MCPManager handles timeouts and configuration errors gracefully via exceptions,
-            # but we catch them here so ResearchAgent doesn't crash the workflow.
-            logger.warning(f"GitHub MCP research failed for {comp_id}: {e}")
+        # Capability Mapping
+        capabilities = []
+        if "SECURITY" in category:
+            capabilities = ["security.get", "github.search", "web.search"]
+        elif "CLOUD" in category or "INFRASTRUCTURE" in category:
+            capabilities = ["cloud.architecture", "aws.documentation", "github.search", "web.search"]
+        else:
+            capabilities = ["license.get", "github.search", "web.search"]
 
-        # Query Tavily MCP via tools adapter
-        try:
-            trace = await search_web(
-                query=query + " open source architecture github",
-                search_depth="advanced",
-                max_results=5
-            )
-            traces.append(trace)
-            
-            if trace["status"] == "SUCCESS" and trace["result_summary"].get("content"):
-                raw_results.append(f"--- WEB RESULTS ---\n{trace['result_summary']['content']}")
-        except Exception as e:
-            logger.warning(f"Tavily MCP research failed for {comp_id}: {e}")
+        for cap in capabilities:
+            try:
+                # Build common parameters, capabilities will ignore what they don't need
+                args = {
+                    "query": query,
+                    "repository": query,  # Some tools expect 'repository' instead of 'query'
+                    "limit": 5
+                }
+                logger.info(f"ResearchAgent executing capability: {cap} for {comp_id}")
+                trace = await tool_gateway.execute_tool(cap, args)
+                traces.append(trace)
                 
+                if trace["status"] == "SUCCESS" and trace.get("results"):
+                    results = trace["results"]
+                    # Add provider context block
+                    raw_results.append(f"--- {cap.upper()} RESULTS ({trace.get('provider', 'UNKNOWN')}) ---")
+                    for res in results:
+                        if isinstance(res, str):
+                            if res.strip():
+                                raw_results.append(res)
+                        else:
+                            if res:
+                                raw_results.append(json.dumps(res, indent=2))
+            except Exception as e:
+                logger.warning(f"Capability {cap} failed for {comp_id}: {e}")
+
         if not raw_results:
             return [], traces
             
+        # Context-size protection before sending to LLM
         combined_raw = "\n\n".join(raw_results)
+        # 14,000 characters is approximately ~3.5k tokens, well within Groq's 8k TPM limits.
+        if len(combined_raw) > 14000:
+            logger.warning(f"Context too large ({len(combined_raw)} chars) for {comp_id}, truncating.")
+            combined_raw = combined_raw[:14000] + "\n... [TRUNCATED to fit context size limits]"
         
         # Use LLM to extract structured candidates from raw text
         prompt_content = (
@@ -118,7 +134,16 @@ class ResearchAgent:
         )
         
         try:
-            response = await self.llm_json.ainvoke(prompt_content)
+            response = await ainvoke_with_retry(
+                llm_callable=self.llm_json.ainvoke,
+                messages=prompt_content,
+                agent_name="ResearchAgent",
+                analysis_id=analysis_id,
+                context_compactor=lambda msgs, limit: (
+                    # Simple aggressive compactor for single-string prompt_content: just cut it in half
+                    msgs[:limit] + "\n... [TRUNCATED for Retry]" if isinstance(msgs, str) else msgs
+                )
+            )
             result_json = response.content
             parsed = ResearchResult.model_validate_json(result_json)
             # Serialize back to dicts to match state contract
@@ -137,6 +162,7 @@ class ResearchAgent:
 
     async def _arun(self, state: BuildSmartState) -> BuildSmartState:
         state["status"] = "RESEARCHING"
+        analysis_id = state.get("analysis_id", "unknown")
         components = state.get("components", [])
             
         all_candidates = []
@@ -145,7 +171,8 @@ class ResearchAgent:
         
         # To avoid being rate limited and for V1 scope, process sequentially or in limited batches
         for comp in components:
-            comp_candidates, traces = await self._research_component(comp)
+            logger.info(f"ResearchAgent researching component: {comp.get('name')}")
+            comp_candidates, traces = await self._research_component(comp, analysis_id)
             agent_traces.extend(traces)
             
             # Deduplicate by URL

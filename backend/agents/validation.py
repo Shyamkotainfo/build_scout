@@ -7,6 +7,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from agents.state import BuildSmartState
 from llm.client import get_llm
 from llm.prompts import VALIDATION_SYSTEM_PROMPT
+from llm.retry import invoke_with_retry
 
 
 class ValidationCategory(BaseModel):
@@ -175,7 +176,12 @@ class ValidationAgent:
         ]
 
         try:
-            response = self.llm_json.invoke(messages)
+            response = invoke_with_retry(
+                llm_callable=self.llm_json.invoke,
+                messages=messages,
+                agent_name="ValidationAgent",
+                analysis_id=state.get("analysis_id", "unknown")
+            )
             llm_result = LLMValidationResult.model_validate(json.loads(response.content))
         except Exception as e:
             fallback_cat = LLMValidationCategory(score=0, findings=[f"LLM validation failed: {str(e)}"])

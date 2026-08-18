@@ -5,14 +5,17 @@ from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
 # Import the actual tool functions
-from backend.tools.github import github_search, github_repository, get_package_metadata
-from backend.tools.web_search import search_web
-from backend.tools.license import get_license
-from backend.tools.security import get_security_posture
-from backend.tools.cloud_architecture import search_aws_documentation
-from backend.tools.documentation import search_documentation
+from tools.github import github_search, github_repository, get_package_metadata
+from tools.web_search import search_web
+from tools.license import get_license
+from tools.security import get_security_posture
+from tools.cloud_architecture import search_aws_documentation
+from tools.documentation import search_documentation
+from mcp_integration.manager import mcp_manager
+from mcp_integration.registry import registry
+from api.exceptions import MCPConfigurationException, MCPServiceException, MCPTimeoutException
 
-logger = logging.getLogger("buildsmart.mcp.client")
+logger = logging.getLogger("buildsmart.tools.gateway")
 
 # --- Interface Definition ---
 class BuildSmartTool(abc.ABC):
@@ -294,12 +297,13 @@ class EvidenceGetTool(BuildSmartTool):
         return {"evidence": _EVIDENCE_STORE.get(cand_id, [])}
 
 
-# --- Unified MCP Client Adapter ---
+# --- Unified Tool Gateway ---
 
-class MCPClientAdapter:
+class UnifiedToolGateway:
     """
-    Orchestrator that registers local custom tools and manages execution
+    Unified Orchestrator that registers local custom tools and manages execution
     with metrics tracking, timeout control, and retries.
+    It routes to external MCP servers if configured, and falls back to local tool adapters.
     """
     def __init__(self):
         self._tools: Dict[str, BuildSmartTool] = {}
@@ -330,17 +334,80 @@ class MCPClientAdapter:
         
     async def execute_tool(self, tool_name: str, arguments: dict, retries: int = 2) -> dict:
         """
-        Execute tool by name. Includes logging, metrics (latency), and retry handling.
+        Execute tool by name. Routes to external MCPs or Local execution based on registry.
+        Includes logging, metrics (latency), and retry handling for local tools.
         """
-        if tool_name not in self._tools:
-            logger.error(f"Tool {tool_name} not found.")
+        try:
+            tool_config = registry.get_tool_config(tool_name)
+        except ValueError as e:
+            logger.error(f"Tool {tool_name} not found in registry: {e}")
             return {
+                "tool_name": tool_name,
+                "status": "FAILED",
+                "provider": "UNKNOWN",
+                "latency_ms": 0,
                 "error": {
                     "code": "TOOL_NOT_FOUND",
-                    "message": f"Tool {tool_name} is not registered in the allow-list."
+                    "message": f"Tool {tool_name} is not registered in the tool gateway."
                 }
             }
-            
+
+        masked_args = mcp_manager._mask_secrets(arguments)
+        
+        # Argument Normalization
+        mcp_args = {}
+        if tool_config.provider == "MCP":
+            if tool_name == "github.search":
+                mcp_args = {"query": arguments.get("query", ""), "perPage": arguments.get("limit", 10)}
+            elif tool_name == "web.search":
+                mcp_args = {
+                    "query": arguments.get("query", ""),
+                    "search_depth": "advanced",
+                    "max_results": arguments.get("limit", 10)
+                }
+            else:
+                mcp_args = arguments.copy()
+
+        # 1. External MCP Routing with Fallbacks
+        if tool_config.provider == "MCP" and tool_config.mcp_server and tool_config.mcp_tool:
+            try:
+                logger.info(f"Routing {tool_name} to external MCP: {tool_config.mcp_server}.{tool_config.mcp_tool}")
+                trace = await mcp_manager.call_tool(tool_config.mcp_server, tool_config.mcp_tool, mcp_args)
+                if trace.get("status") == "SUCCESS":
+                    return {
+                        "tool_name": tool_name,
+                        "status": "SUCCESS",
+                        "latency_ms": trace.get("latency_ms", 0),
+                        "provider": "MCP",
+                        "source": tool_config.mcp_server,
+                        "arguments": masked_args,
+                        "results": [trace["result_summary"]["content"]]
+                    }
+            except Exception as e:
+                logger.warning(f"External MCP failed for {tool_name}: {e}. Falling back to {tool_config.fallback_tool}.")
+                if not tool_config.fallback_tool:
+                    return {
+                        "tool_name": tool_name,
+                        "status": "FAILED",
+                        "provider": "MCP",
+                        "latency_ms": 0,
+                        "arguments": masked_args,
+                        "error": {"code": "MCP_FAILURE", "message": str(e)}
+                    }
+                # Update tool_name to fallback and fall through to local execution
+                tool_name = tool_config.fallback_tool
+                
+        # 2. Local Execution (or Fallback execution)
+        if tool_name not in self._tools:
+            return {
+                "tool_name": tool_name,
+                "status": "FAILED",
+                "provider": "LOCAL",
+                "latency_ms": 0,
+                "arguments": masked_args,
+                "error": {"code": "LOCAL_TOOL_NOT_FOUND", "message": f"Local implementation for {tool_name} not found."}
+            }
+
         tool = self._tools[tool_name]
         attempt = 0
         last_error = None
@@ -349,32 +416,51 @@ class MCPClientAdapter:
             start_time = time.perf_counter()
             attempt += 1
             try:
-                logger.info(f"Executing tool {tool_name} (Attempt {attempt}) with arguments {arguments}")
+                provider_type = "FALLBACK" if tool_config.provider == "MCP" else "LOCAL"
+                logger.info(f"Executing {provider_type} tool {tool_name} (Attempt {attempt}) with arguments {masked_args}")
                 result = await tool.execute(arguments)
                 latency = int((time.perf_counter() - start_time) * 1000)
                 
-                # Success output format matching spec
+                # Result normalization for local tools
+                normalized_results = []
+                if isinstance(result, dict) and "results" in result:
+                    normalized_results = result["results"]
+                elif isinstance(result, dict) and "license" in result:
+                    normalized_results = [result]
+                elif isinstance(result, dict) and "security" in result:
+                    normalized_results = [result]
+                elif isinstance(result, list):
+                    normalized_results = result
+                else:
+                    normalized_results = [result]
+                    
                 return {
                     "tool_name": tool_name,
                     "status": "SUCCESS",
                     "latency_ms": latency,
-                    "arguments": arguments,
-                    "result": result
+                    "provider": provider_type,
+                    "source": "local",
+                    "arguments": masked_args,
+                    "results": normalized_results
                 }
             except Exception as e:
                 latency = int((time.perf_counter() - start_time) * 1000)
                 logger.error(f"Error executing {tool_name} on attempt {attempt}: {e}")
                 last_error = e
-                # Wait briefly before retrying
+                # Wait briefly before retrying local tools
                 time.sleep(0.1)
                 
-        # If all retries fail
         return {
             "tool_name": tool_name,
             "status": "FAILED",
-            "arguments": arguments,
+            "provider": "LOCAL",
+            "latency_ms": latency,
+            "arguments": masked_args,
             "error": {
                 "code": "TOOL_EXECUTION_FAILED",
                 "message": f"Failed after {attempt} attempts. Last error: {str(last_error)}"
             }
         }
+
+# Global Singleton instance
+tool_gateway = UnifiedToolGateway()

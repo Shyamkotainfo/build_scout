@@ -26,6 +26,7 @@ class Analysis(Base):
     requirements = relationship("Requirement", back_populates="analysis", cascade="all, delete-orphan")
     blueprints = relationship("Blueprint", back_populates="analysis", cascade="all, delete-orphan")
     agent_runs = relationship("AgentRun", back_populates="analysis", cascade="all, delete-orphan")
+    llm_calls = relationship("LLMCall", back_populates="analysis", cascade="all, delete-orphan")
 
 
 class Requirement(Base):
@@ -211,3 +212,24 @@ class AgentMessage(Base):
     message_type = Column(String)
     payload = Column(JSONB)
     created_at = Column(DateTime(timezone=True), default=utcnow)
+
+
+class LLMCall(Base):
+    __tablename__ = 'llm_call'
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    analysis_id = Column(UUID(as_uuid=True), ForeignKey('analysis.id'), nullable=False, index=True)
+    agent_name = Column(String)
+    model = Column(String)
+    attempt = Column(Integer)
+    input_tokens = Column(Integer)
+    output_tokens = Column(Integer)
+    total_tokens = Column(Integer)
+    latency_ms = Column(Integer)
+    status = Column(String)
+    retry_count = Column(Integer)
+    context_compacted = Column(Boolean)
+    error_type = Column(String)
+    created_at = Column(DateTime(timezone=True), default=utcnow)
+    
+    analysis = relationship("Analysis", back_populates="llm_calls")
