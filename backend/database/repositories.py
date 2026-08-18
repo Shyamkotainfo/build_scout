@@ -2,10 +2,11 @@ import logging
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 import uuid
+from datetime import datetime
 
 from database.models import (
     Analysis, Requirement, Component, Candidate,
-    CandidateEvaluation, Decision, Blueprint, AgentRun
+    CandidateEvaluation, Decision, Blueprint, AgentRun, LLMCall
 )
 
 logger = logging.getLogger(__name__)
@@ -185,7 +186,34 @@ class AnalysisRepository:
                 )
                 session.add(run)
 
-        # 9. Commit
+        # 9. LLM Calls
+        llm_calls_data = state.get("_llm_calls", [])
+        if llm_calls_data:
+            for call_data in llm_calls_data:
+                try:
+                    dt = datetime.fromisoformat(call_data.get("created_at")) if call_data.get("created_at") else None
+                except Exception:
+                    dt = None
+                    
+                call = LLMCall(
+                    id=uuid.uuid4(),
+                    analysis_id=analysis_id,
+                    agent_name=call_data.get("agent_name"),
+                    model=call_data.get("model"),
+                    attempt=call_data.get("attempt"),
+                    input_tokens=call_data.get("input_tokens"),
+                    output_tokens=call_data.get("output_tokens"),
+                    total_tokens=call_data.get("total_tokens"),
+                    latency_ms=call_data.get("latency_ms"),
+                    status=call_data.get("status"),
+                    retry_count=call_data.get("retry_count"),
+                    context_compacted=call_data.get("context_compacted"),
+                    error_type=call_data.get("error_type"),
+                    created_at=dt
+                )
+                session.add(call)
+
+        # 10. Commit
         logger.info(f"Successfully staged analysis {analysis_id} for persistence.")
 
     # ──────────────────────────────────────────────────────
@@ -265,6 +293,15 @@ class AnalysisRepository:
         return (
             session.query(AgentRun)
             .filter(AgentRun.analysis_id == analysis_id)
+            .all()
+        )
+
+    def get_llm_calls(self, session: Session, analysis_id: uuid.UUID) -> list:
+        """Return all LLMCall rows for an analysis."""
+        return (
+            session.query(LLMCall)
+            .filter(LLMCall.analysis_id == analysis_id)
+            .order_by(LLMCall.created_at)
             .all()
         )
 
@@ -367,6 +404,31 @@ class AnalysisRepository:
         # Agent trace → agent_history string list
         agent_history = [run.agent_name for run in agent_runs if run.agent_name]
 
+        # LLM Metrics
+        llm_calls = self.get_llm_calls(session, analysis_id)
+        llm_metrics = {
+            "total_calls": len(llm_calls),
+            "successful_calls": sum(1 for c in llm_calls if c.status == "SUCCESS"),
+            "failed_calls": sum(1 for c in llm_calls if c.status != "SUCCESS"),
+            "total_retries": sum(1 for c in llm_calls if (c.attempt or 1) > 1),
+            "total_input_tokens": sum(c.input_tokens or 0 for c in llm_calls),
+            "total_output_tokens": sum(c.output_tokens or 0 for c in llm_calls),
+            "total_tokens": sum(c.total_tokens or 0 for c in llm_calls),
+            "total_latency_ms": sum(c.latency_ms or 0 for c in llm_calls),
+            "average_latency_ms": 0,
+            "context_compactions": sum(1 for c in llm_calls if c.context_compacted),
+            "total_cost": None
+        }
+        if llm_metrics["total_calls"] > 0:
+            llm_metrics["average_latency_ms"] = int(llm_metrics["total_latency_ms"] / llm_metrics["total_calls"])
+            
+        from config.settings import get_settings
+        settings = get_settings()
+        if settings.input_price_per_1m_tokens is not None and settings.output_price_per_1m_tokens is not None:
+            input_cost = (llm_metrics["total_input_tokens"] / 1_000_000.0) * settings.input_price_per_1m_tokens
+            output_cost = (llm_metrics["total_output_tokens"] / 1_000_000.0) * settings.output_price_per_1m_tokens
+            llm_metrics["total_cost"] = round(input_cost + output_cost, 6)
+
         return {
             "analysis_id": str(analysis.id),
             "user_request": analysis.user_request or "",
@@ -382,4 +444,5 @@ class AnalysisRepository:
             "validation_result": None,
             "agent_history": agent_history,
             "traces": [],
+            "llm_metrics": llm_metrics if llm_calls else None
         }

@@ -146,7 +146,11 @@ The JSON must match this exact schema:
         "stars": <optional integer, if available>,
         "language": "<optional string, if available>",
         "license": "<optional string, if available>",
-        "last_updated": "<optional string, if available>"
+        "last_updated": "<optional string, if available>",
+        "forks": <optional integer, if available>,
+        "score": <optional float, if available>,
+        "published_date": <optional string, if available>,
+        "<other_relevant_keys>": "<any other useful metadata provided>"
       }
     }
   ]

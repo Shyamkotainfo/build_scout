@@ -12,6 +12,13 @@ class MCPServerConfig(BaseModel):
     command: Optional[str]
     allowed_tools: List[str]
 
+class ToolConfig(BaseModel):
+    name: str
+    provider: str  # "MCP" or "LOCAL"
+    mcp_server: Optional[str] = None
+    mcp_tool: Optional[str] = None
+    fallback_tool: Optional[str] = None
+
 class MCPRegistry:
     """Registry of allowed MCP servers and their permitted tools."""
     
@@ -60,6 +67,40 @@ class MCPRegistry:
             )
         }
 
+        # Define the explicit Tool Registry mapping unified capabilities to providers
+        self._tools: Dict[str, ToolConfig] = {
+            "github.search": ToolConfig(
+                name="github.search",
+                provider="MCP",
+                mcp_server="github",
+                mcp_tool="search_repositories",
+                fallback_tool="github.search" # falls back to local gateway execution
+            ),
+            "web.search": ToolConfig(
+                name="web.search",
+                provider="MCP",
+                mcp_server="tavily",
+                mcp_tool="tavily-search",
+                fallback_tool="web.search"
+            ),
+            "security.get": ToolConfig(
+                name="security.get",
+                provider="LOCAL"
+            ),
+            "license.get": ToolConfig(
+                name="license.get",
+                provider="LOCAL"
+            ),
+            "aws.documentation": ToolConfig(
+                name="aws.documentation",
+                provider="LOCAL"
+            ),
+            "cloud.architecture": ToolConfig(
+                name="cloud.architecture",
+                provider="LOCAL"
+            )
+        }
+
     def get_server_config(self, server_name: str) -> MCPServerConfig:
         """Get the configuration for a server if it's allowed.
         
@@ -77,6 +118,12 @@ class MCPRegistry:
             return tool_name in config.allowed_tools or "*" in config.allowed_tools
         except ValueError:
             return False
+
+    def get_tool_config(self, tool_name: str) -> ToolConfig:
+        """Get the configuration for a unified capability."""
+        if tool_name not in self._tools:
+            raise ValueError(f"Tool capability '{tool_name}' is not in the registry.")
+        return self._tools[tool_name]
 
 # Singleton instance for easy import
 registry = MCPRegistry()

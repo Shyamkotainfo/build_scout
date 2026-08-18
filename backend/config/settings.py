@@ -31,6 +31,24 @@ class Settings(BaseSettings):
         description="Groq model identifier to use for all LLM calls.",
     )
 
+    llm_max_retries: int = Field(
+        default=3,
+        description="Maximum number of retries for an LLM call after initial failure.",
+    )
+    llm_retry_base_delay_seconds: int = Field(
+        default=1,
+        description="Base delay in seconds for LLM exponential backoff.",
+    )
+    llm_retry_max_delay_seconds: int = Field(
+        default=8,
+        description="Maximum delay in seconds for LLM exponential backoff.",
+    )
+    llm_context_target_tokens: int = Field(
+        default=5000,
+        description="Target maximum token size (estimated) for compacted LLM context.",
+    )
+
+
     mcp_github_command: str | None = Field(
         default=None,
         description="Command to run the GitHub MCP server (e.g. 'npx -y @modelcontextprotocol/server-github').",
@@ -79,6 +97,23 @@ class Settings(BaseSettings):
     lakebase_ssl_mode: str = Field(
         default="require",
         description="Databricks Lakebase SSL mode (default: require).",
+    )
+
+    buildsmart_full_log_file: str | None = Field(
+        default=None,
+        description="Path to the full application log file (e.g. logs/buildsmart.log).",
+    )
+    buildsmart_token_log_file: str | None = Field(
+        default=None,
+        description="Path to the token-only log file (e.g. logs/llm_tokens.log).",
+    )
+    input_price_per_1m_tokens: float | None = Field(
+        default=None,
+        description="Cost in USD per 1 million input tokens.",
+    )
+    output_price_per_1m_tokens: float | None = Field(
+        default=None,
+        description="Cost in USD per 1 million output tokens.",
     )
 
     @property

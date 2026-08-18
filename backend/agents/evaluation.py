@@ -8,6 +8,7 @@ from agents.state import BuildSmartState
 from config.settings import get_settings
 from llm.client import get_llm
 from llm.prompts import EVALUATION_SYSTEM_PROMPT
+from llm.retry import invoke_with_retry
 
 
 class RawEvaluationResult(BaseModel):
@@ -90,7 +91,30 @@ class EvaluationAgent:
         ]
 
         # 3. Call LLM
-        response = self.llm_json.invoke(messages)
+        def compactor(msgs: list[Any], limit_chars: int) -> list[Any]:
+            """Truncate candidate descriptions and missing_evidence on 413."""
+            import copy
+            new_msgs = copy.deepcopy(msgs)
+            for msg in new_msgs:
+                if isinstance(msg, HumanMessage) and isinstance(msg.content, str):
+                    try:
+                        data = json.loads(msg.content)
+                        if "candidates" in data:
+                            for c in data["candidates"]:
+                                if "description" in c:
+                                    c["description"] = c["description"][:100] + "..."
+                        msg.content = json.dumps(data, indent=2)
+                    except Exception:
+                        pass
+            return new_msgs
+
+        response = invoke_with_retry(
+            llm_callable=self.llm_json.invoke,
+            messages=messages,
+            agent_name="EvaluationAgent",
+            analysis_id=state.get("analysis_id", "unknown"),
+            context_compactor=compactor
+        )
         
         try:
             content = json.loads(response.content)

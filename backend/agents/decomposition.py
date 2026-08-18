@@ -32,6 +32,7 @@ from pydantic import BaseModel, Field
 from agents.state import BuildSmartState
 from llm.client import get_llm
 from llm.prompts import DECOMPOSITION_SYSTEM_PROMPT
+from llm.retry import invoke_with_retry
 
 
 # ---------------------------------------------------------------------------
@@ -113,7 +114,8 @@ class DecompositionAgent:
 
         state["status"] = "DECOMPOSING"
 
-        result = self._call_llm(user_request)
+        analysis_id = state.get("analysis_id", "unknown")
+        result = self._call_llm(user_request, analysis_id)
 
         # Write structured results back into shared state
         state["normalized_request"] = result.normalized_request
@@ -131,7 +133,7 @@ class DecompositionAgent:
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _call_llm(self, user_request: str) -> DecompositionResult:
+    def _call_llm(self, user_request: str, analysis_id: str) -> DecompositionResult:
         """Send user_request to Groq in JSON mode and parse the result.
 
         Uses json_object response format (same pattern as SupervisorAgent)
@@ -154,7 +156,12 @@ class DecompositionAgent:
         ]
 
         try:
-            response: AIMessage = json_llm.invoke(messages)
+            response: AIMessage = invoke_with_retry(
+                llm_callable=json_llm.invoke,
+                messages=messages,
+                agent_name="DecompositionAgent",
+                analysis_id=analysis_id
+            )
             raw: dict = json.loads(response.content)
             return DecompositionResult.model_validate(raw)
         except Exception as exc:

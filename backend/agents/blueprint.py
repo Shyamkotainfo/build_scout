@@ -8,6 +8,7 @@ from agents.state import BuildSmartState
 from config.settings import get_settings
 from llm.client import get_llm
 from llm.prompts import BLUEPRINT_SYSTEM_PROMPT
+from llm.retry import invoke_with_retry
 
 
 class TechStackItem(BaseModel):
@@ -94,6 +95,25 @@ class BlueprintAgent:
         state["status"] = "BLUEPRINTING"
         state["current_agent"] = "BlueprintAgent"
 
+        decisions = state.get("decisions", [])
+        analysis_id = state.get("analysis_id", "unknown")
+        
+        # Only pass candidates and evaluations that were actually selected
+        selected_candidate_ids = {
+            d["selected_candidate_id"] for d in decisions if d.get("selected_candidate_id")
+        }
+        filtered_candidates = [
+            c for c in state.get("candidates", []) if c["id"] in selected_candidate_ids
+        ]
+        
+        # Only pass evaluations for components that we decided to reuse/adapt
+        components_reused = {
+            d["component_id"] for d in decisions if d.get("decision") in ("REUSE", "ADAPT")
+        }
+        filtered_evaluations = [
+            e for e in state.get("evaluations", []) if e["component_id"] in components_reused and e["candidate_id"] in selected_candidate_ids
+        ]
+
         # 2. Prepare payload for the LLM
         payload = {
             "user_request": state.get("user_request", ""),
@@ -101,9 +121,9 @@ class BlueprintAgent:
             "domain": state.get("domain", ""),
             "requirements": state.get("requirements", []),
             "components": state.get("components", []),
-            "candidates": state.get("candidates", []),
-            "evaluations": state.get("evaluations", []),
-            "decisions": state.get("decisions", [])
+            "candidates": filtered_candidates,
+            "evaluations": filtered_evaluations,
+            "decisions": decisions
         }
 
         messages = [
@@ -112,7 +132,13 @@ class BlueprintAgent:
         ]
 
         # 3. Call LLM
-        response = self.llm_json.invoke(messages)
+        response = invoke_with_retry(
+            llm_callable=self.llm_json.invoke,
+            messages=messages,
+            agent_name="BlueprintAgent",
+            analysis_id=analysis_id,
+            context_compactor=lambda msgs, limit: msgs  # Blueprint payload shouldn't be huge after filtering
+        )
         
         try:
             content = json.loads(response.content)

@@ -28,6 +28,7 @@ from pydantic import BaseModel
 from agents.state import BuildSmartState
 from llm.client import get_llm
 from llm.prompts import SUPERVISOR_SYSTEM_PROMPT
+from llm.retry import invoke_with_retry
 
 
 # ---------------------------------------------------------------------------
@@ -93,7 +94,8 @@ class SupervisorAgent:
         state["status"] = "PLANNING"
 
         # Call Groq with structured output
-        plan = self._call_llm(user_request)
+        analysis_id = state.get("analysis_id", "unknown")
+        plan = self._call_llm(user_request, analysis_id)
 
         # Write results into state
         state["execution_plan"] = [step.model_dump() for step in plan.plan]
@@ -107,7 +109,7 @@ class SupervisorAgent:
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _call_llm(self, user_request: str) -> SupervisorPlan:
+    def _call_llm(self, user_request: str, analysis_id: str) -> SupervisorPlan:
         """Send user_request to Groq in JSON mode and parse the plan.
 
         Uses json_object response format so Groq returns clean JSON without
@@ -129,6 +131,12 @@ class SupervisorAgent:
             HumanMessage(content=user_request),
         ]
 
-        response: AIMessage = json_llm.invoke(messages)
+        response = invoke_with_retry(
+            llm_callable=json_llm.invoke,
+            messages=messages,
+            agent_name="SupervisorAgent",
+            analysis_id=analysis_id
+        )
+        
         raw: dict = json.loads(response.content)
         return SupervisorPlan.model_validate(raw)
