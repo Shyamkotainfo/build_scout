@@ -27,13 +27,6 @@ logger = logging.getLogger(__name__)
 # Structured Output Models
 # ---------------------------------------------------------------------------
 
-class ResearchMetadata(BaseModel):
-    stars: int | None = None
-    language: str | None = None
-    license: str | None = None
-    last_updated: str | None = None
-
-
 class ResearchCandidate(BaseModel):
     id: str
     component_id: str
@@ -42,7 +35,7 @@ class ResearchCandidate(BaseModel):
     url: str
     description: str
     relevance_reason: str
-    metadata: ResearchMetadata = Field(default_factory=ResearchMetadata)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class ResearchResult(BaseModel):
@@ -102,15 +95,20 @@ class ResearchAgent:
                 
                 if trace["status"] == "SUCCESS" and trace.get("results"):
                     results = trace["results"]
-                    # Add provider context block
-                    raw_results.append(f"--- {cap.upper()} RESULTS ({trace.get('provider', 'UNKNOWN')}) ---")
+                    
+                    # Accumulate valid items first
+                    valid_items = []
                     for res in results:
                         if isinstance(res, str):
                             if res.strip():
-                                raw_results.append(res)
+                                valid_items.append(res)
                         else:
                             if res:
-                                raw_results.append(json.dumps(res, indent=2))
+                                valid_items.append(json.dumps(res, indent=2))
+                                
+                    if valid_items:
+                        raw_results.append(f"--- {cap.upper()} RESULTS ({trace.get('provider', 'UNKNOWN')}) ---")
+                        raw_results.extend(valid_items)
             except Exception as e:
                 logger.warning(f"Capability {cap} failed for {comp_id}: {e}")
 

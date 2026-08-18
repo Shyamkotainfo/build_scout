@@ -26,8 +26,9 @@ class CandidateResponse(BaseModel):
     name: str
     url: Optional[str] = None
     description: str
-    license: str
-    stars: int
+    license: str = "Unknown"
+    stars: int = 0
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 class EvaluationResponse(BaseModel):
     candidate_name: str

@@ -146,7 +146,7 @@ class SecurityTool(BuildSmartTool):
 class CloudArchitectureTool(BuildSmartTool):
     @property
     def name(self) -> str:
-        return "aws.documentation"
+        return "cloud.architecture"
 
     @property
     def description(self) -> str:
@@ -162,7 +162,7 @@ class CloudArchitectureTool(BuildSmartTool):
 class DocsSearchTool(BuildSmartTool):
     @property
     def name(self) -> str:
-        return "docs.search"
+        return "aws.documentation"
 
     @property
     def description(self) -> str:

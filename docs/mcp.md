@@ -9,12 +9,24 @@
 
 Model Context Protocol (MCP) allows BuildSmart's agents to interface with external tools (GitHub search, web search, package registries, vulnerability databases) in a standardized way.
 
-Rather than hardcoding provider-specific logic (e.g., calling the GitHub API directly from `ResearchAgent`), agents will use the MCP foundation to invoke normalized "tools" exposed by local or remote MCP servers.
+- Connects natively to local/remote stdio servers via generic MCP protocols.
+- **Unified Tool Gateway (`backend/tools/gateway.py`)**:
+  - Serves as the single point of entry for agents to execute capabilities.
+  - Dynamically routes requests to external MCP servers (via `MCPManager`) or local Python implementations (`BuildSmartTool`).
+  - Provides graceful fallback (e.g., if external GitHub MCP times out, falls back to local `github.py` HTTP implementation).
+- **Local Tools (`backend/tools/*.py`)**:
+  - Implement specific capabilities like `security.get` or `license.get` that don't need full MCP servers.
+- **Agents (`backend/agents/`)**:
+  - `ResearchAgent` orchestrates queries using abstract tools like `github.search`, without knowing their backing implementation.
+  - Normalizes results while enforcing strict context limits (14k chars) to prevent LLM `413` errors.
 
 ## 2. Architecture
 
 ```
 Agent (e.g. ResearchAgent)
+       │
+       ▼
+UnifiedToolGateway (tools/gateway.py) ──► Local Tools (BuildSmartTool)
        │
        ▼
 MCPManager (mcp_integration/manager.py)
@@ -27,9 +39,6 @@ MCPToolClient (mcp_integration/client.py)
        │  (Manages stdio connection lifecycle)
        ▼
 External MCP Server (e.g., @modelcontextprotocol/server-github)
-       │
-       ▼
-External Provider (GitHub API)
 ```
 
 ## 3. Allow-List and Configuration
@@ -80,22 +89,21 @@ Every successful or failed tool invocation returns a normalized trace dictionary
 
 The foundation is fully unit-tested in `backend/tests/test_mcp.py` without requiring live external MCP servers. Mocks are used to simulate timeouts, retries, and result truncation.
 
-## 7. Provider Tools Layer
+## 7. Unified Tool Layer
 
-* `backend/tools/github.py`: Encapsulates GitHub MCP execution context.
-* `backend/tools/web_search.py`: Encapsulates Tavily MCP execution context.
-* `backend/tools/documentation.py`: FUTURE.
-* `backend/tools/cloud_architecture.py`: FUTURE.
-* `backend/tools/license.py`: FUTURE.
-* `backend/tools/security.py`: FUTURE.
+* `backend/tools/gateway.py`: The single unified orchestrator.
+* `backend/tools/github.py`: Local fallback for `github.search`.
+* `backend/tools/web_search.py`: Local fallback for `web.search`.
+* `backend/tools/documentation.py`: Local tool for `docs.search`.
+* `backend/tools/cloud_architecture.py`: Local tool for `aws.documentation`.
+* `backend/tools/license.py`: Local tool for `license.get`.
+* `backend/tools/security.py`: Local tool for `security.get`.
 
 ## 8. Current Integrations
 
-- **GitHub MCP**: `IMPLEMENTED`. ResearchAgent uses `tools/github.py` to search GitHub for repositories.
-- **Tavily Web MCP**: `IMPLEMENTED`. ResearchAgent uses `tools/web_search.py` to query the web.
-- **Documentation MCP**: `NOT IMPLEMENTED`
-- **Package Metadata MCP**: `NOT IMPLEMENTED`
-- **License/Security MCP**: `NOT IMPLEMENTED`
+- **GitHub MCP**: `IMPLEMENTED`. ResearchAgent uses `github.search`, hitting MCP and falling back to the local tool if needed.
+- **Tavily Web MCP**: `IMPLEMENTED`. ResearchAgent uses `web.search`, hitting MCP and falling back to the local tool.
+- **License / Security / Docs**: `IMPLEMENTED` via local tools in the unified gateway.
 
 ## 8. Next Steps
 

@@ -61,10 +61,10 @@ def mock_llm_for_deduplication():
 async def test_tavily_mcp_successful_search(mock_gateway, mock_llm_for_web):
     async def mock_execute(tool_name, arguments):
         if tool_name == "github.search":
-            return {"status": "SUCCESS", "result": {"raw_mcp_response": "GH result"}, "latency_ms": 50}
+            return {"status": "SUCCESS", "results": ["GH result"], "latency_ms": 50}
         elif tool_name == "web.search":
-            return {"status": "SUCCESS", "result": {"raw_mcp_response": "Web result: Tavily Search API"}, "latency_ms": 100}
-        return {"status": "SUCCESS", "result": {}}
+            return {"status": "SUCCESS", "results": ["Web result: Tavily Search API"], "latency_ms": 100}
+        return {"status": "SUCCESS", "results": []}
     
     mock_gateway.side_effect = mock_execute
     
@@ -77,15 +77,16 @@ async def test_tavily_mcp_successful_search(mock_gateway, mock_llm_for_web):
     assert candidates[0]["name"] == "Tavily Web Search API"
     assert candidates[0]["source"] == "tavily"
     
-    assert len(traces) == 2 # 1 for github, 1 for web
+    assert len(traces) == 3 # 1 for license, 1 for github, 1 for web
     assert traces[0]["status"] == "SUCCESS"
     assert traces[1]["status"] == "SUCCESS"
+    assert traces[2]["status"] == "SUCCESS"
 
 @pytest.mark.asyncio
 @patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
 async def test_tavily_mcp_empty_result(mock_gateway, mock_llm_for_web):
     async def mock_execute(tool_name, arguments):
-        return {"status": "SUCCESS", "result": {"raw_mcp_response": ""}, "latency_ms": 100}
+        return {"status": "SUCCESS", "results": [""], "latency_ms": 100}
     
     mock_gateway.side_effect = mock_execute
     
@@ -94,7 +95,7 @@ async def test_tavily_mcp_empty_result(mock_gateway, mock_llm_for_web):
     
     candidates, traces = await agent._research_component(comp)
     assert len(candidates) == 0
-    assert len(traces) == 2
+    assert len(traces) == 3
 
 @pytest.mark.asyncio
 @patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
@@ -125,7 +126,7 @@ async def test_tavily_mcp_server_failure(mock_gateway, mock_llm_for_web):
 @pytest.mark.asyncio
 @patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
 async def test_candidate_url_deduplication(mock_gateway, mock_llm_for_deduplication):
-    mock_gateway.return_value = {"status": "SUCCESS", "result": {"raw_mcp_response": "some result"}}
+    mock_gateway.return_value = {"status": "SUCCESS", "results": ["some result"]}
     agent = ResearchAgent()
     
     state = {

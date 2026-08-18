@@ -12,12 +12,12 @@ def mock_search_tools():
             if tool_name == "github.search":
                 return {
                     "status": "SUCCESS",
-                    "result": {"raw_mcp_response": "raw github result text"}
+                    "results": ["raw github result text"]
                 }
             elif tool_name == "web.search":
                 return {
                     "status": "SUCCESS",
-                    "result": {"raw_mcp_response": "raw web result text"}
+                    "results": ["raw web result text"]
                 }
             return {"status": "FAILED"}
         
