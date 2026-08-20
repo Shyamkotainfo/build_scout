@@ -1289,3 +1289,230 @@ Final demo                       ⏳
 11.10.4 Final E2E Verification       ⏳ NEXT
 11.10.5 Final Demo                   ⏳
 [Tue Aug 18 21:08:55 IST 2026] Completed Step 11.9.7 Research Metadata Enrichment
+
+---
+
+## SKILLS ARCHITECTURE DESIGN — 2026-08-19
+
+**Status:** DESIGN/DOCUMENTATION ONLY — No implementation code was created or modified.
+
+### Objective
+
+Define the future BuildSmart Skills architecture as a written specification in `docs/skills.md`. The document establishes the V2 design vocabulary, distinguishes Tools from Skills from Agents, specifies the initial 7 Skills, and documents the Human Feedback and Memory learning loop.
+
+### V1 Foundation (Confirmed Implemented)
+
+The following V1 capabilities were inspected and confirmed before writing the specification:
+
+| Capability | File |
+|---|---|
+| LangGraph 7-agent linear DAG | `backend/agents/graph.py` |
+| UnifiedToolGateway | `backend/tools/gateway.py` |
+| GitHub MCP + Tavily MCP | `backend/mcp_integration/` |
+| Local tool fallbacks (security, license, aws docs, cloud arch) | `backend/tools/` |
+| Lakebase persistence | `backend/database/` |
+| LLM retry (3 retries, exponential backoff, 413 compaction) | `backend/llm/retry.py` |
+| LLM observability (token metrics, latency, cost, dual logs) | `backend/llm/metrics.py` |
+| Lightweight Prompt Optimizer | `backend/services/prompt_optimizer.py` |
+| BuildSmartState (TypedDict) | `backend/agents/state.py` |
+
+### Tool vs Skill Distinction (KEY RULE)
+
+```
+github.search       ≠ Skill   (it is a Tool/Capability)
+security.get        ≠ Skill   (it is a Tool/Capability)
+license.get         ≠ Skill   (it is a Tool/Capability)
+
+Solution Discovery  = Skill   (composes github.search + web.search)
+Security Assessment = Skill   (composes security.get + web.search)
+License Compliance  = Skill   (composes license.get + web.search)
+```
+
+Do NOT convert every tool into a Skill. Tools remain tools. Skills are named business capabilities.
+
+### V2 Skills Specified (DESIGNED — NOT IMPLEMENTED)
+
+1. **Solution Discovery** — `github.search` + `web.search` → normalized candidates
+2. **Solution Evaluation** — LLM-driven, uses supplied evidence → dimension scores
+3. **License Compliance** — `license.get` + `web.search` → license signal (never hallucinate)
+4. **Security Assessment** — `security.get` + `web.search` → security signals (never claim "secure")
+5. **Architecture Research** — `aws.documentation` + `cloud.architecture` + `web.search` → patterns
+6. **Technology Recommendation** — composite of discovery + evaluation + arch research → ranked recommendations
+7. **Solution Comparison** — structured side-by-side comparison across 9 dimensions
+
+Additional planned skills: Reuse Decision, Architecture Blueprint, Validation, Requirement Clarification, Skill Planner.
+
+### Human Feedback (DESIGNED — NOT IMPLEMENTED)
+
+Future capability allowing users to signal:
+- Candidate rejection / preference
+- Technology constraints ("AWS only", "no GPL")
+- Decision overrides ("BUILD not REUSE")
+- Architecture preferences
+
+Feedback persisted to Lakebase per `analysis_id`. Influences future skill behavior and ranking.
+Feedback must never bypass MCP allow-list, secret masking, or fabricate evidence.
+
+### Memory / Context Retrieval (DESIGNED — NOT IMPLEMENTED)
+
+V1 stores analyses in Lakebase and retrieves by `analysis_id` only.
+V2 will introduce semantic retrieval of previous analyses, candidates, decisions, and user preferences to influence new requests.
+
+### Prompt Optimizer V2 Evolution (PLANNED — NOT IMPLEMENTED)
+
+V1 has a lightweight, hybrid (deterministic + optional LLM) Prompt Optimizer.
+V2 will add: feedback-driven optimization, prompt versioning, GEPA/DSPy, prompt quality scoring.
+
+### V2 Implementation Roadmap (DESIGNED)
+
+Phase 1: Skill contract + registry
+Phase 2: Solution Discovery Skill
+Phase 3: Solution Evaluation Skill
+Phase 4: License Compliance + Security Assessment Skills
+Phase 5: Architecture Research Skill
+Phase 6: Solution Comparison + Technology Recommendation Skills
+Phase 7: Reuse Decision + Blueprint + Validation Skills
+Phase 8: Skill Planner
+Phase 9: Memory / Context Retrieval
+Phase 10: Human Feedback
+Phase 11: Feedback-driven Prompt Optimization
+
+### Files Modified
+
+- `docs/skills.md` — REWRITTEN (1,152 lines, 22 sections, full V2 architecture spec)
+- `BUILDSMART/BuildSmart_PROJECT_MEMORY.md` — this entry added
+
+### Files NOT Modified (confirmed)
+
+- No agent files modified
+- No gateway, MCP, or tool files modified
+- No API files modified
+- No database files modified
+- No LLM retry or observability files modified
+- No test files modified
+
+
+---
+
+## STEP 11.10.X — LIGHTWEIGHT PROMPT OPTIMIZER — 2026-08-19
+
+**Status:** IMPLEMENTED
+
+### Objective
+
+Introduce a lightweight Prompt Optimization preprocessing layer between the incoming API request and `SupervisorAgent`. The optimizer improves vague or ambiguous user requests by extracting intent, requirements, constraints, and known technologies — without hallucinating information the user did not state.
+
+### Architecture
+
+```
+POST /api/v1/analyses
+    ↓
+AnalysisService.analyze(user_request)
+    ↓
+PromptOptimizer.optimize(user_request, analysis_id)
+    │   Step 1: Deterministic preprocessing (normalize whitespace, clamp to 2000 chars)
+    │   Step 2: Optional LLM call via invoke_with_retry (agent_name="PromptOptimizer")
+    │   Fallback: original request passes through on any failure
+    ↓
+BuildSmartState
+    │   user_request        = original (never overwritten)
+    │   normalized_request  = optimized_request (if optimization succeeded)
+    ↓
+LangGraph graph → SupervisorAgent → ... (unchanged)
+```
+
+The optimizer is NOT a LangGraph agent. It is a preprocessing service in the services layer.
+
+### Files Created/Modified
+
+| File | Change |
+|---|---|
+| `backend/services/prompt_optimizer.py` | NEW — PromptOptimizer class, PromptOptimizationResult model |
+| `backend/services/analysis_service.py` | MODIFIED — optimizer called before graph.invoke() |
+| `backend/tests/test_prompt_optimizer.py` | NEW — 20 unit tests, all mocked, all passing |
+| `docs/prompt_optimizer.md` | NEW — full documentation |
+
+### State Changes
+
+- `state["user_request"]` — always the original input, never overwritten
+- `state["normalized_request"]` — set to `opt_result.optimized_request` if `optimization_applied=True`
+- No new state fields added; no Lakebase schema changes required
+
+### LLM Usage
+
+- Uses `backend/llm/client.py` → `get_llm()` (existing Groq client, no new client)
+- Uses `backend/llm/retry.py` → `invoke_with_retry` (existing retry service, no new retry)
+- `agent_name="PromptOptimizer"` — appears in `llm_tokens.log`, `buildsmart.log`, and Lakebase `llm_calls`
+- `response_format={"type": "json_object"}` — structured JSON output
+- Input truncated to 2,000 chars max before LLM call (original preserved)
+
+### Retry Integration
+
+Reuses `invoke_with_retry` unchanged. 3 retries, exponential backoff, 413 compaction, automatic token recording. No new retry mechanism.
+
+### Observability Integration
+
+Token counts, latency, retry counts, and cost flow automatically into the existing LLM metrics system (`llm/metrics.py`). `agent_name="PromptOptimizer"` is the identifier in all logs.
+
+### Fallback Behavior
+
+On any failure (LLM error, JSON parse error, Pydantic validation error):
+- `optimized_request = original_request`
+- `intent = UNKNOWN`, `confidence = 0.0`, `optimization_applied = False`
+- Workflow continues — optimizer failure never blocks BuildSmart
+
+### Anti-Hallucination Rule
+
+The system prompt explicitly prohibits inventing requirements, technologies, or constraints. Tests verify this (test_no_hallucinated_technologies).
+
+### Tests
+
+20 unit tests, all mocked (no live Groq required):
+1. Clear request — LLM called, result used
+2. Vague request — LLM called, intent UNKNOWN acceptable
+3. AWS constraint captured
+4. Python constraint captured
+5. Multiple requirements captured
+6. No hallucinated technologies
+7. Invalid JSON → fallback
+8. LLM exception → fallback
+9. invoke_with_retry used (not raw LLM)
+10. Original request preserved
+11. Optimized request stored in normalized_request
+12. analysis_id passed to retry for metrics
++ 8 helper unit tests (coerce_list, coerce_float, fallback shape)
+
+### Manual Verification
+
+Full test suite with GROQ_API_KEY=fake_key:
+- **215 passed** (up from 195 before this step — +20 new optimizer tests)
+- **2 failed** — pre-existing Groq 401 auth failures (test_valid_state_can_be_passed, test_groq_llm_returns_nonempty_response)
+- **30 errors** — pre-existing external Groq API rate limit / auth errors in integration tests
+- **0 new failures or regressions introduced**
+
+Real Groq test: Not run (no live API key in environment).
+API regression: Existing test suite passes; API contracts unchanged.
+
+### V1/V2 Boundary
+
+V1 implements:
+- Deterministic preprocessing
+- Single LLM normalization call
+- Intent detection, requirement/constraint/technology extraction
+- Fallback on failure
+
+V2 (NOT implemented, documented in `docs/prompt_optimizer.md`):
+- Memory-augmented optimization (historical context injection)
+- Feedback-driven optimization (user preference signals via `feedback_context` parameter)
+- Prompt versioning and A/B testing
+- GEPA / DSPy automated prompt improvement
+- Prompt quality scoring from feedback signals
+- Requirement clarification (surfacing missing_information to user)
+
+### Human Feedback Future Direction
+
+The `PromptOptimizer.optimize()` signature includes `feedback_context: Optional[str] = None` as a V2 extension point. When the Memory layer (V2) is implemented, user preference signals will populate this parameter before optimization. No feedback storage or learning is implemented in V1.
+
+### Next Step
+
+Step 11.10.4 — Final E2E Verification (requires live Groq API key and Databricks Lakebase credentials).
