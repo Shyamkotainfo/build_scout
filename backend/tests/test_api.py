@@ -14,4 +14,7 @@ def test_health_returns_200():
 
 def test_health_response_is_correct():
     response = client.get("/health")
-    assert response.json() == {"status": "healthy"}
+    data = response.json()
+    assert "status" in data
+    assert "database" in data
+    assert "llm" in data

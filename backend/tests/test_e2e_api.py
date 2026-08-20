@@ -131,8 +131,14 @@ def test_openapi_no_unexpected_business_endpoints():
     """Confirm there are no extra undocumented sub-resource endpoints."""
     resp = client.get("/openapi.json")
     paths = set(resp.json()["paths"].keys())
-    # Remove the three expected paths
-    unexpected = paths - {"/health", "/api/v1/analyses", "/api/v1/analyses/{analysis_id}"}
+    # All known/expected API paths
+    expected = {
+        "/health",
+        "/api/v1/analyses",
+        "/api/v1/analyses/{analysis_id}",
+        "/api/v1/settings",
+    }
+    unexpected = paths - expected
     assert len(unexpected) == 0, f"Unexpected endpoints found: {unexpected}"
 
 

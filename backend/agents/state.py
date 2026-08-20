@@ -134,6 +134,9 @@ class BuildSmartState(TypedDict):
     agent_history: list[str]
     """Ordered list of agent names that have executed in this pipeline run."""
 
+    traces: list[dict]
+    """Ordered list of execution traces (Agent Trace + MCP tool calls)."""
+
     retry_count: int
     """Number of retry loops performed (bounded by Supervisor guardrails)."""
 
@@ -174,5 +177,6 @@ def create_initial_state(user_request: str) -> BuildSmartState:
         # Agent execution
         current_agent="SupervisorAgent",
         agent_history=[],
+        traces=[],
         retry_count=0,
     )

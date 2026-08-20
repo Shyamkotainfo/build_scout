@@ -112,6 +112,41 @@ def analyze(user_request: str) -> AnalysisResultResponse:
         # Remove private key before schema unpacking
         final_state.pop("_llm_calls", None)
 
+        # Fix mappings for schema validation
+        cand_map = {str(c.get("id")): c.get("name") for c in final_state.get("candidates", []) if c.get("id")}
+        
+        for eval_dict in final_state.get("evaluations", []):
+            if "score" not in eval_dict and "overall_score" in eval_dict:
+                eval_dict["score"] = int(eval_dict["overall_score"] or 0)
+            if "reasoning" not in eval_dict and "rationale" in eval_dict:
+                eval_dict["reasoning"] = eval_dict["rationale"] or ""
+            if "candidate_name" not in eval_dict:
+                eval_dict["candidate_name"] = cand_map.get(str(eval_dict.get("candidate_id")), "Unknown")
+                
+        for dec_dict in final_state.get("decisions", []):
+            if "reason" not in dec_dict and "rationale" in dec_dict:
+                dec_dict["reason"] = dec_dict["rationale"] or ""
+            if "selected_candidate_name" not in dec_dict and dec_dict.get("candidate_id"):
+                dec_dict["selected_candidate_name"] = cand_map.get(str(dec_dict["candidate_id"]))
+                
+        # Fill traces from DB if possible, or use state traces
+        try:
+            from database.connection import is_database_configured, get_session
+            from database.repositories import AnalysisRepository
+            if is_database_configured():
+                session_gen = get_session()
+                session = next(session_gen)
+                repo = AnalysisRepository()
+                db_result = repo.get_analysis_result(session, analysis_id)
+                if db_result and "traces" in db_result:
+                    final_state["traces"] = db_result["traces"]
+                try:
+                    next(session_gen)
+                except StopIteration:
+                    pass
+        except Exception as e:
+            logger.warning(f"Could not load DB traces for mapping: {e}")
+
         return AnalysisResultResponse(**final_state)
 
     except Exception as exc:

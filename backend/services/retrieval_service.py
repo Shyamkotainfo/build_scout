@@ -74,3 +74,71 @@ def retrieve_analysis(analysis_id_str: str) -> dict:
         raise AnalysisNotFoundException(analysis_id_str)
 
     return result
+
+
+def list_analyses() -> list[dict]:
+    """
+    Retrieve a list of all analyses.
+    Returns a lightweight representation of the analyses.
+    """
+    if not is_database_configured():
+        return []
+
+    try:
+        session_gen = get_session()
+        session = next(session_gen)
+        
+        try:
+            # Fetch all analyses with joined data or just do individual queries for simplicity
+            repo = AnalysisRepository()
+            analyses = repo.get_all_analyses(session)
+            
+            result_list = []
+            for a in analyses:
+                # Count components
+                components = repo.get_components(session, a.id)
+                comp_count = len(components)
+                
+                # Count candidates
+                cand_count = len(repo.get_candidates(session, a.id))
+                
+                # Decision summary
+                decisions = repo.get_decisions(session, a.id)
+                reuse_count = sum(1 for d in decisions if d.decision == "REUSE")
+                adapt_count = sum(1 for d in decisions if d.decision == "ADAPT")
+                build_count = sum(1 for d in decisions if d.decision == "BUILD")
+                
+                result_list.append({
+                    "analysis_id": str(a.id),
+                    "user_request": a.user_request,
+                    "normalized_request": a.normalized_request or "",
+                    "domain": a.domain,
+                    "status": a.status,
+                    "created_at": a.created_at.isoformat() if a.created_at else None,
+                    "updated_at": a.updated_at.isoformat() if a.updated_at else None,
+                    "component_count": comp_count,
+                    "candidate_count": cand_count,
+                    "decisions": {
+                        "reuse": reuse_count,
+                        "adapt": adapt_count,
+                        "build": build_count
+                    }
+                })
+            return result_list
+        finally:
+            try:
+                next(session_gen)
+            except StopIteration:
+                pass
+    except Exception as e:
+        import sqlalchemy
+        from api.exceptions import DatabaseAuthException, DatabaseSchemaException, DatabaseConnectionException
+        if isinstance(e, sqlalchemy.exc.OperationalError):
+            logger.error(f"Failed to list analyses (Auth/Connection): {e}")
+            raise DatabaseConnectionException("Database connection or authentication failed.")
+        elif isinstance(e, sqlalchemy.exc.ProgrammingError):
+            logger.error(f"Failed to list analyses (Schema): {e}")
+            raise DatabaseSchemaException("Required database tables are missing.")
+        
+        logger.error(f"Failed to list analyses: {e}")
+        return []

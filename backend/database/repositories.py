@@ -6,7 +6,7 @@ from datetime import datetime
 
 from database.models import (
     Analysis, Requirement, Component, Candidate,
-    CandidateEvaluation, Decision, Blueprint, AgentRun, LLMCall
+    CandidateEvaluation, Decision, Blueprint, AgentRun, LLMCall, ToolCall
 )
 
 logger = logging.getLogger(__name__)
@@ -176,15 +176,37 @@ class AnalysisRepository:
 
         # 8. Agent Trace
         agent_history = state.get("agent_history", [])
+        traces = state.get("traces", [])
+        traces_by_agent = {t["agent_name"]: t for t in traces if "agent_name" in t}
+
         if agent_history:
             for idx, agent_name in enumerate(agent_history):
+                trace = traces_by_agent.get(agent_name, {})
+                run_id = uuid.uuid4()
+                
                 run = AgentRun(
-                    id=uuid.uuid4(),
+                    id=run_id,
                     analysis_id=analysis_id,
                     agent_name=agent_name,
-                    status="COMPLETED"
+                    status=trace.get("status", "COMPLETED")
                 )
                 session.add(run)
+                
+                # Add ToolCall records
+                tool_calls = trace.get("tool_calls", [])
+                for tc in tool_calls:
+                    session.add(
+                        ToolCall(
+                            id=uuid.uuid4(),
+                            agent_run_id=run_id,
+                            tool_name=tc.get("tool_name", ""),
+                            tool_type=tc.get("provider", ""),
+                            arguments=tc.get("arguments", {}),
+                            result_summary={"content": tc.get("results", [])},
+                            status=tc.get("status", "SUCCESS"),
+                            latency_ms=tc.get("latency_ms", 0)
+                        )
+                    )
 
         # 9. LLM Calls
         llm_calls_data = state.get("_llm_calls", [])
@@ -223,6 +245,10 @@ class AnalysisRepository:
     def get_analysis(self, session: Session, analysis_id: uuid.UUID) -> Optional[Analysis]:
         """Return the Analysis row, or None if not found."""
         return session.get(Analysis, analysis_id)
+
+    def get_all_analyses(self, session: Session) -> list[Analysis]:
+        """Return all analyses ordered by created_at descending."""
+        return session.query(Analysis).order_by(Analysis.created_at.desc()).all()
 
     def get_requirements(self, session: Session, analysis_id: uuid.UUID) -> list:
         """Return all Requirement rows for an analysis, ordered by sequence."""
@@ -290,20 +316,30 @@ class AnalysisRepository:
 
     def get_agent_runs(self, session: Session, analysis_id: uuid.UUID) -> list:
         """Return all AgentRun rows for an analysis, ordered by id (insertion order)."""
-        return (
-            session.query(AgentRun)
-            .filter(AgentRun.analysis_id == analysis_id)
-            .all()
-        )
+        try:
+            return (
+                session.query(AgentRun)
+                .filter(AgentRun.analysis_id == analysis_id)
+                .all()
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Could not retrieve agent_runs: {e}")
+            return []
 
     def get_llm_calls(self, session: Session, analysis_id: uuid.UUID) -> list:
         """Return all LLMCall rows for an analysis."""
-        return (
-            session.query(LLMCall)
-            .filter(LLMCall.analysis_id == analysis_id)
-            .order_by(LLMCall.created_at)
-            .all()
-        )
+        try:
+            return (
+                session.query(LLMCall)
+                .filter(LLMCall.analysis_id == analysis_id)
+                .order_by(LLMCall.created_at)
+                .all()
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Could not retrieve llm_calls: {e}")
+            return []
 
     def get_analysis_result(self, session: Session, analysis_id: uuid.UUID) -> Optional[dict]:
         """
@@ -358,12 +394,14 @@ class AnalysisRepository:
             for c in candidates_orm
         ]
 
+        cand_map = {str(c.id): c.name for c in candidates_orm}
+        
         # Evaluations
         evaluations_orm = self.get_evaluations(session, analysis_id)
         eval_list = [
             {
-                "candidate_name": "",
-                "component_id": str(e.candidate_id) if e.candidate_id else "",
+                "candidate_name": cand_map.get(str(e.candidate_id), "Unknown"),
+                "component_id": str(e.candidate.component_id) if e.candidate else "",
                 "score": int(e.overall_score or 0),
                 "reasoning": e.rationale or "",
                 "concerns": [],
@@ -377,7 +415,7 @@ class AnalysisRepository:
             {
                 "component_id": str(d.component_id) if d.component_id else "",
                 "decision": d.decision or "",
-                "selected_candidate_name": None,
+                "selected_candidate_name": cand_map.get(str(d.candidate_id)) if d.candidate_id else None,
                 "confidence": float(d.confidence or 0),
                 "reason": d.rationale or "",
                 "risks": [],
@@ -401,8 +439,30 @@ class AnalysisRepository:
                 "risks": [],
             }
 
-        # Agent trace → agent_history string list
-        agent_history = [run.agent_name for run in agent_runs if run.agent_name]
+        # Agent trace → agent_history string list and traces list
+        agent_history = []
+        traces = []
+        for idx, run in enumerate(agent_runs):
+            if run.agent_name:
+                agent_history.append(run.agent_name)
+                
+            tool_calls_list = []
+            for tc in run.tool_calls:
+                tool_calls_list.append({
+                    "tool_name": tc.tool_name,
+                    "provider": tc.tool_type,
+                    "arguments": tc.arguments or {},
+                    "results": tc.result_summary.get("content", []) if tc.result_summary else [],
+                    "status": tc.status,
+                    "latency_ms": tc.latency_ms or 0
+                })
+                
+            traces.append({
+                "agent_name": run.agent_name or "Unknown",
+                "status": run.status or "COMPLETED",
+                "execution_order": idx + 1,
+                "tool_calls": tool_calls_list
+            })
 
         # LLM Metrics
         llm_calls = self.get_llm_calls(session, analysis_id)
@@ -443,6 +503,6 @@ class AnalysisRepository:
             "blueprint": bp_dict,
             "validation_result": None,
             "agent_history": agent_history,
-            "traces": [],
+            "traces": traces,
             "llm_metrics": llm_metrics if llm_calls else None
         }

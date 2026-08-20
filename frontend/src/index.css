@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0f172a; /* Slate 900 / Deep Navy */
+  --bg-secondary: #1e293b; /* Slate 800 */
+  --accent-primary: #3b82f6; /* Blue 500 */
+  --text-primary: #f8fafc; /* Slate 50 */
+  --text-secondary: #cbd5e1; /* Slate 300 */
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+}

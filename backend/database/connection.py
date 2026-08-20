@@ -43,6 +43,20 @@ def get_session() -> Iterator[Session]:
     finally:
         session.close()
 
+def init_db():
+    """Create database tables if they do not exist."""
+    engine = _get_engine()
+    # Import models here to ensure they are registered with Base.metadata
+    import database.models as models
+    logger.info("Initializing database schema...")
+    try:
+        models.Base.metadata.create_all(bind=engine)
+        logger.info("Database schema initialized successfully.")
+    except Exception as e:
+        logger.error(f"Failed to initialize database schema: {e}")
+        # Allow the application to start even if schema creation fails
+        # so that /health can report the degraded status.
+
 def is_database_configured() -> bool:
     """Helper to cleanly check if the DB environment variables are present."""
     settings = get_settings()
