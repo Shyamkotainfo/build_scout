@@ -22,13 +22,39 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    groq_api_key: str = Field(
-        ...,
-        description="Groq API key. Required. Set GROQ_API_KEY in your .env file.",
+    groq_api_key: str | None = Field(
+        default=None,
+        description="Groq API key. Optional — only used when LLM_PROVIDER=groq.",
     )
     groq_model: str = Field(
         default="llama-3.3-70b-versatile",
-        description="Groq model identifier to use for all LLM calls.",
+        description="Groq model identifier (only used when LLM_PROVIDER=groq).",
+    )
+
+    # -- AWS Bedrock ----------------------------------------------------------
+    llm_provider: str = Field(
+        default="bedrock",
+        description="Active LLM provider. One of: bedrock | groq.",
+    )
+    aws_access_key_id: str | None = Field(
+        default=None,
+        description="AWS Access Key ID for Bedrock. Can also be set via standard AWS env vars.",
+    )
+    aws_secret_access_key: str | None = Field(
+        default=None,
+        description="AWS Secret Access Key for Bedrock.",
+    )
+    aws_session_token: str | None = Field(
+        default=None,
+        description="AWS Session Token — required for temporary STS credentials (ASIA... keys).",
+    )
+    aws_region: str = Field(
+        default="us-east-1",
+        description="AWS region where Bedrock is enabled (e.g. us-east-1).",
+    )
+    bedrock_model_id: str = Field(
+        default="us.anthropic.claude-3-5-haiku-20241022-v1:0",
+        description="AWS Bedrock model ID or cross-region inference profile ID.",
     )
 
     llm_max_retries: int = Field(
@@ -131,7 +157,7 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Return a validated Settings instance.
 
-    Raises:
-        pydantic_settings.ValidationError: if GROQ_API_KEY is missing.
+    Uses AWS Bedrock by default (LLM_PROVIDER=bedrock).
+    Set LLM_PROVIDER=groq and provide GROQ_API_KEY to use Groq instead.
     """
     return Settings()

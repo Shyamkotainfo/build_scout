@@ -24,6 +24,7 @@ No LangGraph graph is created here — that is a future step.
 """
 
 import json
+from utils.json_helpers import extract_json
 from typing import Any, Literal
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -148,7 +149,7 @@ class DecompositionAgent:
         Raises:
             RuntimeError: If the API call fails or JSON cannot be parsed.
         """
-        json_llm = self._llm.bind(response_format={"type": "json_object"})
+        json_llm = self._llm
 
         messages: list[Any] = [
             SystemMessage(content=DECOMPOSITION_SYSTEM_PROMPT),
@@ -162,7 +163,7 @@ class DecompositionAgent:
                 agent_name="DecompositionAgent",
                 analysis_id=analysis_id
             )
-            raw: dict = json.loads(response.content)
+            raw: dict = extract_json(response.content)
             return DecompositionResult.model_validate(raw)
         except Exception as exc:
             raise RuntimeError(

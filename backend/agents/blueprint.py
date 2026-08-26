@@ -1,4 +1,5 @@
 import json
+import asyncio
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -8,7 +9,7 @@ from agents.state import BuildSmartState
 from config.settings import get_settings
 from llm.client import get_llm
 from llm.prompts import BLUEPRINT_SYSTEM_PROMPT
-from llm.retry import invoke_with_retry
+from llm.retry import ainvoke_with_retry
 
 
 class TechStackItem(BaseModel):
@@ -61,7 +62,7 @@ class BlueprintAgent:
     def __init__(self):
         self.settings = get_settings()
         self.llm = get_llm()
-        self.llm_json = self.llm.bind(response_format={"type": "json_object"})
+        self.llm_json = self.llm
 
     def _build_reuse_summary(self, decisions: List[Dict[str, Any]], components: List[Dict[str, Any]]) -> ReuseSummary:
         """Deterministically build reuse_summary from state decisions."""
@@ -90,6 +91,10 @@ class BlueprintAgent:
         return ReuseSummary(reuse=reuse_list, adapt=adapt_list, build=build_list)
 
     def run(self, state: BuildSmartState) -> BuildSmartState:
+        """Generate a system blueprint synchronously."""
+        return asyncio.run(self._arun(state))
+
+    async def _arun(self, state: BuildSmartState) -> BuildSmartState:
         """Generate a system blueprint based on REUSE/ADAPT/BUILD decisions."""
         # 1. Update status
         state["status"] = "BLUEPRINTING"
@@ -132,18 +137,17 @@ class BlueprintAgent:
         ]
 
         # 3. Call LLM
-        response = invoke_with_retry(
-            llm_callable=self.llm_json.invoke,
+        response = await ainvoke_with_retry(
+            llm_callable=self.llm_json.ainvoke,
             messages=messages,
             agent_name="BlueprintAgent",
             analysis_id=analysis_id,
-            context_compactor=lambda msgs, limit: msgs  # Blueprint payload shouldn't be huge after filtering
+            context_compactor=lambda msgs, limit: msgs,  # Blueprint payload shouldn't be huge after filtering
+            response_model=BlueprintResult
         )
         
-        try:
-            content = json.loads(response.content)
-            parsed_blueprint = BlueprintResult.model_validate(content)
-            
+        parsed_blueprint = getattr(response, "parsed_object", None)
+        if parsed_blueprint:
             # Enforce decision consistency programmatically
             decisions = state.get("decisions", [])
             decision_map = {d["component_id"]: d["decision"] for d in decisions}
@@ -165,8 +169,8 @@ class BlueprintAgent:
             state["blueprint"] = parsed_blueprint.model_dump()
             state["status"] = "BLUEPRINT_CREATED"
             state["agent_history"].append("BlueprintAgent")
-        except Exception as e:
-            print(f"Error parsing BlueprintAgent response: {e}")
+        else:
+            print("Error parsing BlueprintAgent response: Empty parsed object")
             state["blueprint"] = {}
             state["status"] = "BLUEPRINT_FAILED"
 

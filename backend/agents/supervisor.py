@@ -20,6 +20,7 @@ No LangGraph graph is created here — that is a future step.
 """
 
 import json
+from utils.json_helpers import extract_json
 from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -124,7 +125,7 @@ class SupervisorAgent:
         Raises:
             ValueError: If the response cannot be parsed as a SupervisorPlan.
         """
-        json_llm = self._llm.bind(response_format={"type": "json_object"})
+        json_llm = self._llm
 
         messages: list[Any] = [
             SystemMessage(content=SUPERVISOR_SYSTEM_PROMPT),
@@ -138,5 +139,5 @@ class SupervisorAgent:
             analysis_id=analysis_id
         )
         
-        raw: dict = json.loads(response.content)
+        raw: dict = extract_json(response.content)
         return SupervisorPlan.model_validate(raw)
