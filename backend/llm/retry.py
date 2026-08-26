@@ -18,7 +18,8 @@ Error classification (HTTP status codes, normalised across providers):
 import asyncio
 import logging
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Type
+from pydantic import BaseModel
 
 from langchain_core.messages import AIMessage
 
@@ -160,7 +161,8 @@ def invoke_with_retry(
     messages: list[Any],
     agent_name: str,
     analysis_id: str = "unknown",
-    context_compactor: Callable[[list[Any], int], list[Any]] = None
+    context_compactor: Optional[Callable[[list[Any], int], list[Any]]] = None,
+    response_model: Optional[Type[BaseModel]] = None
 ) -> AIMessage:
     """
     Invoke an LLM with retry logic and context compaction.
@@ -173,6 +175,7 @@ def invoke_with_retry(
         agent_name: Name of the calling agent (for logging and metrics).
         analysis_id: UUID of the current analysis (for metrics correlation).
         context_compactor: Optional callback to compact messages on context overflow.
+        response_model: Optional Pydantic model for JSON validation.
 
     Returns:
         AIMessage: The successful LLM response.
@@ -203,6 +206,24 @@ def invoke_with_retry(
 
             start_time = time.time()
             response = llm_callable(current_messages)
+            
+            if response_model:
+                from utils.json_helpers import extract_json
+                import re
+                try:
+                    result_json = response.content
+                    if isinstance(result_json, str):
+                        result_json = result_json.strip()
+                        # Fix common trailing characters (like Claude's prose after JSON)
+                        result_json = re.sub(r'\}\s*[^}]*$', '}', result_json)
+                    content = extract_json(result_json)
+                    parsed_response = response_model.model_validate(content)
+                    response.parsed_object = parsed_response
+                except Exception as parse_exc:
+                    class TransientValidationError(Exception):
+                        status_code = 429
+                    raise TransientValidationError(f"JSON Parse Error: {parse_exc}") from parse_exc
+            
             latency_ms = int((time.time() - start_time) * 1000)
 
             out_est = len(response.content) // CHARS_PER_TOKEN if hasattr(response, "content") else 0
@@ -323,7 +344,8 @@ async def ainvoke_with_retry(
     messages: list[Any],
     agent_name: str,
     analysis_id: str = "unknown",
-    context_compactor: Callable[[list[Any], int], list[Any]] = None
+    context_compactor: Optional[Callable[[list[Any], int], list[Any]]] = None,
+    response_model: Optional[Type[BaseModel]] = None
 ) -> AIMessage:
     """Async version of invoke_with_retry. Same logic, awaits the LLM callable."""
     settings = get_settings()
@@ -349,6 +371,23 @@ async def ainvoke_with_retry(
 
             start_time = time.time()
             response = await llm_callable(current_messages)
+            
+            if response_model:
+                from utils.json_helpers import extract_json
+                import re
+                try:
+                    result_json = response.content
+                    if isinstance(result_json, str):
+                        result_json = result_json.strip()
+                        result_json = re.sub(r'\}\s*[^}]*$', '}', result_json)
+                    content = extract_json(result_json)
+                    parsed_response = response_model.model_validate(content)
+                    response.parsed_object = parsed_response
+                except Exception as parse_exc:
+                    class TransientValidationError(Exception):
+                        status_code = 429
+                    raise TransientValidationError(f"JSON Parse Error: {parse_exc}") from parse_exc
+                    
             latency_ms = int((time.time() - start_time) * 1000)
 
             out_est = len(response.content) // CHARS_PER_TOKEN if hasattr(response, "content") else 0

@@ -1,5 +1,5 @@
 import json
-from utils.json_helpers import extract_json
+import asyncio
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from agents.state import BuildSmartState
 from llm.client import get_llm
 from llm.prompts import VALIDATION_SYSTEM_PROMPT
-from llm.retry import invoke_with_retry
+from llm.retry import ainvoke_with_retry
 
 
 class ValidationCategory(BaseModel):
@@ -64,6 +64,9 @@ class ValidationAgent:
         return "FAIL"
 
     def run(self, state: BuildSmartState) -> BuildSmartState:
+        return asyncio.run(self._arun(state))
+
+    async def _arun(self, state: BuildSmartState) -> BuildSmartState:
         state["status"] = "VALIDATING"
         state["current_agent"] = "ValidationAgent"
 
@@ -177,13 +180,18 @@ class ValidationAgent:
         ]
 
         try:
-            response = invoke_with_retry(
-                llm_callable=self.llm_json.invoke,
+            response = await ainvoke_with_retry(
+                llm_callable=self.llm_json.ainvoke,
                 messages=messages,
                 agent_name="ValidationAgent",
-                analysis_id=state.get("analysis_id", "unknown")
+                analysis_id=state.get("analysis_id", "unknown"),
+                response_model=LLMValidationResult
             )
-            llm_result = LLMValidationResult.model_validate(extract_json(response.content))
+            
+            llm_result = getattr(response, "parsed_object", None)
+            if not llm_result:
+                raise Exception("Empty parsed object from LLM.")
+                
         except Exception as e:
             fallback_cat = LLMValidationCategory(score=0, findings=[f"LLM validation failed: {str(e)}"])
             llm_result = LLMValidationResult(

@@ -31,9 +31,16 @@ class CandidateResponse(BaseModel):
     metadata: Optional[Dict[str, Any]] = Field(default_factory=dict)
 
 class EvaluationResponse(BaseModel):
+    candidate_id: str
     candidate_name: str
     component_id: str
-    score: int
+    relevance_score: Optional[int] = None
+    compatibility_score: Optional[int] = None
+    project_health_score: Optional[int] = None
+    license_score: Optional[int] = None
+    security_score: Optional[int] = None
+    maintainability_score: Optional[int] = None
+    overall_score: int
     reasoning: str
     concerns: List[str] = Field(default_factory=list)
     missing_evidence: List[str] = Field(default_factory=list)
@@ -41,9 +48,11 @@ class EvaluationResponse(BaseModel):
 class DecisionResponse(BaseModel):
     component_id: str
     decision: str
+    selected_candidate_id: Optional[str] = None
     selected_candidate_name: Optional[str] = None
     confidence: float
     reason: str
+    alternatives_considered: List[str] = Field(default_factory=list)
     risks: List[str] = Field(default_factory=list)
     implementation_notes: List[str] = Field(default_factory=list)
 
@@ -56,9 +65,9 @@ class BlueprintComponentResponse(BaseModel):
     integration: str
 
 class ReuseSummaryResponse(BaseModel):
-    REUSE: List[str] = Field(default_factory=list)
-    ADAPT: List[str] = Field(default_factory=list)
-    BUILD: List[str] = Field(default_factory=list)
+    reuse: List[str] = Field(default_factory=list)
+    adapt: List[str] = Field(default_factory=list)
+    build: List[str] = Field(default_factory=list)
 
 class ErrorDetail(BaseModel):
     code: str

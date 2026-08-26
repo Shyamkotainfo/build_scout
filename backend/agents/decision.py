@@ -132,16 +132,16 @@ class DecisionAgent:
                 messages=messages,
                 agent_name="DecisionAgent",
                 analysis_id=state.get("analysis_id", "unknown"),
-                context_compactor=compactor
+                context_compactor=compactor,
+                response_model=RawDecisionsResponse
             )
             
-            try:
-                content = extract_json(response.content)
-                parsed_response = RawDecisionsResponse.model_validate(content)
+            parsed_response = getattr(response, "parsed_object", None)
+            if parsed_response:
                 for raw_dec in parsed_response.decisions:
                     final_decisions.append(raw_dec.model_dump())
-            except Exception as e:
-                print(f"Error parsing DecisionAgent response: {e}")
+            else:
+                print("Error parsing DecisionAgent response: Empty parsed object")
 
         # 5. Update state
         state["decisions"] = final_decisions

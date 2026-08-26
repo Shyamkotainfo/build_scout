@@ -87,7 +87,7 @@ class ResearchAgent:
                 args = {
                     "query": query,
                     "repository": query,  # Some tools expect 'repository' instead of 'query'
-                    "limit": 5
+                    "limit": 10
                 }
                 logger.info(f"ResearchAgent executing capability: {cap} for {comp_id}")
                 trace = await tool_gateway.execute_tool(cap, args)
@@ -104,23 +104,98 @@ class ResearchAgent:
                                 valid_items.append(res)
                         else:
                             if res:
-                                valid_items.append(json.dumps(res, indent=2))
+                                valid_items.append(res)  # keep as dict
                                 
                     if valid_items:
-                        raw_results.append(f"--- {cap.upper()} RESULTS ({trace.get('provider', 'UNKNOWN')}) ---")
-                        raw_results.extend(valid_items)
+                        # Append the parsed dicts, along with their provider context
+                        for item in valid_items:
+                            raw_results.append({
+                                "_tool": cap.upper(),
+                                "_provider": trace.get('provider', 'UNKNOWN'),
+                                "data": item
+                            })
             except Exception as e:
                 logger.warning(f"Capability {cap} failed for {comp_id}: {e}")
 
         if not raw_results:
             return [], traces
             
-        # Context-size protection before sending to LLM
-        combined_raw = "\n\n".join(raw_results)
-        # 14,000 characters is approximately ~3.5k tokens, well within Groq's 8k TPM limits.
-        if len(combined_raw) > 14000:
-            logger.warning(f"Context too large ({len(combined_raw)} chars) for {comp_id}, truncating.")
-            combined_raw = combined_raw[:14000] + "\n... [TRUNCATED to fit context size limits]"
+        # Context-size protection: Structure-aware compaction
+        # We deduplicate by URL first to save space
+        seen_compaction_urls = set()
+        compacted_results = []
+        
+        def recursive_truncate(obj, depth=0):
+            if depth > 10: return
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    if isinstance(v, str) and len(v) > 300:
+                        obj[k] = v[:300] + "... [TRUNCATED]"
+                    else:
+                        recursive_truncate(v, depth + 1)
+            elif isinstance(obj, list):
+                if len(obj) > 15:
+                    del obj[15:]
+                for item in obj:
+                    recursive_truncate(item, depth + 1)
+
+        # Unpack nested MCP arrays to ensure budget operates on individual results
+        flattened_results = []
+        for wrapper in raw_results:
+            data = wrapper["data"]
+            if isinstance(data, str):
+                try:
+                    data = json.loads(data)
+                except Exception:
+                    pass
+            
+            if isinstance(data, dict):
+                if "items" in data and isinstance(data["items"], list):
+                    for item in data["items"]:
+                        flattened_results.append({"_tool": wrapper["_tool"], "_provider": wrapper["_provider"], "data": item})
+                    continue
+                elif "results" in data and isinstance(data["results"], list):
+                    for item in data["results"]:
+                        flattened_results.append({"_tool": wrapper["_tool"], "_provider": wrapper["_provider"], "data": item})
+                    continue
+                    
+            flattened_results.append({"_tool": wrapper["_tool"], "_provider": wrapper["_provider"], "data": data})
+
+        for wrapper in flattened_results:
+            data = wrapper["data"]
+            
+            # Attempt to extract URL for deduplication
+            url = ""
+            if isinstance(data, dict):
+                url = data.get("url") or data.get("html_url") or ""
+            
+            url = str(url).strip().lower()
+            if url and url in seen_compaction_urls:
+                continue
+            if url:
+                seen_compaction_urls.add(url)
+                
+            # Intelligently truncate any verbose text fields inside the dict recursively
+            recursive_truncate(data)
+                        
+            compacted_results.append(wrapper)
+
+        # Build combined raw string, stopping if we exceed budget, ensuring valid JSON objects
+        final_string_parts = []
+        current_len = 0
+        budget = 14000
+        
+        raw_candidates_count = len(compacted_results)
+        
+        for wrapper in compacted_results:
+            part_str = json.dumps(wrapper, indent=2)
+            if current_len + len(part_str) > budget:
+                logger.warning(f"Context budget reached ({current_len} chars) for {comp_id}. Dropping remaining {len(compacted_results) - len(final_string_parts)} lower-ranked results.")
+                break
+            final_string_parts.append(part_str)
+            current_len += len(part_str)
+            
+        combined_raw = "\n\n".join(final_string_parts)
         
         # Use LLM to extract structured candidates from raw text
         prompt_content = (
@@ -131,18 +206,13 @@ class ResearchAgent:
             f"Raw Search Results:\n{combined_raw}"
         )
         
-        try:
-            response = await ainvoke_with_retry(
-                llm_callable=self.llm_json.ainvoke,
-                messages=prompt_content,
-                agent_name="ResearchAgent",
-                analysis_id=analysis_id,
-                context_compactor=lambda msgs, limit: (
-                    # Simple aggressive compactor for single-string prompt_content: just cut it in half
-                    msgs[:limit] + "\n... [TRUNCATED for Retry]" if isinstance(msgs, str) else msgs
-                )
-            )
-            result_json = response.content
+        # Wrapper to enforce JSON parsing inside the retry loop
+        import re
+        from langchain_core.messages import AIMessage
+        
+        async def validated_llm_invoke(*args, **kwargs):
+            resp = await self.llm_json.ainvoke(*args, **kwargs)
+            result_json = resp.content
             if isinstance(result_json, str):
                 result_json = result_json.strip()
                 if result_json.startswith("```json"):
@@ -152,9 +222,52 @@ class ResearchAgent:
                 if result_json.endswith("```"):
                     result_json = result_json[:-3].strip()
                     
-            parsed = ResearchResult.model_validate_json(result_json)
-            # Serialize back to dicts to match state contract
-            return [c.model_dump() for c in parsed.candidates], traces
+                # Fix common trailing characters (like Claude's prose after JSON)
+                result_json = re.sub(r'\}\s*[^}]*$', '}', result_json)
+                
+            # This will raise ValidationError if invalid, triggering the retry!
+            try:
+                parsed = ResearchResult.model_validate_json(result_json)
+            except Exception as parse_exc:
+                # Wrap the pydantic validation error so the retry handler thinks it's a 429 transient error
+                class TransientValidationError(Exception):
+                    status_code = 429
+                raise TransientValidationError(f"JSON Parse Error: {parse_exc}") from parse_exc
+                
+            # Stash the parsed object in a custom attribute to avoid re-parsing
+            resp.parsed_object = parsed
+            return resp
+
+        try:
+            response = await ainvoke_with_retry(
+                llm_callable=validated_llm_invoke,
+                messages=prompt_content,
+                agent_name="ResearchAgent",
+                analysis_id=analysis_id,
+                context_compactor=lambda msgs, limit: (
+                    msgs[:limit] + "\n... [TRUNCATED for Retry]" if isinstance(msgs, str) else msgs
+                )
+            )
+            parsed = getattr(response, "parsed_object", None)
+            if not parsed:
+                return [], traces
+            
+            final_candidates = [c.model_dump() for c in parsed.candidates]
+            
+            # Add the LLM trace metric
+            traces.append({
+                "tool_name": "ResearchAgent",
+                "provider": "LLM",
+                "status": "SUCCESS",
+                "results": [],
+                "metadata": {
+                    "raw_candidates": len(raw_results),
+                    "deduplicated": raw_candidates_count,
+                    "selected": len(final_candidates)
+                }
+            })
+            
+            return final_candidates, traces
         except Exception as e:
             logger.error(f"Failed to normalize research for {comp_id}: {e}")
             return [], traces
