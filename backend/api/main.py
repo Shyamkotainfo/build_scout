@@ -1,8 +1,11 @@
 import logging
 from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from api.routes import router
+from api.settings_router import router as settings_router
 from api.exceptions import BuildSmartAPIException
 from models.schemas import ErrorResponse, ErrorDetail
 
@@ -10,13 +13,32 @@ from models.schemas import ErrorResponse, ErrorDetail
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize database on startup
+    from database.connection import init_db
+    init_db()
+    yield
+    # Cleanup on shutdown (if any)
+
 app = FastAPI(
     title="BuildSmart Analysis API",
     description="API for the BuildSmart AI agentic architecture workflow.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Minimal safe CORS configuration for frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 app.include_router(router)
+app.include_router(settings_router)
 
 @app.exception_handler(BuildSmartAPIException)
 async def buildsmart_exception_handler(request: Request, exc: BuildSmartAPIException):

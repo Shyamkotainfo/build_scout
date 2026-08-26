@@ -46,3 +46,16 @@ class AnalysisNotFoundException(BuildSmartAPIException):
             status_code=404,
             analysis_id=analysis_id
         )
+
+class DatabaseAuthException(BuildSmartAPIException):
+    def __init__(self, message: str = "Database authentication failed.", analysis_id: Optional[str] = None):
+        super().__init__("DATABASE_AUTH_ERROR", message, 503, analysis_id)
+
+class DatabaseConnectionException(BuildSmartAPIException):
+    def __init__(self, message: str = "Unable to connect to the database.", analysis_id: Optional[str] = None):
+        super().__init__("DATABASE_CONNECTION_ERROR", message, 503, analysis_id)
+
+class DatabaseSchemaException(BuildSmartAPIException):
+    def __init__(self, message: str = "Database schema error. Required tables are missing.", analysis_id: Optional[str] = None):
+        super().__init__("DATABASE_SCHEMA_ERROR", message, 503, analysis_id)
+
