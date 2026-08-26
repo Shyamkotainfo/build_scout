@@ -27,6 +27,7 @@ V2 Future (NOT implemented here):
 """
 
 import json
+from utils.json_helpers import extract_json
 import logging
 from typing import Optional
 
@@ -239,7 +240,7 @@ class PromptOptimizer:
         Token usage and latency are automatically recorded by invoke_with_retry
         through the existing metrics system (llm/metrics.py).
         """
-        json_llm = self._llm.bind(response_format={"type": "json_object"})
+        json_llm = self._llm
 
         messages = [
             SystemMessage(content=_OPTIMIZER_SYSTEM_PROMPT),
@@ -260,7 +261,7 @@ class PromptOptimizer:
     ) -> PromptOptimizationResult:
         """Parse and validate the LLM JSON response into PromptOptimizationResult."""
         try:
-            data = json.loads(raw_content)
+            data = extract_json(raw_content)
         except json.JSONDecodeError as exc:
             logger.warning(
                 f"PromptOptimizer | JSON parse failed: {exc} — using fallback."

@@ -1,4 +1,5 @@
 import json
+from utils.json_helpers import extract_json
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -61,7 +62,7 @@ class BlueprintAgent:
     def __init__(self):
         self.settings = get_settings()
         self.llm = get_llm()
-        self.llm_json = self.llm.bind(response_format={"type": "json_object"})
+        self.llm_json = self.llm
 
     def _build_reuse_summary(self, decisions: List[Dict[str, Any]], components: List[Dict[str, Any]]) -> ReuseSummary:
         """Deterministically build reuse_summary from state decisions."""
@@ -141,7 +142,7 @@ class BlueprintAgent:
         )
         
         try:
-            content = json.loads(response.content)
+            content = extract_json(response.content)
             parsed_blueprint = BlueprintResult.model_validate(content)
             
             # Enforce decision consistency programmatically

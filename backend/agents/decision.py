@@ -1,4 +1,5 @@
 import json
+from utils.json_helpers import extract_json
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 
@@ -47,7 +48,7 @@ class DecisionAgent:
     def __init__(self):
         self.settings = get_settings()
         self.llm = get_llm()
-        self.llm_json = self.llm.bind(response_format={"type": "json_object"})
+        self.llm_json = self.llm
 
     def run(self, state: BuildSmartState) -> BuildSmartState:
         """Process evaluations and make REUSE/ADAPT/BUILD decisions."""
@@ -112,7 +113,7 @@ class DecisionAgent:
                 for msg in new_msgs:
                     if isinstance(msg, HumanMessage) and isinstance(msg.content, str):
                         try:
-                            data = json.loads(msg.content)
+                            data = extract_json(msg.content)
                             if "candidates" in data:
                                 for c in data["candidates"]:
                                     if "description" in c:
@@ -135,7 +136,7 @@ class DecisionAgent:
             )
             
             try:
-                content = json.loads(response.content)
+                content = extract_json(response.content)
                 parsed_response = RawDecisionsResponse.model_validate(content)
                 for raw_dec in parsed_response.decisions:
                     final_decisions.append(raw_dec.model_dump())

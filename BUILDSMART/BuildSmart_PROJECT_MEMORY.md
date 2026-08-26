@@ -1516,3 +1516,19 @@ The `PromptOptimizer.optimize()` signature includes `feedback_context: Optional[
 ### Next Step
 
 Step 11.10.4 — Final E2E Verification (requires live Groq API key and Databricks Lakebase credentials).
+
+---
+
+# STEP 11.X — Backend Certification: Prompt Optimizer
+
+**Status: COMPLETED**
+
+- Inspected `PromptOptimizer` contract and validated its deterministic behavior.
+- Executed real LLM optimization tests using AWS Bedrock (Claude 3.5 Haiku).
+- Validated constraints extraction, intent detection, and original request preservation (zero hallucination).
+- Tested LLM reliability: Mocked 429, 401, 413, and 500 status codes. Verified 429 triggers exponential backoff (max 3 retries), while 401/413 fast-fail.
+- Tested parsing resilience: Simulated clean JSON, markdown fenced JSON, malformed JSON, and extra conversational text (before and after JSON block).
+- **Fix Applied:** `backend/utils/json_helpers.py` was updated to use a robust non-greedy regex-like boundary extraction (`text.find('{')` and `text.rfind('}')`) to safely ignore extra conversational text (hallucinated prefaces/appendices) and successfully extract the core JSON object.
+- **Verification Report:** Generated `prompt_optimizer_certification.md`.
+
+Next phase: SupervisorAgent certification.

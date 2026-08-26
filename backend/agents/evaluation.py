@@ -1,4 +1,5 @@
 import json
+from utils.json_helpers import extract_json
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
@@ -46,7 +47,7 @@ class EvaluationAgent:
     def __init__(self):
         self.settings = get_settings()
         self.llm = get_llm()
-        self.llm_json = self.llm.bind(response_format={"type": "json_object"})
+        self.llm_json = self.llm
 
     def _calculate_overall_score(self, raw_eval: RawEvaluationResult) -> float:
         """Deterministically calculate the overall score based on available evidence."""
@@ -98,7 +99,7 @@ class EvaluationAgent:
             for msg in new_msgs:
                 if isinstance(msg, HumanMessage) and isinstance(msg.content, str):
                     try:
-                        data = json.loads(msg.content)
+                        data = extract_json(msg.content)
                         if "candidates" in data:
                             for c in data["candidates"]:
                                 if "description" in c:
@@ -117,7 +118,7 @@ class EvaluationAgent:
         )
         
         try:
-            content = json.loads(response.content)
+            content = extract_json(response.content)
             parsed_response = RawEvaluationsResponse.model_validate(content)
         except Exception as e:
             print(f"Error parsing EvaluationAgent response: {e}")

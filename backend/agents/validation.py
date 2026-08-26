@@ -1,4 +1,5 @@
 import json
+from utils.json_helpers import extract_json
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field
 
@@ -53,7 +54,7 @@ class ValidationAgent:
 
     def __init__(self):
         self.llm = get_llm()
-        self.llm_json = self.llm.bind(response_format={"type": "json_object"})
+        self.llm_json = self.llm
 
     def _determine_status(self, score: int) -> Literal["PASS", "WARNING", "FAIL"]:
         if score >= 90:
@@ -182,7 +183,7 @@ class ValidationAgent:
                 agent_name="ValidationAgent",
                 analysis_id=state.get("analysis_id", "unknown")
             )
-            llm_result = LLMValidationResult.model_validate(json.loads(response.content))
+            llm_result = LLMValidationResult.model_validate(extract_json(response.content))
         except Exception as e:
             fallback_cat = LLMValidationCategory(score=0, findings=[f"LLM validation failed: {str(e)}"])
             llm_result = LLMValidationResult(

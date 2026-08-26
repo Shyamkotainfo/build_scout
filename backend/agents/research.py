@@ -51,7 +51,7 @@ class ResearchAgent:
         self.settings = get_settings()
         self.llm = get_llm()
         # Use JSON mode for structural extraction
-        self.llm_json = self.llm.bind(response_format={"type": "json_object"})
+        self.llm_json = self.llm
 
     async def _research_component(
         self,
@@ -143,6 +143,15 @@ class ResearchAgent:
                 )
             )
             result_json = response.content
+            if isinstance(result_json, str):
+                result_json = result_json.strip()
+                if result_json.startswith("```json"):
+                    result_json = result_json[7:].strip()
+                elif result_json.startswith("```"):
+                    result_json = result_json[3:].strip()
+                if result_json.endswith("```"):
+                    result_json = result_json[:-3].strip()
+                    
             parsed = ResearchResult.model_validate_json(result_json)
             # Serialize back to dicts to match state contract
             return [c.model_dump() for c in parsed.candidates], traces
