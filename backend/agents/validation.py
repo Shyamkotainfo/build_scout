@@ -9,6 +9,7 @@ from agents.state import BuildSmartState
 from llm.client import get_llm
 from llm.prompts import VALIDATION_SYSTEM_PROMPT
 from llm.retry import ainvoke_with_retry
+from agents.context import build_validation_context
 
 
 class ValidationCategory(BaseModel):
@@ -167,12 +168,12 @@ class ValidationAgent:
         # ---------------------------------------------------------------------
         # LLM CHECK: Architectural Coherence
         # ---------------------------------------------------------------------
-        payload = {
-            "requirements": requirements,
-            "components": state_components,
-            "decisions": state_decisions,
-            "blueprint": blueprint
-        }
+        payload = build_validation_context(
+            requirements=requirements,
+            components=state_components,
+            decisions=state_decisions,
+            blueprint=blueprint
+        )
         
         messages = [
             SystemMessage(content=VALIDATION_SYSTEM_PROMPT),

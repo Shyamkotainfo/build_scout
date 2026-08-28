@@ -3,6 +3,11 @@ from unittest.mock import AsyncMock, patch, MagicMock
 import json
 
 from tools.gateway import tool_gateway
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    tool_gateway._cache._store.clear()
+
 from agents.research import ResearchAgent
 from mcp_integration.registry import registry
 
@@ -136,6 +141,7 @@ async def test_smoke_context_protection():
             mock_llm = mock_get_llm.return_value
             mock_llm_json = mock_llm.bind.return_value
             
+            mock_llm.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '{"candidates": []}'})())
             mock_llm_json.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '{"candidates": []}'})())
             agent = ResearchAgent()
             
@@ -143,7 +149,7 @@ async def test_smoke_context_protection():
             
             # The context protection truncates strings larger than 14,000 characters to ~14,000 + truncation msg
             # Check what got sent to the LLM (first argument to ainvoke)
-            call_args = mock_llm_json.ainvoke.call_args[0][0]
+            call_args = mock_llm.ainvoke.call_args[0][0]
             prompt_content = str(call_args)
             
             # verify it doesn't contain the full 20,000 A's
@@ -166,14 +172,14 @@ async def test_smoke_research_agent_integration():
             mock_llm = mock_get_llm.return_value
             mock_llm_json = mock_llm.bind.return_value
             
+            mock_llm.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '{"candidates": []}'})())
             mock_llm_json.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '{"candidates": []}'})())
             agent = ResearchAgent()
             
             candidates, traces = await agent._research_component(comp)
             
-            assert mock_execute.call_count == 3
-            # We expect security.get, github.search, web.search for the SECURITY category
+            assert mock_execute.call_count == 2
+            # We expect github.search, web.search for the SECURITY category
             called_tools = [call[0][0] for call in mock_execute.call_args_list]
-            assert "security.get" in called_tools
             assert "github.search" in called_tools
             assert "web.search" in called_tools

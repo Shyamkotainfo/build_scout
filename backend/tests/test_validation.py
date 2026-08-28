@@ -36,7 +36,11 @@ def mock_validation_agent():
         "recommendations": ["Proceed with development"]
     }
     '''
+    from unittest.mock import AsyncMock
+    mock_llm.invoke = MagicMock(return_value=mock_response)
     mock_llm_json.invoke = MagicMock(return_value=mock_response)
+    mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+    mock_llm_json.ainvoke = AsyncMock(return_value=mock_response)
     mock_llm.bind.return_value = mock_llm_json
     
     with patch("agents.validation.get_llm", return_value=mock_llm):

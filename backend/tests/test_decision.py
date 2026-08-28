@@ -28,8 +28,8 @@ def mock_decision_agent():
         ]
     }
     '''
+    mock_llm.invoke = MagicMock(return_value=mock_response)
     mock_llm_json.invoke = MagicMock(return_value=mock_response)
-    mock_llm.bind.return_value = mock_llm_json
     
     with patch("agents.decision.get_llm", return_value=mock_llm):
         agent = DecisionAgent()

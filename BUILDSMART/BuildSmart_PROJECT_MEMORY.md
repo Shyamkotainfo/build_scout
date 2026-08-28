@@ -1711,3 +1711,77 @@ Next phase: EvaluationAgent certification.
 4. Finalized backend readiness. Verified API and Frontend compatibility via static inspection of the `AnalysisResultResponse` definition matching the exact state footprint.
 
 **Next Task**: Await further user instructions regarding frontend, system stability, or new features.
+
+------------------------------------------------------------
+### PERFORMANCE OPTIMIZATION #1 — COMPACT AGENT CONTEXT
+------------------------------------------------------------
+**Status: COMPLETE**
+
+- Created deterministic context projection functions in `backend/agents/context.py` to massively strip down the state passed to downstream LLMs, preventing state accumulation from blowing up the context window.
+- Updated `EvaluationAgent`, `DecisionAgent`, `BlueprintAgent`, and `ValidationAgent` to use these projection builders.
+- **Results:**
+  - Validation Context size reduced by 86% (from ~434 KB to ~60 KB).
+  - Validation runtime dropped by ~45% (116s to 63s).
+  - Blueprint Context reduced by 91% (~388 KB to ~32 KB).
+  - Observability remained 100% intact, as the raw tool traces and evidence are still kept untouched in the global `BuildSmartState`.
+  - Quality remained high, generating an 87-score Validation on the E2E benchmark.
+- **Recommendation:** Keep Optimization #1. The drastic context reduction significantly improves Time-To-First-Token and slashes token costs, all without sacrificing UI observability.
+
+## 🟢 CHECKPOINT: Optimization #2 (Bounded Parallel Execution)
+- **Status:** COMPLETED
+- Implemented `asyncio.Semaphore` bounded parallel execution inside `ResearchAgent` and `EvaluationAgent`.
+- **Results:**
+  - Wall-clock runtime reduced from 6m 51s to 4m 50s (~30% reduction).
+  - ResearchAgent latency dropped from ~108s to ~23s.
+  - EvaluationAgent latency dropped from ~68s to ~28s.
+  - Required updating test suites with `AsyncMock` and `ainvoke`.
+  
+## 🟢 CHECKPOINT: Optimization #3 (Better Research Queries)
+- **Status:** COMPLETED
+- Implemented targeted, deterministic query generation without adding LLM calls.
+- Extracted and safely encoded AWS/Cloud constraints.
+- Eliminated redundant `security.get` and `license.get` tool spam during the Research phase (saving 33% tool calls).
+- **Results:**
+  - Found 26 candidates (up from 19), resulting in higher quality downstream evaluation evidence.
+  - Research phase executed 33% fewer local tool calls.
+  - Pipeline remains fully integrated, producing robust 90+ validation scores due to strictly better candidate discovery.
+
+## 🟢 CHECKPOINT: Optimization #4 (Candidate Shortlisting)
+- **Status:** COMPLETED
+- Implemented robust deduplication per component and deterministic ranking inside `ResearchAgent`.
+- Shortlisted top 5 candidates per component, tagging the rest as `discovered` to preserve observability.
+- `EvaluationAgent` and `DecisionAgent` strictly filtered to process only `shortlisted` candidates.
+- **Results:**
+  - Drastically reduced downstream evaluation volume while keeping total search evidence visible.
+  - 259 tests passed perfectly.
+
+## 🟢 CHECKPOINT: Optimization #5 (Downstream State Compaction)
+- **Status:** COMPLETED
+- Rewrote context projection functions in `backend/agents/context.py` to create a strict "funnel" for downstream agents, severely stripping down payload objects without deleting data from the global `BuildSmartState`.
+- Discovered and fixed a critical LLM hallucination bug where `EvaluationAgent` previously evaluated candidates against unrelated components because it was fed all components simultaneously.
+- **Results:**
+  - Evaluation count dropped from 76 to exactly 22 (perfect 1:1 match with 22 shortlisted candidates).
+  - Serialized downstream state footprints dropped ~25%: Evaluation State (279KB -> 206KB), Decision State (279KB -> 217KB), Blueprint State (283KB -> 222KB).
+  - Benchmark run `performance_opt5_context` completed perfectly (Validation score remained high).
+  - 259 tests passed perfectly.
+
+## 🟢 CHECKPOINT: Optimization #6 (Research Caching)
+- **Status:** COMPLETED
+- Embedded a fast, safe, in-memory `ToolCache` into the `UnifiedToolGateway`.
+- Ensured cache keys are cryptographically determined by the exact normalized tool arguments and tool name.
+- Enforced strict freshness rules: 1 hour for `security.get`, 6 hours for GitHub metadata, 24 hours for `github.search` / `web.search` / `license.get`, and 7 days for stable AWS architecture docs.
+- Fully preserved traceability: Cache hits wrap the original trace metadata (original retrieval timestamp, provider, TTL) while rewriting the top-level trace provider as `"CACHE"` and latency to `0 ms`.
+- **Results:**
+  - Virtually zero duplicate tools *within a single run* due to earlier deduplication efforts.
+  - Massive latency/token savings across cross-request/API scenarios by intercepting duplicate GitHub and Web searches.
+  - Tests passing: 262/262 (Full regression and cache testing suite completed).
+
+## 🟢 CHECKPOINT: Optimization #7 (Reference-Based Evidence Store)
+- **Status:** COMPLETED (INVESTIGATED & SKIPPED)
+- Investigated the exact memory and token impact of the current state.
+- Discovered that because Optimization #5 strictly strips tool traces and evidence payloads via `build_evaluation_context`, the downstream LLMs already receive 0 raw tool bytes. 
+- Discovered that an in-memory `EvidenceStore` provides exactly 0 bytes of RAM savings (due to Python dict reference mechanics) and 0 token savings.
+- Per Rule 13 ("say so honestly and avoid unnecessary complexity"), explicitly aborted code changes to prevent introducing unstable garbage collection and API-expansion overheads.
+- **Results:**
+  - Pipeline remains fully stable (262 tests passing).
+  - Ready for Final E2E Benchmark.

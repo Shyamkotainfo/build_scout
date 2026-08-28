@@ -1,0 +1,19 @@
+{
+  "analysis_id": "aed3c3f6-c702-44c1-839f-ef905b280718",
+  "user_request": "Build an AI document intelligence platform using AWS. It should allow users to upload PDF documents, extract text using OCR, store documents securely, provide semantic search and question answering using RAG, support user authentication, and expose APIs for integration with other enterprise systems. Prefer reusable open-source solutions where appropriate, but ensure the selected components have suitable licenses and acceptable security/maturity.",
+  "normalized_request": "Build an AWS-hosted document intelligence platform enabling PDF upload with OCR text extraction, secure document storage, semantic search, RAG-powered question answering, user authentication, and REST APIs for enterprise integration, leveraging open-source components with acceptable licenses and security/maturity standards.",
+  "domain": "",
+  "status": "CREATED",
+  "requirements": [],
+  "components": [],
+  "candidates": [],
+  "evaluations": [],
+  "decisions": [],
+  "execution_plan": [],
+  "blueprint": {},
+  "validation_result": {},
+  "current_agent": "SupervisorAgent",
+  "agent_history": [],
+  "traces": [],
+  "retry_count": 0
+}

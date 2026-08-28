@@ -1,0 +1,19 @@
+{
+  "analysis_id": "94fdd5fa-f30f-4d38-9f08-29a34a1b1795",
+  "user_request": "Build an AI document intelligence platform using AWS. It should allow users to upload PDF documents securely, extract text using OCR, identify PII, and store the metadata in a graph database for relationship querying.",
+  "normalized_request": "Build an AI document intelligence platform on AWS that securely accepts PDF uploads, extracts text via OCR, detects PII within documents, and stores extracted metadata in a graph database to enable querying of document relationships.",
+  "domain": "",
+  "status": "CREATED",
+  "requirements": [],
+  "components": [],
+  "candidates": [],
+  "evaluations": [],
+  "decisions": [],
+  "execution_plan": [],
+  "blueprint": {},
+  "validation_result": {},
+  "current_agent": "SupervisorAgent",
+  "agent_history": [],
+  "traces": [],
+  "retry_count": 0
+}

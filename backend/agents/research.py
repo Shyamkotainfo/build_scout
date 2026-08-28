@@ -56,66 +56,99 @@ class ResearchAgent:
     async def _research_component(
         self,
         component: Dict[str, Any],
+        domain: str = "",
+        requirements: list[Dict[str, Any]] = None,
         analysis_id: str = "unknown"
     ) -> tuple[list[Dict[str, Any]], list[Dict[str, Any]]]:
         """Research a single component and return normalized candidate dicts + traces."""
+        import re
+        def clean_text(text: str) -> str:
+            if not text: return ""
+            cleaned = re.sub(r'[^a-zA-Z0-9\s]', ' ', text)
+            return " ".join(cleaned.split())
+
         comp_id = component.get("id")
-        comp_name = component.get("name", "")
+        comp_name_raw = component.get("name", "").replace("_", " ")
+        comp_name = clean_text(comp_name_raw).lower()
         comp_desc = component.get("description", "")
+        category = component.get("category", "").upper()
         
-        # Simple dynamic query formulation based on component details
-        query = f"{comp_name.replace('_', ' ').lower()} {comp_desc}"
-        # Keep query concise to improve search results
-        query = " ".join(query.split()[:8])
+        # Extract critical technology constraints from requirements
+        reqs = requirements or []
+        tech_keywords = {"aws": "AWS", "azure": "Azure", "gcp": "GCP", "google cloud": "GCP", "python": "Python", "node": "Node.js", "java": "Java", "go": "Go"}
+        constraints = set()
+        for r in reqs:
+            desc_lower = r.get("description", "").lower()
+            for kw, proper in tech_keywords.items():
+                if kw in desc_lower:
+                    constraints.add(proper)
+        
+        constraint_str = " ".join(constraints)
+        
+        domain_clean = clean_text(domain).lower()
+        domain_clean = " ".join(domain_clean.split()[:3]) # Limit domain length
+        domain_str = f"for {domain_clean}" if domain_clean else ""
+        
+        # Formulate specific queries per capability
+        queries = {
+            "github.search": f"{comp_name} open source {constraint_str}".strip(),
+            "web.search": f"open source {comp_name} alternatives {constraint_str} {domain_str}".strip(),
+            "aws.documentation": f"AWS {comp_name} architecture {domain_str}".strip(),
+            "cloud.architecture": f"{constraint_str} {comp_name} reference architecture {domain_str}".strip()
+        }
         
         traces = []
         raw_results = []
-        category = component.get("category", "").upper()
         
-        # Capability Mapping
+        # Capability Mapping (Removed license.get and security.get which are invalid here)
         capabilities = []
-        if "SECURITY" in category:
-            capabilities = ["security.get", "github.search", "web.search"]
-        elif "CLOUD" in category or "INFRASTRUCTURE" in category:
+        if "CLOUD" in category or "INFRASTRUCTURE" in category:
             capabilities = ["cloud.architecture", "aws.documentation", "github.search", "web.search"]
         else:
-            capabilities = ["license.get", "github.search", "web.search"]
+            capabilities = ["github.search", "web.search"]
 
-        for cap in capabilities:
-            try:
-                # Build common parameters, capabilities will ignore what they don't need
-                args = {
-                    "query": query,
-                    "repository": query,  # Some tools expect 'repository' instead of 'query'
-                    "limit": 10
-                }
-                logger.info(f"ResearchAgent executing capability: {cap} for {comp_id}")
-                trace = await tool_gateway.execute_tool(cap, args)
-                traces.append(trace)
+        async def fetch_cap(cap: str):
+            query = queries.get(cap, comp_name)
+            args = {
+                "query": query,
+                "limit": 10
+            }
+            if cap == "github.search":
+                args["repository"] = query # github.search accepts repository as an alias for query in our adapter
                 
-                if trace["status"] == "SUCCESS" and trace.get("results"):
-                    results = trace["results"]
-                    
-                    # Accumulate valid items first
-                    valid_items = []
-                    for res in results:
-                        if isinstance(res, str):
-                            if res.strip():
-                                valid_items.append(res)
-                        else:
-                            if res:
-                                valid_items.append(res)  # keep as dict
-                                
-                    if valid_items:
-                        # Append the parsed dicts, along with their provider context
-                        for item in valid_items:
-                            raw_results.append({
-                                "_tool": cap.upper(),
-                                "_provider": trace.get('provider', 'UNKNOWN'),
-                                "data": item
-                            })
+            logger.info(f"ResearchAgent executing capability: {cap} for {comp_id} with query: {query}")
+            try:
+                return cap, await tool_gateway.execute_tool(cap, args)
             except Exception as e:
                 logger.warning(f"Capability {cap} failed for {comp_id}: {e}")
+                return cap, None
+
+        tasks = [fetch_cap(cap) for cap in capabilities]
+        gathered = await asyncio.gather(*tasks)
+
+        for cap, trace in gathered:
+            if not trace: continue
+            traces.append(trace)
+            
+            if trace["status"] == "SUCCESS" and trace.get("results"):
+                results = trace["results"]
+                
+                valid_items = []
+                for res in results:
+                    if isinstance(res, str):
+                        if res.strip():
+                            valid_items.append(res)
+                    else:
+                        if res:
+                            valid_items.append(res)
+                            
+                if valid_items:
+                    for item in valid_items:
+                        raw_results.append({
+                            "_tool": cap.upper(),
+                            "_provider": trace.get('provider', 'UNKNOWN'),
+                            "data": item
+                        })
 
         if not raw_results:
             return [], traces
@@ -176,7 +209,10 @@ class ResearchAgent:
                 seen_compaction_urls.add(url)
                 
             # Intelligently truncate any verbose text fields inside the dict recursively
-            recursive_truncate(data)
+            if isinstance(data, str) and len(data) > 10000:
+                wrapper["data"] = data[:10000] + "... [TRUNCATED]"
+            else:
+                recursive_truncate(data)
                         
             compacted_results.append(wrapper)
 
@@ -299,19 +335,101 @@ class ResearchAgent:
         seen_urls = set()
         agent_traces = []
         
-        # To avoid being rate limited and for V1 scope, process sequentially or in limited batches
-        for comp in components:
-            logger.info(f"ResearchAgent researching component: {comp.get('name')}")
-            comp_candidates, traces = await self._research_component(comp, analysis_id)
+        # Bounded concurrency for components
+        RESEARCH_CONCURRENCY = getattr(self.settings, "research_concurrency", 4)
+        semaphore = asyncio.Semaphore(RESEARCH_CONCURRENCY)
+        
+        async def process_comp(comp):
+            async with semaphore:
+                logger.info(f"ResearchAgent researching component: {comp.get('name')}")
+                return await self._research_component(
+                    comp, 
+                    domain=state.get("domain", ""), 
+                    requirements=state.get("requirements", []), 
+                    analysis_id=analysis_id
+                )
+
+        tasks = [process_comp(comp) for comp in components]
+        # Gather maintains order of the original components list
+        results = await asyncio.gather(*tasks)
+        
+        for comp_candidates, traces in results:
             agent_traces.extend(traces)
             
-            # Deduplicate by URL
+            # 1. Deduplicate per component
+            comp_unique = {}
             for cand in comp_candidates:
                 url = cand.get("url", "").strip().lower()
-                if url and url not in seen_urls:
-                    seen_urls.add(url)
-                    all_candidates.append(cand)
+                if url.endswith(".git"):
+                    url = url[:-4]
+                if url.endswith("/"):
+                    url = url[:-1]
+                
+                name_source = f"{cand.get('name', '').strip().lower()}_{cand.get('source', '').strip().lower()}"
+                key = url if url else name_source
+                
+                if key in comp_unique:
+                    # Merge: prefer the one with more metadata
+                    existing = comp_unique[key]
+                    if len(cand.get("metadata", {})) > len(existing.get("metadata", {})):
+                        comp_unique[key] = cand
+                else:
+                    comp_unique[key] = cand
                     
+            unique_cands = list(comp_unique.values())
+            
+            # 2. Deterministic Ranking
+            def score_candidate(c):
+                score = 0
+                meta = c.get("metadata", {})
+                signals = []
+                
+                if c.get("url"): 
+                    score += 10
+                    signals.append("valid url")
+                if c.get("relevance_reason"):
+                    score += 10
+                    signals.append("relevance mapped")
+                
+                # Metadata signals
+                if meta.get("stars", 0) or meta.get("stargazers_count", 0):
+                    score += 5
+                    signals.append("stars")
+                if meta.get("forks", 0):
+                    score += 5
+                    signals.append("forks")
+                if meta.get("updated_at") or meta.get("last_commit"):
+                    score += 5
+                    signals.append("recent activity")
+                if meta.get("language"):
+                    score += 5
+                    signals.append("language match")
+                    
+                c["_rank_score"] = score
+                c["_rank_signals"] = ", ".join(signals) if signals else "basic extracted"
+                return score
+                
+            unique_cands.sort(key=score_candidate, reverse=True)
+            
+            # 3. Shortlist top N
+            SHORTLIST_SIZE = getattr(self.settings, "shortlist_size", 5)
+            
+            for i, cand in enumerate(unique_cands):
+                cand["id"] = f"CAND-{len(all_candidates) + 1:03d}"
+                
+                # Cleanup temporary fields
+                signals = cand.pop("_rank_signals", "unknown")
+                score = cand.pop("_rank_score", 0)
+                
+                if i < SHORTLIST_SIZE:
+                    cand["status"] = "shortlisted"
+                    cand["shortlist_reason"] = f"Ranked {i+1} (Score: {score}). Signals: {signals}"
+                else:
+                    cand["status"] = "discovered"
+                    cand["shortlist_reason"] = f"Ranked below top {SHORTLIST_SIZE} (Score: {score})."
+                    
+                all_candidates.append(cand)
+                
         # Store traces
         if "traces" not in state:
             state["traces"] = []

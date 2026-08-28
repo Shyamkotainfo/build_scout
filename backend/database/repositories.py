@@ -400,9 +400,16 @@ class AnalysisRepository:
         evaluations_orm = self.get_evaluations(session, analysis_id)
         eval_list = [
             {
+                "candidate_id": str(e.candidate_id) if e.candidate_id else "",
                 "candidate_name": cand_map.get(str(e.candidate_id), "Unknown"),
                 "component_id": str(e.candidate.component_id) if e.candidate else "",
-                "score": int(e.overall_score or 0),
+                "relevance_score": None,
+                "compatibility_score": int(e.compatibility_score) if e.compatibility_score is not None else None,
+                "project_health_score": int(e.health_score) if e.health_score is not None else None,
+                "license_score": int(e.license_score) if e.license_score is not None else None,
+                "security_score": int(e.security_score) if e.security_score is not None else None,
+                "maintainability_score": int(e.maintenance_score) if e.maintenance_score is not None else None,
+                "overall_score": int(e.overall_score or 0),
                 "reasoning": e.rationale or "",
                 "concerns": [],
                 "missing_evidence": [],
@@ -415,6 +422,7 @@ class AnalysisRepository:
             {
                 "component_id": str(d.component_id) if d.component_id else "",
                 "decision": d.decision or "",
+                "selected_candidate_id": str(d.candidate_id) if d.candidate_id else None,
                 "selected_candidate_name": cand_map.get(str(d.candidate_id)) if d.candidate_id else None,
                 "confidence": float(d.confidence or 0),
                 "reason": d.rationale or "",
@@ -431,7 +439,7 @@ class AnalysisRepository:
                 "solution_summary": (blueprint.architecture or {}).get("solution_summary", "") if blueprint.architecture else "",
                 "architecture_style": (blueprint.architecture or {}).get("architecture_style", "") if blueprint.architecture else "",
                 "components": (blueprint.component_mapping or {}).get("components", []) if blueprint.component_mapping else [],
-                "reuse_summary": {"REUSE": [], "ADAPT": [], "BUILD": []},
+                "reuse_summary": {"reuse": [], "adapt": [], "build": []},
                 "data_flow": blueprint.data_flow if isinstance(blueprint.data_flow, list) else [],
                 "integration_points": (blueprint.integration_flow or []) if isinstance(blueprint.integration_flow, list) else [],
                 "implementation_phases": blueprint.implementation_phases if isinstance(blueprint.implementation_phases, list) else [],

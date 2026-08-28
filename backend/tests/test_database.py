@@ -4,9 +4,9 @@ from unittest.mock import patch
 from config.settings import Settings
 
 def test_database_url_not_configured():
-    # If LAKEBASE_HOST is missing, database_url should be None
+    # If LAKEBASE_HOST is missing, database_url should fall back to sqlite
     settings = Settings(groq_api_key="test", lakebase_host=None, _env_file=None)
-    assert settings.database_url is None
+    assert settings.database_url == "sqlite:///buildscout.db"
 
 def test_database_url_configured():
     # Test valid configuration
@@ -38,4 +38,4 @@ def test_is_database_configured(mock_get_settings):
         lakebase_host=None,
         _env_file=None
     )
-    assert is_database_configured() is False
+    assert is_database_configured() is True

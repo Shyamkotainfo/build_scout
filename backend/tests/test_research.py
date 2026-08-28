@@ -47,7 +47,11 @@ def mock_research_agent(mock_search_tools):
         
         # Mock get_llm to return a fake LLM that has bind().ainvoke()
         mock_llm = MagicMock()
+        mock_llm.invoke = MagicMock(return_value=mock_response)
+        mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+        
         mock_llm_json = MagicMock()
+        mock_llm_json.invoke = MagicMock(return_value=mock_response)
         mock_llm_json.ainvoke = AsyncMock(return_value=mock_response)
         mock_llm.bind.return_value = mock_llm_json
         

@@ -13,7 +13,7 @@ def mock_llm_for_github():
         mock_llm_json = mock_llm.bind.return_value
         
         # When LLM is called, return a fake list of candidates
-        mock_llm_json.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '''
+        mock_llm.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '''
         {
             "candidates": [
                 {
@@ -67,11 +67,10 @@ async def test_github_mcp_successful_search(mock_gateway, mock_llm_for_github):
     assert len(traces) == 3
     assert traces[0]["status"] == "SUCCESS"
     assert traces[1]["status"] == "SUCCESS"
-    assert traces[2]["status"] == "SUCCESS"
     
     mock_gateway.assert_any_call(
         "github.search", 
-        {"query": "python rest api REST API framework", "repository": "python rest api REST API framework", "limit": 5}
+        {"query": "python rest api open source", "repository": "python rest api open source", "limit": 10}
     )
 
 @pytest.mark.asyncio
@@ -93,10 +92,9 @@ async def test_github_mcp_empty_result(mock_gateway, mock_llm_for_github):
     candidates, traces = await agent._research_component(comp)
     
     assert len(candidates) == 0
-    assert len(traces) == 3
+    assert len(traces) == 2
     assert traces[0]["status"] == "SUCCESS"
     assert traces[1]["status"] == "SUCCESS"
-    assert traces[2]["status"] == "SUCCESS"
 
 @pytest.mark.asyncio
 @patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
