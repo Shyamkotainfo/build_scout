@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createAnalysis } from '../services/analysis_service';
 import { AlertCircle, CheckCircle2, Circle, Loader2, Play, RefreshCw, Terminal } from 'lucide-react';
+import { useData } from '../contexts/DataContext';
 import Button from '../components/ui/Button';
 
 const EXAMPLES = [
@@ -15,6 +16,7 @@ const NewAnalysis = () => {
   const [isExecuting, setIsExecuting] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { addAnalysis } = useData();
 
   const handleAnalyze = async () => {
     if (!request.trim()) {
@@ -28,6 +30,10 @@ const NewAnalysis = () => {
     try {
       const result = await createAnalysis(request.trim());
       localStorage.setItem('latest_analysis_id', result.analysis_id);
+      
+      // Instantly inject the successful analysis into the Context so the user doesn't need to refresh
+      addAnalysis(result);
+      
       navigate(`/analyses/${result.analysis_id}`);
     } catch (err) {
       setIsExecuting(false);

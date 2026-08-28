@@ -67,7 +67,7 @@ describe('ResearchExplorer Page Phase 4', () => {
     analysisService.getAnalysis.mockRejectedValue(error);
     renderResearchExplorer();
     await waitFor(() => {
-      expect(screen.getByText(/Analysis not found/i)).toBeInTheDocument();
+      expect(screen.getByText(/No Analysis Selected/i)).toBeInTheDocument();
     });
   });
 

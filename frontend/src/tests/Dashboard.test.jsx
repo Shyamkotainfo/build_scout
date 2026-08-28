@@ -6,7 +6,6 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Dashboard from '../pages/Dashboard';
 import * as analysisService from '../services/analysis_service';
-import { HealthProvider } from '../contexts/HealthContext';
 
 // Mock the API service
 vi.mock('../services/analysis_service');
@@ -40,17 +39,29 @@ describe('Dashboard Component (Phase 2)', () => {
     renderDashboard();
     
     await waitFor(() => {
-      expect(screen.getAllByText(/Analysis history unavailable/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/No analysis history available/i).length).toBeGreaterThan(0);
     });
   });
 
   it('3. History unavailable but Backend healthy', async () => {
-    analysisService.getHealth.mockResolvedValue({ status: 'healthy', database: 'unavailable' });
-    analysisService.getAnalyses.mockRejectedValue({ response: { data: { error: { message: 'DB Error' } } } });
+    analysisService.getHealth.mockResolvedValue({ status: 'healthy' });
+    analysisService.getAnalyses.mockRejectedValue(new Error('Failed to load history'));
+
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getAllByText(/Analysis history unavailable/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/No analysis history available/i).length).toBeGreaterThan(0);
+    });
+  });
+
+  it('4. Backend and History unavailable', async () => {
+    analysisService.getHealth.mockRejectedValue(new Error('Network Error'));
+    analysisService.getAnalyses.mockRejectedValue(new Error('Network Error'));
+
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/No analysis history available/i).length).toBeGreaterThan(0);
     });
   });
 

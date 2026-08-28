@@ -1,10 +1,9 @@
 from fastapi import APIRouter
-from models.schemas import AnalysisRequest, AnalysisResultResponse
+from models.schemas import AnalysisRequest, AnalysisResultResponse, AnalysisSummaryResponse
 from services.analysis_service import analyze
 from services.retrieval_service import retrieve_analysis, list_analyses
 
 router = APIRouter()
-
 
 @router.get("/health")
 def health_check():
@@ -52,7 +51,6 @@ def health_check():
         "mcp": "healthy" # Simplified for now, in a real app would ping servers
     }
 
-
 @router.post(
     "/api/v1/analyses",
     response_model=AnalysisResultResponse,
@@ -66,10 +64,9 @@ def health_check():
 def create_analysis(request: AnalysisRequest):
     return analyze(request.user_request)
 
-
 @router.get(
     "/api/v1/analyses",
-    response_model=list[dict],
+    response_model=list[AnalysisSummaryResponse],
     summary="List all analyses",
     description="Returns a lightweight list of all previous analyses.",
     tags=["Analyses"],

@@ -25,18 +25,24 @@ const TableOfContents = ({ content }) => {
 
   useEffect(() => {
     const handleScroll = () => {
+      const container = document.getElementById('docs-content-container');
+      if (!container) return;
       const headingElements = headings.map(h => document.getElementById(h.id)).filter(Boolean);
-      
-      // Find the first heading that is currently near the top of the viewport
+
       for (const el of headingElements) {
         const rect = el.getBoundingClientRect();
-        // 120 is roughly the top offset / scroll-mt margin
         if (rect.top >= 0 && rect.top <= 150) {
           setActiveId(el.id);
           return;
         }
       }
     };
+
+    const container = document.getElementById('docs-content-container');
+    if (container) {
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -45,27 +51,28 @@ const TableOfContents = ({ content }) => {
   if (headings.length === 0) return null;
 
   return (
-    <nav className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto w-64 shrink-0 hidden lg:block pb-10 pr-4">
-      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">On this page</h4>
-      <ul className="space-y-2 border-l border-slate-700/50">
+    <nav className="sticky top-10 max-h-[calc(100vh-6rem)] overflow-y-auto w-52 shrink-0 hidden xl:block pb-10">
+      <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">
+        On this page
+      </h4>
+      <ul className="space-y-0.5 border-l border-slate-200">
         {headings.map((heading, i) => (
-          <li 
+          <li
             key={`${heading.id}-${i}`}
-            className={`${heading.level === 3 ? 'ml-4' : ''}`}
+            className={heading.level === 3 ? 'ml-3' : ''}
           >
             <a
               href={`#${heading.id}`}
-              className={`block pl-4 py-1 text-sm transition-colors border-l-2 -ml-[1px]
-                ${activeId === heading.id 
-                  ? 'border-blue-500 text-blue-400 font-medium' 
-                  : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-500'
+              className={`block pl-3 py-1 text-[0.8125rem] transition-colors border-l-2 -ml-px leading-snug
+                ${activeId === heading.id
+                  ? 'border-[var(--bs-orange-500)] text-[var(--bs-orange-600)] font-semibold'
+                  : 'border-transparent text-slate-500 hover:text-[var(--bs-navy-900)] hover:border-slate-300'
                 }`}
               onClick={(e) => {
                 e.preventDefault();
                 const el = document.getElementById(heading.id);
                 if (el) {
                   el.scrollIntoView({ behavior: 'smooth' });
-                  // small delay before setting active so it highlights when clicked
                   setTimeout(() => setActiveId(heading.id), 100);
                   history.pushState(null, null, `#${heading.id}`);
                 }

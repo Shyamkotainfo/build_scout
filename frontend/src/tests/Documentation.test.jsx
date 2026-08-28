@@ -1,6 +1,8 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi } from 'vitest';
+import { DataProvider } from '../contexts/DataContext';
+import { HealthProvider } from '../contexts/HealthContext';
 import DocumentationExplorer from '../pages/DocumentationExplorer';
 
 // Mock registry for test predictability

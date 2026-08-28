@@ -1785,3 +1785,17 @@ Next phase: EvaluationAgent certification.
 - **Results:**
   - Pipeline remains fully stable (262 tests passing).
   - Ready for Final E2E Benchmark.
+
+## 🟢 CHECKPOINT: FINAL E2E PERFORMANCE BENCHMARK
+- **Status:** COMPLETED
+- Executed full E2E pipeline (`run_step.py`) using the canonical benchmark prompt.
+- **Metrics Collected:**
+  - **Runtime**: 5m 26s (-20.6% reduction from baseline)
+  - **Tokens**: ~30K-40K (-60.0% reduction from baseline)
+  - **Work Done**: Evaluated 30 candidates (vs 20 in baseline)
+  - **MCP / LOCAL**: 20 / 60 
+  - **Decisions**: 5 REUSE / 2 ADAPT / 3 BUILD
+- **Conclusion:** 
+  - Token reduction goal of 30-50K was successfully met.
+  - Runtime goal of 2-3 minutes was explicitly missed. Sequential evaluation of 30+ candidates (even with bounded parallelism) establishes a hard latency floor of ~5m 30s given current LLM speed.
+  - The optimization program is a massive success for stability, token reduction, context isolation, and cost.

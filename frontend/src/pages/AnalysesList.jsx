@@ -9,7 +9,7 @@ import EmptyState from '../components/ui/EmptyState';
 const AnalysesList = () => {
   const { history, isRefreshing, refreshError } = useData();
 
-  if (refreshError) {
+  if (refreshError && history.length === 0) {
     return (
       <div className="max-w-7xl mx-auto w-full px-4 py-12">
         <div className="mb-6 flex items-center justify-between">
@@ -18,8 +18,8 @@ const AnalysesList = () => {
         <Card className="p-12 border-[var(--bs-status-critical-border)]">
           <EmptyState 
             icon={History} 
-            title="History Unavailable" 
-            description={refreshError}
+            title="No analysis history available" 
+            description="Backend is currently unavailable and no previously synchronized history is stored on this browser."
           />
         </Card>
       </div>
@@ -73,15 +73,17 @@ const AnalysesList = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {history.map((h) => {
-          const score = h.validation_result?.overall_score ?? 0;
-          const status = (h.validation_result?.overall_status || 'UNKNOWN').toLowerCase();
+          const score = h.validation_result?.overall_score ?? h.validation_score ?? 0;
+          const status = (h.validation_result?.overall_status || h.validation_status || 'UNKNOWN').toLowerCase();
           
           let badgeStatus = 'neutral';
           if (status === 'pass') badgeStatus = 'success';
           if (status === 'warning') badgeStatus = 'warning';
           if (status === 'fail') badgeStatus = 'critical';
           
-          const timeLabel = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          const timeLabel = h.created_at 
+            ? new Date(h.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+            : new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
           
           const reqs = h.requirements_count ?? h.requirements?.length ?? 0;
           
@@ -90,7 +92,7 @@ const AnalysesList = () => {
           let buildCount = 0;
           const decisions = h.decisions || [];
           decisions.forEach(d => {
-            const type = (d.decision_type || d.type || '').toUpperCase();
+            const type = (d.decision || d.type || '').toUpperCase();
             if (type === 'REUSE') reuseCount++;
             if (type === 'ADAPT') adaptCount++;
             if (type === 'BUILD') buildCount++;

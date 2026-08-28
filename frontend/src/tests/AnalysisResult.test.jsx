@@ -37,7 +37,7 @@ describe('AnalysisResult Component', () => {
     renderAnalysisResult();
 
     await waitFor(() => {
-      expect(screen.getByText(/Analysis not found/i)).toBeInTheDocument();
+      expect(screen.getByText(/Analysis Details Unavailable/i)).toBeInTheDocument();
     });
   });
 
@@ -46,7 +46,7 @@ describe('AnalysisResult Component', () => {
     renderAnalysisResult();
 
     await waitFor(() => {
-      expect(screen.getByText(/Unable to connect to the BuildScout backend/i)).toBeInTheDocument();
+      expect(screen.getByText(/Analysis Details Unavailable/i)).toBeInTheDocument();
     });
   });
 

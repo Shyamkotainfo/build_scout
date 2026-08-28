@@ -18,10 +18,14 @@ import Button from '../components/ui/Button';
 const Dashboard = () => {
   const { history, currentAnalysis: analysis, isRefreshing, refreshError, lastRefreshed, refreshData } = useData();
 
-  if (refreshError) {
+  if (refreshError && history.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <ErrorState title="Dashboard Error" message={refreshError} onRetry={refreshData} />
+      <div className="flex flex-col items-center justify-center h-full py-24 px-4">
+        <ErrorState 
+          title="No analysis history available" 
+          message="Backend is currently unavailable and no previously synchronized history is stored on this browser." 
+          onRetry={refreshData} 
+        />
       </div>
     );
   }

@@ -30,7 +30,7 @@ const LatestAnalysisCard = ({ analysis }) => {
   let buildCount = 0;
   
   decisions.forEach(d => {
-    const type = (d.decision_type || '').toUpperCase();
+    const type = (d.decision || '').toUpperCase();
     if (type === 'REUSE') reuseCount++;
     if (type === 'ADAPT') adaptCount++;
     if (type === 'BUILD') buildCount++;
@@ -90,7 +90,7 @@ const LatestAnalysisCard = ({ analysis }) => {
             </div>
           </div>
           
-          <Link to={`/analysis/${analysis_id}`} className="inline-flex items-center text-sm font-medium text-[var(--bs-orange-500)] hover:text-[var(--bs-orange-600)] transition-colors">
+          <Link to={`/analyses/${analysis_id}`} className="inline-flex items-center text-sm font-medium text-[var(--bs-orange-500)] hover:text-[var(--bs-orange-600)] transition-colors">
             View Full Analysis <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
         </div>

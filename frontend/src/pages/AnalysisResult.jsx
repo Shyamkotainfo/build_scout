@@ -61,11 +61,13 @@ const AnalysisResult = () => {
         </div>
         <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-medium)] p-8 rounded-lg text-center">
           <AlertCircle className="w-12 h-12 text-[var(--bs-text-tertiary)] mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2 text-[var(--bs-text-primary)]">No Analysis Selected</h2>
+          <h2 className="text-xl font-bold mb-2 text-[var(--bs-text-primary)]">
+            {isInitialLoad ? "No Analysis Selected" : "Analysis Details Unavailable"}
+          </h2>
           <p className="text-sm text-[var(--bs-text-secondary)] mb-6">
             {isInitialLoad
               ? "Click 'Refresh Data' to load your workspace."
-              : "Please select an analysis from the Dashboard or History to view its Result."}
+              : "Analysis details are temporarily unavailable. Reconnect to the backend to load the latest details."}
           </p>
           <Link to="/new-analysis">
             <Button variant="primary">Start New Analysis</Button>

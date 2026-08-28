@@ -11,7 +11,6 @@ import AgentTraceExplorer from '../pages/AgentTraceExplorer';
 import McpConsole from '../pages/McpConsole';
 import LlmMetricsConsole from '../pages/LlmMetricsConsole';
 import * as analysisService from '../services/analysis_service';
-import { HealthProvider } from '../contexts/HealthContext';
 
 vi.mock('../services/analysis_service');
 

@@ -8,7 +8,7 @@ import StatusIndicator from './ui/StatusIndicator';
 
 const Navbar = () => {
   const { healthData } = useHealth();
-  const { refreshData, isRefreshing, lastRefreshed, refreshError } = useData();
+  const { refreshData, isRefreshing, lastRefreshed, refreshError, isCached } = useData();
   const healthStatus = healthData?.status || 'checking';
 
   return (
@@ -26,6 +26,11 @@ const Navbar = () => {
               {refreshError && (
                 <div className="flex items-center text-red-500 text-xs" title={refreshError}>
                   <AlertTriangle className="w-3 h-3 mr-1" /> Failed
+                </div>
+              )}
+              {isCached && (
+                <div className="hidden sm:flex items-center bg-orange-500/10 text-orange-500 border border-orange-500/30 px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase" title="Showing cached analysis history">
+                  Cached
                 </div>
               )}
               <Button 

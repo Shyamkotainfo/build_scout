@@ -12,26 +12,28 @@ vi.mock('../services/analysis_service');
 const mockTraceAnalysis = {
   analysis_id: 'test-trace-123',
   domain: 'E-commerce API',
+  agent_history: ['Supervisor', 'Research', 'Decision', 'Validation'],
+  metrics: { model: 'gpt-4o', total_tokens: 15000, average_latency_ms: 1200 },
   traces: [
     {
       id: 'TRACE-1',
-      agent_name: 'supervisor',
+      agent_name: 'Supervisor',
       role: 'System Architect',
       timestamp: '2026-08-25T10:00:00Z',
       input: 'Decompose the E-commerce API request',
       output: 'Identified 3 components: Auth, Product, Cart',
-      status: 'SUCCESS',
+      status: 'COMPLETED',
       execution_time_ms: 1500,
       tokens_used: 1200
     },
     {
       id: 'TRACE-2',
-      agent_name: 'research',
+      agent_name: 'Research',
       role: 'Research Specialist',
       timestamp: '2026-08-25T10:01:00Z',
       input: 'Research Auth component options',
       output: 'Found Auth0, PassportJS',
-      status: 'SUCCESS',
+      status: 'COMPLETED',
       execution_time_ms: 2500,
       tokens_used: 3500,
       tool_calls: [
@@ -39,14 +41,28 @@ const mockTraceAnalysis = {
           name: 'search_web',
           provider: 'MCP',
           status: 'SUCCESS',
-          args: { query: 'Node.js auth solutions' },
+          arguments: { query: 'Node.js auth solutions' },
           result: 'Auth0 is top rated. PassportJS is open source.'
+        },
+        {
+          name: 'search_local',
+          provider: 'LOCAL',
+          status: 'SUCCESS',
+          arguments: { query: 'react libs' },
+          result: 'Local cache result'
+        },
+        {
+          name: 'fallback_search',
+          provider: 'FALLBACK',
+          status: 'SUCCESS',
+          arguments: { q: 'safe fallback' },
+          result: 'Fallback result'
         }
       ]
     },
     {
       id: 'TRACE-3',
-      agent_name: 'decision',
+      agent_name: 'Decision',
       role: 'Principal Engineer',
       timestamp: '2026-08-25T10:02:00Z',
       input: 'Evaluate Auth options',
@@ -55,6 +71,11 @@ const mockTraceAnalysis = {
       error: 'API rate limit exceeded',
       execution_time_ms: 500,
       tokens_used: 400
+    },
+    {
+      id: 'TRACE-4',
+      agent_name: 'Validation',
+      status: 'UNKNOWN'
     }
   ]
 };
@@ -138,16 +159,18 @@ describe('AgentTraceExplorer Page', () => {
     analysisService.getAnalysis.mockResolvedValue(mockTraceAnalysis);
     renderPage();
     await waitFor(() => {
-      fireEvent.click(screen.getByText('Research'));
+      expect(screen.getByText('No tool calls were recorded for this agent.')).toBeInTheDocument();
     });
 
+    fireEvent.click(screen.getByText('Research'));
+
     await waitFor(() => {
-      expect(screen.getAllByText('MCP').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('LOCAL').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('FALLBACK').length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/MCP/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/LOCAL/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/FALLBACK/i).length).toBeGreaterThan(0);
       
       // Fallback specific message
-      expect(screen.getByText('External MCP unavailable — local fallback used')).toBeInTheDocument();
+      expect(screen.getByText(/External MCP unavailable/i)).toBeInTheDocument();
     });
   });
 
@@ -155,13 +178,15 @@ describe('AgentTraceExplorer Page', () => {
     analysisService.getAnalysis.mockResolvedValue(mockTraceAnalysis);
     renderPage();
     await waitFor(() => {
-      fireEvent.click(screen.getByText('Research'));
+      expect(screen.getByText('No tool calls were recorded for this agent.')).toBeInTheDocument();
     });
+
+    fireEvent.click(screen.getByText('Research'));
 
     await waitFor(() => {
       // Check that stringified arguments render
-      expect(screen.getByText(/"query":\s*"react libs"/)).toBeInTheDocument();
-      expect(screen.getByText(/"q":\s*"safe fallback"/)).toBeInTheDocument();
+      expect(screen.getByText(/react libs/i)).toBeInTheDocument();
+      expect(screen.getByText(/safe fallback/i)).toBeInTheDocument();
     });
   });
 

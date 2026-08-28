@@ -9,6 +9,26 @@ class AnalysisResponse(BaseModel):
     status: str
     message: str
 
+class DecisionSummaryResponse(BaseModel):
+    reuse: int = 0
+    adapt: int = 0
+    build: int = 0
+
+class AnalysisSummaryResponse(BaseModel):
+    analysis_id: str
+    user_request: str
+    normalized_request: str = ""
+    domain: str = ""
+    status: str = ""
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    component_count: int = 0
+    candidate_count: int = 0
+    requirements_count: int = 0
+    validation_score: int = 0
+    validation_status: str = "UNKNOWN"
+    decision_summary: DecisionSummaryResponse = Field(default_factory=DecisionSummaryResponse)
+
 class RequirementResponse(BaseModel):
     id: str
     description: str
@@ -144,3 +164,5 @@ class AnalysisResultResponse(BaseModel):
     agent_history: List[str] = Field(default_factory=list)
     traces: List[AgentTraceResponse] = Field(default_factory=list)
     llm_metrics: Optional[LLMMetricsResponse] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None

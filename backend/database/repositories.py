@@ -503,6 +503,8 @@ class AnalysisRepository:
             "normalized_request": analysis.normalized_request or "",
             "domain": analysis.domain or "",
             "status": analysis.status or "",
+            "created_at": analysis.created_at.isoformat() if analysis.created_at else None,
+            "updated_at": analysis.updated_at.isoformat() if analysis.updated_at else None,
             "requirements": req_list,
             "components": comp_list,
             "candidates": cand_list,
