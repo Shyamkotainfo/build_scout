@@ -1,95 +1,163 @@
-import React from 'react';
-import { Layers } from 'lucide-react';
+import React, { useState } from 'react';
+import { Layers, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const ComponentArchitectureList = ({ blueprint, decisions }) => {
+const getDecisionStyle = (type) => {
+  switch (type?.toUpperCase()) {
+    case 'REUSE': return 'bg-[var(--bs-status-success)]/10 text-[var(--bs-status-success)] border-[var(--bs-status-success)]';
+    case 'ADAPT': return 'bg-[var(--bs-status-warning)]/10 text-[var(--bs-status-warning)] border-[var(--bs-status-warning)]';
+    case 'BUILD': return 'bg-[var(--bs-orange-500)]/10 text-[var(--bs-orange-500)] border-[var(--bs-orange-500)]';
+    default: return 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-secondary)] border-[var(--bs-border-light)]';
+  }
+};
+
+const ComponentArchitectureList = ({ blueprint, decisions, analysisId }) => {
+  const [expandedId, setExpandedId] = useState(null);
+
   if (!blueprint?.components || blueprint.components.length === 0) {
     return (
       <div className="mb-10">
-        <h2 className="text-lg font-semibold leading-6 text-white mb-4">Component Architecture</h2>
-        <div className="rounded-lg border border-slate-700 border-dashed bg-slate-800/30 p-8 text-center">
-          <p className="text-sm text-slate-500">No components available.</p>
+        <h2 className="text-lg font-semibold leading-6 text-[var(--bs-text-primary)] mb-4">Component Architecture</h2>
+        <div className="rounded-lg border border-[var(--bs-border-light)] border-dashed bg-[var(--bs-bg-secondary)] p-8 text-center">
+          <p className="text-sm text-[var(--bs-text-secondary)]">No components available.</p>
         </div>
       </div>
     );
   }
 
-  const getDecisionStyle = (type) => {
-    switch (type?.toUpperCase()) {
-      case 'REUSE': return 'bg-green-900/40 text-green-400 border-green-800/60';
-      case 'ADAPT': return 'bg-yellow-900/40 text-yellow-400 border-yellow-800/60';
-      case 'BUILD': return 'bg-blue-900/40 text-blue-400 border-blue-800/60';
-      default: return 'bg-slate-800 text-slate-300 border-slate-700';
-    }
+  const toggleExpand = (id) => {
+    setExpandedId(expandedId === id ? null : id);
   };
 
   return (
     <div className="mb-12">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold leading-6 text-white flex items-center gap-2">
-          <Layers className="h-5 w-5 text-slate-400" /> Component Architecture
+        <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest flex items-center gap-2">
+          <Layers className="h-4 w-4" /> Component Architecture Table
         </h2>
       </div>
 
-      <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-        <div className="grid grid-cols-1 divide-y divide-slate-800">
-          {blueprint.components.map((comp) => {
-            const decisionData = decisions?.find(d => d.component_id === comp.component_id);
-            const decisionType = decisionData?.decision?.toUpperCase();
-            
-            return (
-              <div key={comp.component_id} className="p-6 hover:bg-slate-800/30 transition-colors">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="text-lg font-bold text-slate-200">{comp.component_name}</h3>
-                      {decisionType && (
-                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold border ${getDecisionStyle(decisionType)}`}>
-                          {decisionType}
+      <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[var(--bs-bg-secondary)] border-b border-[var(--bs-border-medium)]">
+                <th className="px-4 py-3 text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Component</th>
+                <th className="px-4 py-3 text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Technology</th>
+                <th className="px-4 py-3 text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Decision</th>
+                <th className="px-4 py-3 text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Purpose</th>
+                <th className="px-4 py-3 text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest w-10"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--bs-border-light)]">
+              {blueprint.components.map((comp) => {
+                const decisionData = decisions?.find(d => d.component_id === comp.component_id);
+                const decisionType = decisionData?.decision || comp.decision;
+                const isExpanded = expandedId === comp.component_id;
+                const style = getDecisionStyle(decisionType);
+
+                return (
+                  <React.Fragment key={comp.component_id}>
+                    <tr 
+                      className="hover:bg-[var(--bs-bg-secondary)] cursor-pointer transition-colors"
+                      onClick={() => toggleExpand(comp.component_id)}
+                    >
+                      <td className="px-4 py-4 text-sm font-bold text-[var(--bs-text-primary)]">
+                        {comp.component_name}
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="inline-flex items-center rounded bg-blue-900/30 px-2 py-1 text-xs font-mono font-medium text-blue-400 border border-blue-800/50">
+                          {comp.technology || 'Unknown'}
                         </span>
-                      )}
-                    </div>
-                    <span className="text-xs font-mono text-slate-500">ID: {comp.component_id}</span>
-                  </div>
-                  <div className="flex flex-col items-start md:items-end">
-                    <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Technology</span>
-                    <span className="inline-flex items-center rounded bg-blue-900/30 px-2.5 py-1 text-sm font-medium text-blue-400 border border-blue-800/50">
-                      {comp.technology || 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Responsibility</h4>
-                    <p className="text-sm text-slate-300">{comp.responsibility}</p>
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Integration</h4>
-                    <p className="text-sm text-slate-400">{comp.integration}</p>
-                  </div>
-                </div>
-
-                {decisionData && (
-                  <div className="mt-6 pt-4 border-t border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900/50 rounded p-4 border border-slate-800">
-                    <div>
-                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Decision Reason</h4>
-                      <p className="text-sm text-slate-300">{decisionData.reason}</p>
-                    </div>
-                    {decisionData.risks?.length > 0 && (
-                      <div>
-                        <h4 className="text-xs font-semibold text-red-500/80 uppercase tracking-wider mb-2">Risks</h4>
-                        <ul className="space-y-1">
-                          {decisionData.risks.map((r, i) => (
-                            <li key={i} className="text-sm text-slate-400 flex items-start gap-1 before:content-['•'] before:text-slate-600">{r}</li>
-                          ))}
-                        </ul>
-                      </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        {decisionType && (
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold border uppercase tracking-widest ${style}`}>
+                            {decisionType}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-[var(--bs-text-secondary)] max-w-xs truncate">
+                        {comp.responsibility}
+                      </td>
+                      <td className="px-4 py-4 text-[var(--bs-text-tertiary)]">
+                        {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                      </td>
+                    </tr>
+                    
+                    {isExpanded && (
+                      <tr className="bg-[var(--bs-bg-secondary)] border-b border-[var(--bs-border-medium)]">
+                        <td colSpan={5} className="px-6 py-6">
+                          <div className="flex flex-col gap-6">
+                            <div className="flex justify-between items-start">
+                              <h3 className="text-lg font-bold text-[var(--bs-text-primary)] mb-2">{comp.component_name} Detail</h3>
+                              
+                              <div className="flex gap-3">
+                                {analysisId && (
+                                  <>
+                                    <Link to={`/research/${analysisId}`} className="text-xs font-bold text-[var(--bs-text-tertiary)] hover:text-[var(--bs-text-primary)] flex items-center gap-1 uppercase tracking-widest transition-colors">
+                                      Research Evidence <ExternalLink className="h-3 w-3" />
+                                    </Link>
+                                    <Link to={`/decisions/${analysisId}`} className="text-xs font-bold text-[var(--bs-text-tertiary)] hover:text-[var(--bs-text-primary)] flex items-center gap-1 uppercase tracking-widest transition-colors">
+                                      Evaluation & Decision <ExternalLink className="h-3 w-3" />
+                                    </Link>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                              <div>
+                                <div className="mb-4">
+                                  <h4 className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Purpose & Responsibility</h4>
+                                  <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed">{comp.responsibility}</p>
+                                </div>
+                                <div className="mb-4">
+                                  <h4 className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Integration Points</h4>
+                                  <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed">{comp.integration || 'None specified'}</p>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                {decisionData && (
+                                  <>
+                                    <div className="mb-4">
+                                      <h4 className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Decision Rationale</h4>
+                                      <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed">{decisionData.reason}</p>
+                                    </div>
+                                    {decisionData.risks?.length > 0 && (
+                                      <div className="mb-4">
+                                        <h4 className="text-[10px] font-bold text-[var(--bs-status-warning)] uppercase tracking-widest mb-1">Implementation Risks</h4>
+                                        <ul className="space-y-1">
+                                          {decisionData.risks.map((r, i) => (
+                                            <li key={i} className="text-sm text-[var(--bs-text-secondary)] flex items-start gap-2 before:content-['•'] before:text-[var(--bs-status-warning)]">{r}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    {decisionData.implementation_notes?.length > 0 && (
+                                      <div className="mb-4">
+                                        <h4 className="text-[10px] font-bold text-[var(--bs-blue-500)] uppercase tracking-widest mb-1">Implementation Notes</h4>
+                                        <ul className="space-y-1">
+                                          {decisionData.implementation_notes.map((note, i) => (
+                                            <li key={i} className="text-sm text-[var(--bs-text-secondary)] flex items-start gap-2 before:content-['•'] before:text-[var(--bs-blue-500)]">{note}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

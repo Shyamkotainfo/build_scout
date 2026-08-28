@@ -1,15 +1,118 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   BuildScout Design System — CSS Custom Properties
+   ═══════════════════════════════════════════════════════════════════════════ */
+
 :root {
-  --bg-primary: #0f172a; /* Slate 900 / Deep Navy */
-  --bg-secondary: #1e293b; /* Slate 800 */
-  --accent-primary: #3b82f6; /* Blue 500 */
-  --text-primary: #f8fafc; /* Slate 50 */
-  --text-secondary: #cbd5e1; /* Slate 300 */
+  /* ── 60% Light backgrounds ──────────────────────────────────────────── */
+  --bs-bg-primary:   #ffffff;
+  --bs-bg-secondary: #f8fafc;
+  --bs-bg-tertiary:  #f1f5f9;
+  --bs-bg-hover:     #e2e8f0;
+
+  /* ── 30% Navy structural ────────────────────────────────────────────── */
+  --bs-navy-900: #0f172a;
+  --bs-navy-800: #1e293b;
+  --bs-navy-700: #334155;
+  --bs-navy-600: #475569;
+  --bs-navy-500: #64748b;
+
+  /* ── 10% Orange accent ──────────────────────────────────────────────── */
+  --bs-orange-50:  #fff7ed;
+  --bs-orange-100: #ffedd5;
+  --bs-orange-200: #fed7aa;
+  --bs-orange-400: #fb923c;
+  --bs-orange-500: #f97316;
+  --bs-orange-600: #ea580c;
+  --bs-orange-700: #c2410c;
+
+  /* ── Text ───────────────────────────────────────────────────────────── */
+  --bs-text-primary:   #0f172a;
+  --bs-text-secondary: #475569;
+  --bs-text-tertiary:  #64748b;
+  --bs-text-muted:     #94a3b8;
+  --bs-text-inverse:   #ffffff;
+
+  /* ── Borders ────────────────────────────────────────────────────────── */
+  --bs-border-light:  #e2e8f0;
+  --bs-border-medium: #cbd5e1;
+  --bs-border-dark:   #475569;
+
+  /* ── Semantic status ────────────────────────────────────────────────── */
+  --bs-status-success:        #16a34a;
+  --bs-status-success-light:  #f0fdf4;
+  --bs-status-success-border: #bbf7d0;
+
+  --bs-status-warning:        #d97706;
+  --bs-status-warning-light:  #fffbeb;
+  --bs-status-warning-border: #fde68a;
+
+  --bs-status-critical:        #dc2626;
+  --bs-status-critical-light:  #fef2f2;
+  --bs-status-critical-border: #fecaca;
+
+  --bs-status-running:        #2563eb;
+  --bs-status-running-light:  #eff6ff;
+  --bs-status-running-border: #bfdbfe;
+
+  --bs-status-build:        #1e293b;
+  --bs-status-build-light:  #f1f5f9;
+  --bs-status-build-border: #cbd5e1;
+
+  --bs-status-pending:        #6b7280;
+  --bs-status-pending-light:  #f9fafb;
+  --bs-status-pending-border: #e5e7eb;
+
+  /* ── Shadows ────────────────────────────────────────────────────────── */
+  --bs-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --bs-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --bs-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+
+  /* ── Typography ─────────────────────────────────────────────────────── */
+  --bs-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --bs-font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* ── Spacing ────────────────────────────────────────────────────────── */
+  --bs-radius-sm: 0.25rem;
+  --bs-radius-md: 0.375rem;
+  --bs-radius-lg: 0.5rem;
+  --bs-radius-xl: 0.75rem;
+
+  /* ── Legacy compat (consumed by App.css scaffold) ───────────────────── */
+  --bg-primary:     var(--bs-navy-900);
+  --bg-secondary:   var(--bs-navy-800);
+  --accent-primary: var(--bs-orange-500);
+  --text-primary:   var(--bs-text-primary);
+  --text-secondary: var(--bs-text-secondary);
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bs-bg-secondary);
+  color: var(--bs-text-primary);
+  font-family: var(--bs-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Focus ring utility ───────────────────────────────────────────────── */
+.bs-focus-ring:focus-visible {
+  outline: 2px solid var(--bs-orange-500);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar (light theme) ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bs-bg-tertiary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bs-border-medium);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bs-navy-500);
 }

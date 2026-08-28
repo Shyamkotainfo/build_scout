@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, Text, Numeric, Integer, Boolean, DateTime, ForeignKey, Float
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Column, String, Text, Numeric, Integer, Boolean, DateTime, ForeignKey, Float, JSON
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 import uuid
 from datetime import datetime, timezone
@@ -91,7 +91,7 @@ class Candidate(Base):
     latest_release_at = Column(DateTime(timezone=True))
     license_name = Column(String)
     license_spdx = Column(String, index=True)
-    metadata_ = Column("metadata", JSONB) # renamed attribute to avoid conflict with SQLAlchemy Base.metadata
+    metadata_ = Column("metadata", JSON) # renamed attribute to avoid conflict with SQLAlchemy Base.metadata
 
     component = relationship("Component", back_populates="candidates")
     source = relationship("Source", back_populates="candidates")
@@ -155,13 +155,13 @@ class Blueprint(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     analysis_id = Column(UUID(as_uuid=True), ForeignKey('analysis.id'), nullable=False)
-    architecture = Column(JSONB)
-    component_mapping = Column(JSONB)
-    integration_flow = Column(JSONB)
-    data_flow = Column(JSONB)
-    api_interfaces = Column(JSONB)
-    technology_stack = Column(JSONB)
-    implementation_phases = Column(JSONB)
+    architecture = Column(JSON)
+    component_mapping = Column(JSON)
+    integration_flow = Column(JSON)
+    data_flow = Column(JSON)
+    api_interfaces = Column(JSON)
+    technology_stack = Column(JSON)
+    implementation_phases = Column(JSON)
     estimated_effort_days = Column(Numeric)
 
     analysis = relationship("Analysis", back_populates="blueprints")
@@ -176,7 +176,7 @@ class AgentRun(Base):
     agent_name = Column(String)
     status = Column(String)
     input_summary = Column(Text)
-    output = Column(JSONB)
+    output = Column(JSON)
     tool_call_count = Column(Integer)
     retry_count = Column(Integer)
     started_at = Column(DateTime(timezone=True))
@@ -193,8 +193,8 @@ class ToolCall(Base):
     agent_run_id = Column(UUID(as_uuid=True), ForeignKey('agent_run.id'), nullable=False, index=True)
     tool_name = Column(String)
     tool_type = Column(String)
-    arguments = Column(JSONB)
-    result_summary = Column(JSONB)
+    arguments = Column(JSON)
+    result_summary = Column(JSON)
     status = Column(String)
     latency_ms = Column(Integer)
     started_at = Column(DateTime(timezone=True))
@@ -210,7 +210,7 @@ class AgentMessage(Base):
     agent_run_id = Column(UUID(as_uuid=True), ForeignKey('agent_run.id'), nullable=False)
     target_agent = Column(String)
     message_type = Column(String)
-    payload = Column(JSONB)
+    payload = Column(JSON)
     created_at = Column(DateTime(timezone=True), default=utcnow)
 
 

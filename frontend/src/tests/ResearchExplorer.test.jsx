@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { DataProvider } from "../contexts/DataContext";
+import { HealthProvider } from "../contexts/HealthContext";
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ResearchExplorer from '../pages/ResearchExplorer';
@@ -9,6 +11,7 @@ vi.mock('../services/analysis_service');
 
 const mockAnalysis = {
   analysis_id: 'test-123',
+  domain: 'Security System',
   status: 'COMPLETED',
   components: [
     { id: 'COMP-1', name: 'Auth', category: 'Security' },
@@ -37,18 +40,18 @@ const mockAnalysis = {
   ]
 };
 
-describe('ResearchExplorer Page', () => {
+describe('ResearchExplorer Page Phase 4', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   const renderResearchExplorer = () => {
     return render(
-      <MemoryRouter initialEntries={[`/research/test-123`]}>
+      <MemoryRouter initialEntries={[`/research/test-123`]}><HealthProvider><DataProvider>
         <Routes>
           <Route path="/research/:analysisId" element={<ResearchExplorer />} />
         </Routes>
-      </MemoryRouter>
+      </DataProvider></HealthProvider></MemoryRouter>
     );
   };
 
@@ -73,10 +76,9 @@ describe('ResearchExplorer Page', () => {
     renderResearchExplorer();
 
     await waitFor(() => {
-      // Summary
-      expect(screen.getAllByText('2')[0]).toBeInTheDocument(); // Components
-      expect(screen.getAllByText('3')[0]).toBeInTheDocument(); // Candidates
-      expect(screen.getAllByText('1')[0]).toBeInTheDocument(); // Eval & Dec
+      // Summary values
+      expect(screen.getAllByText('2').length).toBeGreaterThan(0); // Components
+      expect(screen.getAllByText('3').length).toBeGreaterThan(0); // Candidates
       
       // Sidebar
       expect(screen.getByText('Auth')).toBeInTheDocument();
@@ -85,6 +87,7 @@ describe('ResearchExplorer Page', () => {
       // Default selects first component (COMP-1), showing its candidates
       expect(screen.getByText('Auth0')).toBeInTheDocument();
       expect(screen.getByText('PassportJS')).toBeInTheDocument();
+      
       // COMP-2 candidate should not be visible initially
       expect(screen.queryByText('Postgres')).not.toBeInTheDocument();
     });
@@ -136,7 +139,7 @@ describe('ResearchExplorer Page', () => {
     });
   });
 
-  it('opens candidate modal with metadata, eval, and decision', async () => {
+  it('opens candidate panel with evidence, eval, and decision', async () => {
     analysisService.getAnalysis.mockResolvedValue(mockAnalysis);
     renderResearchExplorer();
 
@@ -144,45 +147,45 @@ describe('ResearchExplorer Page', () => {
       expect(screen.getByText('Auth0')).toBeInTheDocument();
     });
 
+    // Click candidate
     fireEvent.click(screen.getByText('Auth0'));
 
     await waitFor(() => {
-      // Modal content
-      expect(screen.getAllByText('AuthaaS').length).toBeGreaterThan(0);
+      // Panel content
+      expect(screen.getAllByText('AuthaaS').length).toBeGreaterThan(0); // Interpretation
+      expect(screen.getByText('BuildScout Interpretation')).toBeInTheDocument();
+      expect(screen.getByText('Retrieved Evidence (Facts)')).toBeInTheDocument();
+      
       // Eval
-      expect(screen.getAllByText('95').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Excellent').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Very good').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('95').length).toBeGreaterThan(0); // Score
+      
       // Decision
       expect(screen.getAllByText('REUSE').length).toBeGreaterThan(0);
-      expect(screen.getAllByText('Selected Candidate').length).toBeGreaterThan(0);
+      expect(screen.getByText('Selected')).toBeInTheDocument();
       expect(screen.getAllByText('Best fit').length).toBeGreaterThan(0);
     });
   });
 
-  it('handles candidate comparison', async () => {
-    analysisService.getAnalysis.mockResolvedValue(mockAnalysis);
+  it('renders explicit missing evidence states', async () => {
+    // Modify mock to omit license and url
+    const incompleteCandidateMock = {
+      ...mockAnalysis,
+      candidates: [
+        { component_id: 'COMP-1', name: 'UnknownLib', description: 'No facts', metadata: { source: 'tavily' } }
+      ]
+    };
+    analysisService.getAnalysis.mockResolvedValue(incompleteCandidateMock);
     renderResearchExplorer();
 
     await waitFor(() => {
-      expect(screen.getByText('Auth0')).toBeInTheDocument();
+      expect(screen.getByText('UnknownLib')).toBeInTheDocument();
     });
 
-    // Find and click the comparison checkboxes
-    const checkboxes = screen.getAllByTitle('Add to comparison');
-    fireEvent.click(checkboxes[0]); // Auth0
-    fireEvent.click(checkboxes[1]); // PassportJS
-
-    const compareBtn = screen.getByRole('button', { name: /Compare Candidates/i });
-    fireEvent.click(compareBtn);
+    fireEvent.click(screen.getByText('UnknownLib'));
 
     await waitFor(() => {
-      expect(screen.getByText('Compare Candidates')).toBeInTheDocument();
-      const auth0Headings = screen.getAllByText('Auth0');
-      expect(auth0Headings.length).toBeGreaterThan(1);
-      
-      const passportHeadings = screen.getAllByText('PassportJS');
-      expect(passportHeadings.length).toBeGreaterThan(1);
+      expect(screen.getByText('Not available from retrieved evidence')).toBeInTheDocument();
+      expect(screen.getByText('Source URL unavailable')).toBeInTheDocument();
     });
   });
 

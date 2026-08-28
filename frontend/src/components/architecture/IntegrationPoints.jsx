@@ -5,9 +5,11 @@ const IntegrationPoints = ({ integrationPoints }) => {
   if (!integrationPoints || integrationPoints.length === 0) {
     return (
       <div className="mb-10">
-        <h2 className="text-lg font-semibold leading-6 text-white mb-4">Integration Points</h2>
-        <div className="rounded-lg border border-slate-700 border-dashed bg-slate-800/30 p-8 text-center">
-          <p className="text-sm text-slate-500">No integration points available.</p>
+        <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+          <ArrowRightLeft className="h-4 w-4" /> Integration Map
+        </h2>
+        <div className="rounded-lg border border-[var(--bs-border-light)] border-dashed bg-[var(--bs-bg-secondary)] p-8 text-center shadow-sm">
+          <p className="text-sm text-[var(--bs-text-secondary)]">No integration points available.</p>
         </div>
       </div>
     );
@@ -15,30 +17,46 @@ const IntegrationPoints = ({ integrationPoints }) => {
 
   return (
     <div className="mb-10">
-      <h2 className="text-lg font-semibold leading-6 text-white mb-4 flex items-center gap-2">
-        <ArrowRightLeft className="h-5 w-5 text-indigo-400" /> Integration Points
+      <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+        <ArrowRightLeft className="h-4 w-4" /> Integration Map
       </h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {integrationPoints.map((point, idx) => {
-          // Flexible rendering
           const name = point.name || `Integration ${idx + 1}`;
           const desc = point.description || null;
           
-          const extraKeys = Object.keys(point).filter(k => k !== 'name' && k !== 'description');
+          const isInternal = point.type === 'Internal';
+          const isExternal = point.type === 'External' || point.type === 'MCP' || point.type === 'Cloud service';
+          
+          const typeBadgeStyle = isInternal 
+            ? 'bg-blue-900/30 text-blue-400 border-blue-800/50' 
+            : isExternal 
+            ? 'bg-purple-900/30 text-purple-400 border-purple-800/50' 
+            : 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-secondary)] border-[var(--bs-border-light)]';
+
+          const extraKeys = Object.keys(point).filter(k => !['name', 'description', 'type'].includes(k));
 
           return (
-            <div key={idx} className="bg-slate-800 border border-slate-700 rounded-lg p-5">
-              <h3 className="text-base font-bold text-slate-200 mb-2">{name}</h3>
-              {desc && <p className="text-sm text-slate-400 mb-4">{desc}</p>}
+            <div key={idx} className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg p-5 shadow-sm hover:border-[var(--bs-border-light)] transition-colors">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-base font-bold text-[var(--bs-text-primary)]">{name}</h3>
+                {point.type && (
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold border uppercase tracking-widest ${typeBadgeStyle}`}>
+                    {point.type}
+                  </span>
+                )}
+              </div>
+              
+              {desc && <p className="text-sm text-[var(--bs-text-secondary)] mb-4">{desc}</p>}
               
               {extraKeys.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto pt-3 border-t border-slate-700/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4 pt-4 border-t border-[var(--bs-border-light)]">
                   {extraKeys.map(k => (
                     <div key={k} className="flex flex-col">
-                      <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
+                      <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">
                         {k.replace(/_/g, ' ')}
                       </span>
-                      <span className="text-sm text-slate-300">
+                      <span className="text-sm text-[var(--bs-text-primary)] font-medium">
                         {typeof point[k] === 'object' ? JSON.stringify(point[k]) : String(point[k])}
                       </span>
                     </div>

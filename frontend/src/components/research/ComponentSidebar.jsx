@@ -1,46 +1,48 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
+import Card from '../ui/Card';
 
 const ComponentSidebar = ({ components, selectedComponentId, onSelect, candidates }) => {
   if (!components || components.length === 0) {
     return (
-      <div className="w-full md:w-64 shrink-0 bg-slate-900 border border-slate-700 rounded-lg p-4 h-[600px] overflow-y-auto">
-        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+      <Card className="w-full lg:w-64 shrink-0 h-[600px] overflow-y-auto p-4 bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)]">
+        <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
           <Layers className="h-4 w-4" /> Components
         </h2>
-        <div className="text-sm text-slate-500 italic">No components available.</div>
-      </div>
+        <div className="text-sm text-[var(--bs-text-secondary)] italic">No components available.</div>
+      </Card>
     );
   }
 
   return (
-    <div className="w-full md:w-64 shrink-0 bg-slate-900 border border-slate-700 rounded-lg p-4 h-[600px] flex flex-col">
-      <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+    <Card className="w-full lg:w-64 shrink-0 h-[600px] flex flex-col p-4 bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)]">
+      <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
         <Layers className="h-4 w-4" /> Components
       </h2>
       <ul className="space-y-2 overflow-y-auto flex-1 pr-1">
         {components.map((comp) => {
           const compCandidates = candidates?.filter(c => c.component_id === comp.id) || [];
+          const isSelected = selectedComponentId === comp.id;
           
           return (
             <li key={comp.id}>
               <button
                 onClick={() => onSelect(comp.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-md border transition-colors flex flex-col gap-1 ${
-                  selectedComponentId === comp.id
-                    ? 'bg-blue-900/40 border-blue-800/60 text-blue-200'
-                    : 'bg-slate-800 border-slate-700/50 text-slate-300 hover:bg-slate-750'
+                  isSelected
+                    ? 'bg-[var(--bs-bg-tertiary)] border-[var(--bs-orange-500)] text-[var(--bs-orange-500)]'
+                    : 'bg-[var(--bs-bg-primary)] border-[var(--bs-border-light)] text-[var(--bs-text-primary)] hover:border-[var(--bs-orange-500)]'
                 }`}
               >
                 <div className="flex justify-between items-start">
-                  <span className="font-semibold text-sm truncate">{comp.name}</span>
-                  <span className="text-[10px] font-mono text-slate-500 bg-slate-900/50 px-1.5 py-0.5 rounded ml-2 shrink-0">
+                  <span className={`font-semibold text-sm truncate ${isSelected ? 'text-[var(--bs-orange-500)]' : 'text-[var(--bs-text-primary)]'}`}>{comp.name}</span>
+                  <span className="text-[10px] font-mono text-[var(--bs-text-tertiary)] bg-[var(--bs-bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--bs-border-light)] ml-2 shrink-0">
                     {comp.id}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-400 truncate pr-2">{comp.category}</span>
-                  <span className={`px-1.5 rounded-full ${compCandidates.length > 0 ? 'bg-blue-900 text-blue-400' : 'bg-slate-700 text-slate-400'}`}>
+                  <span className="text-[var(--bs-text-secondary)] truncate pr-2">{comp.category}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${compCandidates.length > 0 ? 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-primary)] border-[var(--bs-border-medium)]' : 'bg-[var(--bs-bg-primary)] text-[var(--bs-text-tertiary)] border-[var(--bs-border-light)]'}`}>
                     {compCandidates.length}
                   </span>
                 </div>
@@ -49,7 +51,7 @@ const ComponentSidebar = ({ components, selectedComponentId, onSelect, candidate
           );
         })}
       </ul>
-    </div>
+    </Card>
   );
 };
 

@@ -142,4 +142,5 @@ def _build_groq_client(settings):
     return ChatGroq(
         api_key=settings.groq_api_key,
         model=settings.groq_model,
+        max_tokens=8192,
     )

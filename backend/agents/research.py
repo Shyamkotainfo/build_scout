@@ -215,16 +215,26 @@ class ResearchAgent:
             result_json = resp.content
             if isinstance(result_json, str):
                 result_json = result_json.strip()
-                if result_json.startswith("```json"):
-                    result_json = result_json[7:].strip()
-                elif result_json.startswith("```"):
-                    result_json = result_json[3:].strip()
-                if result_json.endswith("```"):
-                    result_json = result_json[:-3].strip()
+                # Find the first { or [ to ignore leading prose
+                start_idx = result_json.find('{')
+                start_arr_idx = result_json.find('[')
+                if start_idx == -1 and start_arr_idx == -1:
+                    pass # let it fail naturally
+                else:
+                    if start_idx != -1 and (start_arr_idx == -1 or start_idx < start_arr_idx):
+                        result_json = result_json[start_idx:]
+                    else:
+                        result_json = result_json[start_arr_idx:]
                     
-                # Fix common trailing characters (like Claude's prose after JSON)
-                result_json = re.sub(r'\}\s*[^}]*$', '}', result_json)
-                
+                # Find the last } or ] to ignore trailing prose
+                end_idx = result_json.rfind('}')
+                end_arr_idx = result_json.rfind(']')
+                if end_idx != -1 or end_arr_idx != -1:
+                    if end_idx != -1 and (end_arr_idx == -1 or end_idx > end_arr_idx):
+                        result_json = result_json[:end_idx+1]
+                    else:
+                        result_json = result_json[:end_arr_idx+1]
+                    
             # This will raise ValidationError if invalid, triggering the retry!
             try:
                 parsed = ResearchResult.model_validate_json(result_json)

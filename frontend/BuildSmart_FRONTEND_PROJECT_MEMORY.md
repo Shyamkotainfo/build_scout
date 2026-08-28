@@ -466,3 +466,72 @@ The UI should demonstrate this journey rather than simply displaying a large JSO
   - **Trace & MCP Persistence:** Updated `BuildSmartState` and `AnalysisRepository` to properly persist `AgentRun` and `ToolCall` records, feeding real data to the Trace and MCP Consoles.
   - **LLM Metrics & Schemas Fix:** Fixed schema mismatch errors (`score` vs `overall_score`, `reasoning` vs `rationale`) between LangGraph internal state and API response `AnalysisResultResponse` schemas, ensuring the response completes successfully and metrics populate.
   - **History API:** Created a new lightweight endpoint `GET /api/v1/analyses` to fetch historical analyses, removing reliance on `localStorage` for dashboard history.
+
+---
+
+### Task 10: Phase 1 — BuildScout Design System
+- **Status:** COMPLETE
+- **Description:** Established the visual foundation for the BuildScout frontend without redesigning any pages, using a "Enterprise architecture + engineering intelligence" theme.
+- **Implementation Details:**
+  - **Design Tokens:** Added `src/theme/colors.js`, `typography.js`, `spacing.js`, `shadows.js`, and `index.js` representing the 60% light / 30% navy / 10% orange palette and semantic status mappings.
+  - **CSS:** Updated `src/index.css` with CSS custom properties matching the design tokens.
+  - **Core Components:** Built 16 reusable UI components in `src/components/ui/` (`Button`, `Card`, `Badge`, `StatusIndicator`, `Tabs`, `Input`, `Select`, `Table`, `Modal`, `Tooltip`, `Skeleton`, `EmptyState`, `ErrorState`, `LoadingState`, `MetricCard`, `SectionHeader`).
+  - **Layout:** Grouped sidebar navigation into DISCOVER, UNDERSTAND, OBSERVE, PRODUCT, SYSTEM. Applied the new color tokens to `Sidebar.jsx`, `Navbar.jsx`, and `Layout.jsx`.
+  - **Verification:** Created `/design-system` showcase route (development only) to visualize all components and states. No fake data was introduced to actual business components.
+  - **Testing:** Added robust
+
+### Phase 2: BuildScout Dashboard Redesign (Completed)
+Redesigned the primary Dashboard into an "Engineering Intelligence Console".
+*   **Key features implemented:**
+    *   `LatestAnalysisCard`: High-level metrics and health signal.
+    *   `DecisionSummary`: Build vs Adapt vs Reuse breakdowns.
+    *   `AgentWorkflowVisualizer`: Live trace pipeline mapping.
+    *   `ResearchDiscovery`: Top candidates found in research phase.
+    *   `ValidationPanel`: Trust signals and scoring metrics.
+    *   `HistorySection`: Grid of prior analyses.
+*   **Design Pattern:** High-density grid architecture, mimicking production developer tools. 
+*   **Status:** **COMPLETED** (Verified with real API integration).
+
+### Phase 2.1: Dashboard UX Refinement (Completed)
+Refined the BuildScout Dashboard to address UI redundancy and implement a global health state.
+*   **Key features implemented:**
+    *   Extracted health polling into a global `HealthProvider`.
+    *   Unified Product Header: Moved identity exclusively to `Navbar.jsx`.
+    *   Redesigned Empty States: "Getting Started" flow mirroring the multi-agent execution pipeline.
+    *   Streamlined component UX: Better visual hierarchy for `ValidationPanel`, `DecisionSummary`, and `ResearchDiscovery`.
+*   **Status:** **COMPLETED** (Test suite passing, verified locally).
+
+### Phase 3: Analytics & Execution Redesign (Completed)
+Redesigned the primary user journey pages (New Analysis and Analysis Result) to feel like an enterprise engineering intelligence tool, moving away from chatbot aesthetics.
+*   **Key features implemented:**
+    *   `NewAnalysis`: Redesigned to an "Engineering Request" prompt with clear expectations and dynamic loading pipeline.
+    *   `ValidationSection`: Updated to "Validation Trust Signal" emphasizing REUSE criteria and domain mapping.
+    *   `RequirementsSection`: Re-styled as a "Requirements Coverage" grid to display normalized data points.
+    *   `BlueprintSection`: Updated to "Architecture Preview" displaying solution structure clearly.
+    *   `AgentTraceSection` & `AgentPipeline`: Visually robust node-based pipeline mapping agent execution progress.
+    *   `CandidatesSection` & `DecisionSummary`: Aggregated decision rendering based on new phase 1 styling tokens.
+*   **Status:** **COMPLETED** (All tests updated and passing).
+
+### Phase 4: Research & Evidence Explorer Redesign (Completed)
+Redesigned the primary Research Explorer to feel like an "Engineering Research Workspace" that highlights the evidence chain for candidate selection.
+*   **Key features implemented:**
+    *   `ResearchSummary`: Dense metric row showing investigated components, candidates discovered, specific sources, and total search operations.
+    *   `ComponentSidebar`: Component-first navigation enabling focused exploration per component requirement.
+    *   `CandidateList`: Filterable repository of found candidates, displaying their source explicitly (GitHub/Web/Local) and identifying missing metadata natively.
+    *   `CandidateDetailPanel`: Replaced outdated modals. Explicitly separates the raw "Retrieved Evidence (Facts)" from the "BuildScout Interpretation". Links the candidate's Evaluation scores and final Architecture Decision outcome directly in the panel.
+    *   `SearchTracePanel`: Replaced the abstract tool visualization with a concrete list of exactly how BuildScout searched, flagging when external MCPs were used or local fallbacks engaged.
+*   **Status:** **COMPLETED** (Verified with test suite; comparison feature removed to center on detailed single-candidate evaluation).
+
+## 7. Next Steps (Current Focus)
+
+- **Phase 6 (Architecture Blueprint & Implementation Plan)**: Completed. Redesigned the Architecture explorer into a high-fidelity engineering workspace featuring interactive Component Architecture tables, dynamic Data Flow chains, Integration Maps, comprehensive Implementation Timelines, and Risk Mitigation panels.
+- **Phase 7 (Integration & Final Polish)**: Completed. Audited the frontend UI for duplicate data and navigation orphans. Streamlined the dashboard by removing redundant system status panels, fixed Sidebar routing context persistence, updated test suites, and validated production builds. The frontend is fully optimized for a coherent demo experience.
+
+## 8. Architecture History
+
+- **Phase 1 (Design System)**: Created `/src/theme/` and 16 reusable UI components. Refactored layout.
+- **Phase 2 (Dashboard Redesign)**: Migrated `Dashboard.jsx` from `localStorage` mock data to live `/api/v1/analyses` data. Redesigned layout into a dynamic Engineering Intelligence view tracking real components, decisions, validation scores, and workflow execution.
+- **Phase 3 (Analytics & Execution)**: Redesigned the `NewAnalysis` and `AnalysisResult` layouts to present technical intelligence clearly using pipeline components, candidate evaluators, and trust signals.
+- **Phase 4 (Research & Evidence)**: Replaced generic search tables with a dense, component-first research workspace distinguishing verified facts from interpretations.
+- **Phase 5 (Evaluation & Decision)**: Developed an enterprise-grade evaluation matrix (`EvaluationMatrix`), detailed evaluation panels (`EvaluationDetailPanel`), and clear structural outcome breakdowns (`ComponentDecisionPanel`, `DecisionOverview`) that clearly link the RESEARCH -> EVALUATION -> DECISION product story.
+- **Phase 6 (Architecture Blueprint & Implementation Plan)**: Finalized the architecture blueprint experience using semantic tokens and precise traceability. Created `ArchitectureDataFlow`, `ComponentArchitectureList`, `IntegrationPoints`, `ImplementationPlan`, and `RisksPanel` to form a concrete, trustworthy engineering output.

@@ -1,40 +1,69 @@
 import React from 'react';
 import { Layers } from 'lucide-react';
 
+const MetricCard = ({ title, value }) => (
+  <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] rounded-lg p-4 flex flex-col justify-center">
+    <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1 block">{title}</span>
+    <span className="text-lg font-bold text-[var(--bs-text-primary)] capitalize">{value}</span>
+  </div>
+);
+
 const ArchitectureHeader = ({ analysis }) => {
   if (!analysis) return null;
 
+  const blueprint = analysis.blueprint || {};
+  
+  const compCount = blueprint.components?.length;
+  const integrationsCount = blueprint.integration_points?.length;
+  const dataFlowsCount = blueprint.data_flow?.length;
+  const phasesCount = blueprint.implementation_phases?.length;
+  const risksCount = blueprint.risks?.length;
+
   return (
-    <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg p-6 mb-8 shadow-sm">
-      <div className="flex flex-col md:flex-row gap-6 justify-between items-start">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Layers className="h-6 w-6 text-blue-500" /> Architecture Blueprint
-            </h1>
-            <span
-              className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                analysis.status === 'COMPLETED'
-                  ? 'bg-green-900/50 text-green-400 border border-green-800/60'
-                  : analysis.status === 'FAILED'
-                  ? 'bg-red-900/50 text-red-400 border border-red-800/60'
-                  : 'bg-yellow-900/50 text-yellow-400 border border-yellow-800/60'
-              }`}
-            >
-              {analysis.status}
-            </span>
-          </div>
-          <div className="text-sm font-mono text-slate-500 mb-6">ID: {analysis.analysis_id}</div>
-          
-          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-2">Solution Summary</h3>
-          <p className="text-slate-200 text-sm leading-relaxed max-w-3xl">
-            {analysis.blueprint?.solution_summary || 'No solution summary provided.'}
-          </p>
+    <div className="mb-8">
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <Layers className="h-6 w-6 text-[var(--bs-blue-500)]" />
+          <h1 className="text-2xl font-bold text-[var(--bs-text-primary)] tracking-tight">
+            ARCHITECTURE BLUEPRINT
+          </h1>
+          <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-bold border bg-[var(--bs-bg-secondary)] text-[var(--bs-text-secondary)] border-[var(--bs-border-light)] uppercase tracking-wider ml-2">
+            {analysis.analysis_id}
+          </span>
         </div>
+        <p className="text-sm text-[var(--bs-text-secondary)] mt-2">
+          Translate BuildScout's evidence-backed decisions into an implementation-ready architecture.
+        </p>
+      </div>
+
+      <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] shadow-sm rounded-lg p-6 mb-6">
+        <h3 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4">Architecture at a Glance</h3>
         
-        <div className="md:w-64 shrink-0 bg-slate-900/50 rounded-lg p-5 border border-slate-700/50 h-full flex flex-col justify-center">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Architecture Style</span>
-          <span className="text-xl font-bold text-blue-400 capitalize">{analysis.blueprint?.architecture_style || 'Unknown'}</span>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <MetricCard 
+            title="Style" 
+            value={blueprint.architecture_style || 'Not available'} 
+          />
+          <MetricCard 
+            title="Components" 
+            value={compCount !== undefined ? compCount : 'Not available'} 
+          />
+          <MetricCard 
+            title="Integrations" 
+            value={integrationsCount !== undefined ? integrationsCount : 'Not available'} 
+          />
+          <MetricCard 
+            title="Data Flows" 
+            value={dataFlowsCount !== undefined ? dataFlowsCount : 'Not available'} 
+          />
+          <MetricCard 
+            title="Phases" 
+            value={phasesCount !== undefined ? phasesCount : 'Not available'} 
+          />
+          <MetricCard 
+            title="Risks" 
+            value={risksCount !== undefined ? risksCount : 'Not available'} 
+          />
         </div>
       </div>
     </div>
@@ -42,3 +71,4 @@ const ArchitectureHeader = ({ analysis }) => {
 };
 
 export default ArchitectureHeader;
+

@@ -1,4 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
+import { DataProvider } from "../contexts/DataContext";
+import { HealthProvider } from "../contexts/HealthContext";
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import V2Specification from '../pages/V2Specification';
 import Roadmap from '../pages/Roadmap';
@@ -6,21 +8,21 @@ import Roadmap from '../pages/Roadmap';
 describe('V2 and Roadmap', () => {
   const renderV2 = () => {
     return render(
-      <MemoryRouter initialEntries={['/v2']}>
+      <MemoryRouter initialEntries={['/v2']}><HealthProvider><DataProvider>
         <Routes>
           <Route path="/v2" element={<V2Specification />} />
         </Routes>
-      </MemoryRouter>
+      </DataProvider></HealthProvider></MemoryRouter>
     );
   };
 
   const renderRoadmap = () => {
     return render(
-      <MemoryRouter initialEntries={['/roadmap']}>
+      <MemoryRouter initialEntries={['/roadmap']}><HealthProvider><DataProvider>
         <Routes>
           <Route path="/roadmap" element={<Roadmap />} />
         </Routes>
-      </MemoryRouter>
+      </DataProvider></HealthProvider></MemoryRouter>
     );
   };
 

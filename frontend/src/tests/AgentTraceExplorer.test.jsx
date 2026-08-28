@@ -4,57 +4,57 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AgentTraceExplorer from '../pages/AgentTraceExplorer';
 import * as analysisService from '../services/analysis_service';
+import { DataProvider } from '../contexts/DataContext';
+import { HealthProvider } from '../contexts/HealthContext';
 
 vi.mock('../services/analysis_service');
 
 const mockTraceAnalysis = {
   analysis_id: 'test-trace-123',
-  agent_history: ['Supervisor', 'Research', 'Evaluation', 'UnknownAgent'],
-  metrics: {
-    model: 'gpt-4o',
-    total_tokens: 15000,
-    average_latency_ms: 1200,
-    total_retries: 0
-  },
+  domain: 'E-commerce API',
   traces: [
     {
-      agent_name: 'Supervisor',
-      status: 'COMPLETED',
-      execution_order: 1,
-      latency_ms: 500,
-      tool_calls: []
+      id: 'TRACE-1',
+      agent_name: 'supervisor',
+      role: 'System Architect',
+      timestamp: '2026-08-25T10:00:00Z',
+      input: 'Decompose the E-commerce API request',
+      output: 'Identified 3 components: Auth, Product, Cart',
+      status: 'SUCCESS',
+      execution_time_ms: 1500,
+      tokens_used: 1200
     },
     {
-      agent_name: 'Research',
-      status: 'FAILED',
-      execution_order: 2,
-      latency_ms: 2000,
+      id: 'TRACE-2',
+      agent_name: 'research',
+      role: 'Research Specialist',
+      timestamp: '2026-08-25T10:01:00Z',
+      input: 'Research Auth component options',
+      output: 'Found Auth0, PassportJS',
+      status: 'SUCCESS',
+      execution_time_ms: 2500,
+      tokens_used: 3500,
       tool_calls: [
         {
           name: 'search_web',
           provider: 'MCP',
-          server: 'tavily',
-          status: 'COMPLETED',
-          latency_ms: 800,
-          arguments: { query: 'react libs' }
-        },
-        {
-          name: 'search_local',
-          provider: 'LOCAL',
-          server: 'internal',
-          status: 'FAILED',
-          latency_ms: 100,
-          arguments: { dir: '/' }
-        },
-        {
-          name: 'fallback_search',
-          provider: 'FALLBACK',
-          server: 'system',
-          status: 'COMPLETED',
-          latency_ms: 300,
-          arguments: { q: 'safe fallback' }
+          status: 'SUCCESS',
+          args: { query: 'Node.js auth solutions' },
+          result: 'Auth0 is top rated. PassportJS is open source.'
         }
       ]
+    },
+    {
+      id: 'TRACE-3',
+      agent_name: 'decision',
+      role: 'Principal Engineer',
+      timestamp: '2026-08-25T10:02:00Z',
+      input: 'Evaluate Auth options',
+      output: 'Decided on Auth0 (REUSE)',
+      status: 'FAILED',
+      error: 'API rate limit exceeded',
+      execution_time_ms: 500,
+      tokens_used: 400
     }
   ]
 };
@@ -64,12 +64,16 @@ describe('AgentTraceExplorer Page', () => {
     vi.clearAllMocks();
   });
 
-  const renderPage = () => {
+  const renderPage = (analysisId = 'test-trace-123') => {
     return render(
-      <MemoryRouter initialEntries={[`/traces/test-trace-123`]}>
-        <Routes>
-          <Route path="/traces/:analysisId" element={<AgentTraceExplorer />} />
-        </Routes>
+      <MemoryRouter initialEntries={[`/traces/${analysisId}`]}>
+        <HealthProvider>
+          <DataProvider>
+            <Routes>
+              <Route path="/traces/:analysisId" element={<AgentTraceExplorer />} />
+            </Routes>
+          </DataProvider>
+        </HealthProvider>
       </MemoryRouter>
     );
   };

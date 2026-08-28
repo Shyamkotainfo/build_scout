@@ -48,14 +48,14 @@ describe('DocumentationExplorer', () => {
 
   const renderPage = (initialRoute = '/docs/overview') => {
     return render(
-      <MemoryRouter initialEntries={[initialRoute]}>
+      <MemoryRouter initialEntries={[initialRoute]}><HealthProvider><DataProvider>
         <Routes>
           <Route path="/docs/:documentId" element={<DocumentationExplorer />} />
           <Route path="/docs" element={<DocumentationExplorer />} />
           <Route path="/v2" element={<div data-testid="v2-page" />} />
           <Route path="/roadmap" element={<div data-testid="roadmap-page" />} />
         </Routes>
-      </MemoryRouter>
+      </DataProvider></HealthProvider></MemoryRouter>
     );
   };
 

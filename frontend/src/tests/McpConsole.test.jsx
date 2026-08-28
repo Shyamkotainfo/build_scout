@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import { DataProvider } from "../contexts/DataContext";
+import { HealthProvider } from "../contexts/HealthContext";
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import McpConsole from '../pages/McpConsole';
@@ -54,11 +56,11 @@ describe('McpConsole Page', () => {
 
   const renderPage = (id = 'test-mcp-123') => {
     return render(
-      <MemoryRouter initialEntries={[`/mcp/${id}`]}>
+      <MemoryRouter initialEntries={[`/mcp/${id}`]}><HealthProvider><DataProvider>
         <Routes>
           <Route path="/mcp/:analysisId" element={<McpConsole />} />
         </Routes>
-      </MemoryRouter>
+      </DataProvider></HealthProvider></MemoryRouter>
     );
   };
 

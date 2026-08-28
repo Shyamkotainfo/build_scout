@@ -1,96 +1,115 @@
 import React from 'react';
+import Card from '../ui/Card';
+import SectionHeader from '../ui/SectionHeader';
 import { CheckCircle2, Circle, Loader2, XCircle } from 'lucide-react';
 
-const STEPS = [
-  'Supervisor',
-  'Decomposition',
-  'Research',
-  'Evaluation',
-  'Decision',
-  'Blueprint',
-  'Validation'
-];
-
 const AgentWorkflowVisualizer = ({ analysis }) => {
-  if (!analysis) {
-    return (
-      <div className="mb-8">
-        <h2 className="text-lg font-medium leading-6 text-slate-100 mb-4">Agent Workflow</h2>
-        <div className="rounded-lg border border-slate-700 border-dashed bg-slate-800/30 p-8 text-center">
-          <p className="text-sm text-slate-500">No agent trace available.</p>
-        </div>
-      </div>
-    );
-  }
+  if (!analysis) return null;
 
-  // Derive active steps from agent_history if available
-  const history = analysis.agent_history || [];
-  const status = analysis.status;
+  const PIPELINE_STAGES = [
+    { id: 'prompt',      stageLabel: 'Prompt',     agentLabel: 'Prompt Optimizer', match: 'optimizer' },
+    { id: 'understand',  stageLabel: 'Understand', agentLabel: 'Decomposition',    match: 'decomposition' },
+    { id: 'discover',    stageLabel: 'Discover',   agentLabel: 'Research',         match: 'research' },
+    { id: 'evaluate',    stageLabel: 'Evaluate',   agentLabel: 'Evaluation',       match: 'evaluation' },
+    { id: 'decide',      stageLabel: 'Decide',     agentLabel: 'Decision',         match: 'decision' },
+    { id: 'architect',   stageLabel: 'Architect',  agentLabel: 'Blueprint',        match: 'blueprint' },
+    { id: 'validate',    stageLabel: 'Validate',   agentLabel: 'Validation',       match: 'validation' },
+  ];
 
-  // For visualization, we'll map the history to steps.
-  // In a real LangGraph, we'd look for specific node names.
-  const completedNodes = new Set(history.map((h) => h.node));
-  const hasFailed = status === 'FAILED';
+  const agentHistory = analysis.agent_history || [];
+  const historyString = agentHistory.join(' ').toLowerCase();
   
-  // Basic heuristic for the visualizer state based on history
-  const getStepState = (stepName) => {
-    // Exact match or lowercase match
-    const isCompleted = Array.from(completedNodes).some(n => n.toLowerCase().includes(stepName.toLowerCase()));
-    if (isCompleted) return 'completed';
-    if (hasFailed) return 'pending'; // or failed if it was the last one, but we keep it simple
-    // If status is running and this is the first uncompleted, it's running
-    if (status !== 'COMPLETED' && status !== 'FAILED') {
-      // Find index of this step
-      const stepIndex = STEPS.indexOf(stepName);
-      // Check if previous step is completed
-      const prevStepCompleted = stepIndex === 0 || Array.from(completedNodes).some(n => n.toLowerCase().includes(STEPS[stepIndex - 1].toLowerCase()));
-      if (prevStepCompleted && !isCompleted) return 'running';
-    }
-    return 'pending';
-  };
+  // Also check traces if available
+  const traces = analysis.traces || [];
+  const tracesString = traces.map(t => t.agent_name || t.node).join(' ').toLowerCase();
+
+  const combinedString = historyString + ' ' + tracesString;
+
+  const analysisStatus = (analysis.status || '').toLowerCase();
+  const isFailed = analysisStatus === 'failed';
+  const isRunning = analysisStatus === 'running' || analysisStatus === 'in_progress';
 
   return (
-    <div className="mb-8">
-      <h2 className="text-lg font-medium leading-6 text-slate-100 mb-4">Agent Workflow</h2>
-      <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
-        <nav aria-label="Progress">
-          <ol role="list" className="overflow-hidden flex flex-wrap gap-4 items-center justify-between">
-            {STEPS.map((step, stepIdx) => {
-              const state = getStepState(step);
-              return (
-                <li key={step} className="relative flex-1 flex flex-col items-center">
-                  <div className="group flex flex-col items-center">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 border-2 border-slate-700">
-                      {state === 'completed' ? (
-                        <CheckCircle2 className="h-6 w-6 text-green-500" />
-                      ) : state === 'running' ? (
-                        <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
-                      ) : (
-                        <Circle className="h-4 w-4 text-slate-600" />
-                      )}
-                    </span>
-                    <span
-                      className={`mt-2 text-xs font-medium ${
-                        state === 'completed'
-                          ? 'text-slate-300'
-                          : state === 'running'
-                          ? 'text-blue-400'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      {step}
-                    </span>
+    <Card className="mb-6 overflow-hidden">
+      <SectionHeader 
+        title="Agent Workflow" 
+        subtitle="Multi-stage execution pipeline" 
+      />
+      <div className="mt-4 px-2 overflow-x-auto pb-4">
+        <div className="flex items-start min-w-[700px]">
+          {PIPELINE_STAGES.map((stage, idx) => {
+            // Determine state for each stage based on execution data
+            let state = 'pending';
+            
+            // If the stage is in the history/traces, it executed.
+            const executed = combinedString.includes(stage.match);
+            
+            if (executed) {
+              state = 'completed';
+            } else if (analysisStatus === 'completed') {
+              // If the analysis is fully completed, implicitly we passed everything
+              state = 'completed';
+            } else if (isFailed) {
+              // If we failed and haven't executed this, it's failed or skipped
+              state = 'failed';
+            } else if (isRunning && idx === 0) {
+              // Rough guess: first pending stage is running
+              state = 'running';
+            }
+
+            const isLast = idx === PIPELINE_STAGES.length - 1;
+
+            return (
+              <div key={stage.id} className="relative flex-1 group">
+                {/* Connecting Line */}
+                {!isLast && (
+                  <div 
+                    className={`absolute top-3 left-6 right-0 h-0.5 -z-10 transition-colors ${
+                      state === 'completed' ? 'bg-[var(--bs-status-success)]' : 'bg-[var(--bs-border-light)]'
+                    }`} 
+                    aria-hidden="true" 
+                  />
+                )}
+                
+                {/* Node */}
+                <div className="flex flex-col items-center text-center">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center bg-[var(--bs-bg-primary)]
+                    ${state === 'completed' ? 'text-[var(--bs-status-success)]' : 
+                      state === 'running' ? 'text-[var(--bs-orange-500)]' : 
+                      state === 'failed' ? 'text-[var(--bs-status-critical)]' : 
+                      'text-[var(--bs-border-medium)]'}`}
+                  >
+                    {state === 'completed' ? <CheckCircle2 className="w-5 h-5 bg-[var(--bs-bg-primary)] rounded-full" /> :
+                     state === 'running' ? <Loader2 className="w-5 h-5 animate-spin" /> :
+                     state === 'failed' ? <XCircle className="w-5 h-5 bg-[var(--bs-bg-primary)] rounded-full" /> :
+                     <Circle className="w-5 h-5" />}
                   </div>
-                  {stepIdx !== STEPS.length - 1 && (
-                    <div className="absolute top-5 left-1/2 w-full h-0.5 bg-slate-700 -z-10 mt-[1px]" />
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
+                  
+                  <span className={`mt-3 text-xs font-bold tracking-widest uppercase ${
+                    state === 'completed' ? 'text-[var(--bs-text-primary)]' : 
+                    state === 'running' ? 'text-[var(--bs-orange-600)]' : 
+                    state === 'failed' ? 'text-[var(--bs-status-critical)]' :
+                    'text-[var(--bs-text-muted)]'
+                  }`}>
+                    {stage.stageLabel}
+                  </span>
+                  
+                  <span className="mt-1 text-[10px] text-[var(--bs-text-tertiary)] font-semibold">
+                    {stage.agentLabel}
+                  </span>
+                  
+                  <span className="mt-2 text-[10px] flex items-center justify-center gap-1">
+                    {state === 'completed' && <><span className="w-1.5 h-1.5 rounded-full bg-[var(--bs-status-success)]"></span> Completed</>}
+                    {state === 'running' && <><span className="w-1.5 h-1.5 rounded-full bg-[var(--bs-orange-500)]"></span> Running</>}
+                    {state === 'failed' && <><span className="w-1.5 h-1.5 rounded-full bg-[var(--bs-status-critical)]"></span> Failed</>}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

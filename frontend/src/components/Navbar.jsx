@@ -1,50 +1,69 @@
-import { useState, useEffect } from 'react';
-import { getHealth } from '../services/analysis_service';
+import React from 'react';
+import { useHealth } from '../contexts/HealthContext';
+import { useData } from '../contexts/DataContext';
+import { Link } from 'react-router-dom';
+import { PlusCircle, RefreshCw, AlertTriangle } from 'lucide-react';
+import Button from './ui/Button';
+import StatusIndicator from './ui/StatusIndicator';
 
 const Navbar = () => {
-  const [health, setHealth] = useState({ status: 'checking' });
-
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        await getHealth();
-        setHealth({ status: 'connected' });
-      } catch (error) {
-        setHealth({ status: 'unavailable' });
-      }
-    };
-    
-    checkHealth();
-    const interval = setInterval(checkHealth, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const { healthData } = useHealth();
+  const { refreshData, isRefreshing, lastRefreshed, refreshError } = useData();
+  const healthStatus = healthData?.status || 'checking';
 
   return (
-    <div className="sticky top-0 z-10 flex h-16 flex-shrink-0 border-b border-slate-700 bg-[#1e293b]">
+    <div className="sticky top-0 z-10 flex h-14 flex-shrink-0 border-b border-[var(--bs-border-light)] bg-[var(--bs-bg-primary)]">
       <div className="flex flex-1 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex flex-1 items-center">
-          <span className="text-lg font-semibold text-white">Developer Dashboard</span>
+          <span className="text-base font-semibold text-[var(--bs-text-primary)]">BuildScout</span>
+          <span className="ml-2 hidden sm:block text-xs text-[var(--bs-text-muted)]">Solution Discovery Platform</span>
         </div>
-        <div className="ml-4 flex items-center md:ml-6">
-          <div className="flex items-center space-x-2 rounded-md bg-slate-800 px-3 py-1.5 border border-slate-700">
-            <span className="text-sm text-slate-400">Backend</span>
-            <div className="flex items-center space-x-1">
-              {health.status === 'checking' && (
-                <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse"></div>
+        <div className="ml-4 flex items-center md:ml-6 gap-4">
+          
+          {/* Refresh Action Area */}
+          <div className="flex flex-col items-end mr-2">
+            <div className="flex items-center gap-2">
+              {refreshError && (
+                <div className="flex items-center text-red-500 text-xs" title={refreshError}>
+                  <AlertTriangle className="w-3 h-3 mr-1" /> Failed
+                </div>
               )}
-              {health.status === 'connected' && (
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-              )}
-              {health.status === 'unavailable' && (
-                <div className="h-2 w-2 rounded-full bg-red-500"></div>
-              )}
-              <span className="text-sm font-medium text-slate-300">
-                {health.status === 'checking' && 'Checking...'}
-                {health.status === 'connected' && 'Connected'}
-                {health.status === 'unavailable' && 'Unavailable'}
-              </span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => refreshData()}
+                disabled={isRefreshing}
+                className="bg-[var(--bs-bg-secondary)] border-[var(--bs-border-light)] text-[var(--bs-text-secondary)] hover:text-white"
+              >
+                <RefreshCw className={`mr-2 h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
             </div>
+            {lastRefreshed && !isRefreshing && (
+              <span className="text-[10px] text-[var(--bs-text-muted)] mt-0.5 pr-1">
+                Last refreshed: {lastRefreshed.toLocaleTimeString()}
+              </span>
+            )}
           </div>
+
+          <div className="hidden sm:flex items-center space-x-2 rounded-md bg-[var(--bs-bg-secondary)] px-3 py-1.5 border border-[var(--bs-border-light)]">
+            <span className="text-xs text-[var(--bs-text-tertiary)]">Backend</span>
+            <StatusIndicator
+              status={
+                healthStatus === 'healthy' || healthStatus === 'connected' || healthStatus === 'degraded' ? 'connected' :
+                healthStatus === 'checking' ? 'pending' :
+                'unavailable'
+              }
+              showLabel={true}
+              size="sm"
+            />
+          </div>
+          <Link to="/new-analysis">
+            <Button variant="primary" size="sm">
+              <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+              New Analysis
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

@@ -1,61 +1,114 @@
 import React from 'react';
-import { Clock, Tag, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Box, Cpu, FileCheck } from 'lucide-react';
+import Badge from '../ui/Badge';
 
 const LatestAnalysisCard = ({ analysis }) => {
-  if (!analysis) {
-    return (
-      <div className="mb-8 rounded-lg border border-slate-700 border-dashed bg-slate-800/30 p-8 text-center">
-        <Clock className="mx-auto h-8 w-8 text-slate-500 mb-3" />
-        <h3 className="text-sm font-medium text-slate-300">No analyses yet</h3>
-        <p className="mt-1 text-sm text-slate-500">Create your first analysis to see data here.</p>
-      </div>
-    );
-  }
+  if (!analysis) return null;
 
-  const isCompleted = analysis.status === 'COMPLETED';
-  const isFailed = analysis.status === 'FAILED';
+  const {
+    analysis_id,
+    domain = 'Unknown Domain',
+    components = [],
+    candidates = [],
+    evaluations = [],
+    validation_result = {},
+    decisions = []
+  } = analysis;
+
+  const score = validation_result?.overall_score ?? 0;
+  const valStatus = (validation_result?.overall_status || 'UNKNOWN').toLowerCase();
+  
+  let badgeStatus = 'neutral';
+  if (valStatus === 'pass') badgeStatus = 'success';
+  if (valStatus === 'warning') badgeStatus = 'warning';
+  if (valStatus === 'fail') badgeStatus = 'critical';
+
+  // Calculate decisions
+  let reuseCount = 0;
+  let adaptCount = 0;
+  let buildCount = 0;
+  
+  decisions.forEach(d => {
+    const type = (d.decision_type || '').toUpperCase();
+    if (type === 'REUSE') reuseCount++;
+    if (type === 'ADAPT') adaptCount++;
+    if (type === 'BUILD') buildCount++;
+  });
 
   return (
-    <div className="mb-8 rounded-lg border border-slate-700 bg-slate-800 p-6 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-medium text-slate-100 flex items-center gap-2">
-          Latest Analysis
-          <span className="text-xs font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded">
-            {analysis.analysis_id.split('-')[0]}...
-          </span>
-        </h2>
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-            isCompleted
-              ? 'bg-green-900/50 text-green-400'
-              : isFailed
-              ? 'bg-red-900/50 text-red-400'
-              : 'bg-blue-900/50 text-blue-400'
-          }`}
-        >
-          {isCompleted && <CheckCircle2 className="mr-1.5 h-3 w-3" />}
-          {isFailed && <AlertCircle className="mr-1.5 h-3 w-3" />}
-          {analysis.status || 'UNKNOWN'}
-        </span>
-      </div>
+    <div className="rounded-lg border bg-[var(--bs-bg-primary)] border-[var(--bs-border-light)] p-8 shadow-sm">
+      <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
+        
+        {/* Left side: Main Content */}
+        <div className="flex-1 w-full">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-xs font-bold tracking-widest text-[var(--bs-text-tertiary)] uppercase">
+              Latest Analysis
+            </span>
+            <span className="text-[10px] bg-[var(--bs-bg-tertiary)] text-[var(--bs-text-secondary)] px-2 py-0.5 rounded-full font-mono">
+              {analysis_id}
+            </span>
+          </div>
+          
+          <h2 className="text-3xl font-bold text-[var(--bs-text-primary)] mb-6">
+            {domain}
+          </h2>
+          
+          <div className="w-full border-t border-[var(--bs-border-light)] mb-6"></div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <div className="flex flex-col">
+              <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
+                Discovered
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-[var(--bs-text-primary)]">{candidates.length}</span>
+                <span className="text-sm text-[var(--bs-text-secondary)]">candidates</span>
+              </div>
+            </div>
+            
+            <div className="flex flex-col">
+              <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
+                Evaluated
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-[var(--bs-text-primary)]">{evaluations.length}</span>
+                <span className="text-sm text-[var(--bs-text-secondary)]">candidates</span>
+              </div>
+            </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex items-start gap-3">
-          <Tag className="h-5 w-5 text-slate-500 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Domain</p>
-            <p className="text-sm text-slate-300 mt-1">{analysis.domain || 'Unspecified'}</p>
+            <div className="flex flex-col col-span-2">
+              <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
+                Decisions
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-sm font-medium text-[var(--bs-text-primary)]">
+                  {adaptCount} ADAPT &middot; {buildCount} BUILD &middot; {reuseCount} REUSE
+                </span>
+              </div>
+            </div>
           </div>
+          
+          <Link to={`/analysis/${analysis_id}`} className="inline-flex items-center text-sm font-medium text-[var(--bs-orange-500)] hover:text-[var(--bs-orange-600)] transition-colors">
+            View Full Analysis <ArrowRight className="ml-2 w-4 h-4" />
+          </Link>
         </div>
-        <div className="flex items-start gap-3">
-          <FileText className="h-5 w-5 text-slate-500 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Normalized Request</p>
-            <p className="text-sm text-slate-300 mt-1 line-clamp-2">
-              {analysis.normalized_request || analysis.user_request || 'No request provided.'}
-            </p>
+        
+        {/* Right side: Validation Score */}
+        <div className="w-full md:w-64 flex-shrink-0 bg-[var(--bs-bg-secondary)] rounded-lg border border-[var(--bs-border-light)] p-6 flex flex-col items-center justify-center text-center">
+          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4">
+            Validation
+          </span>
+          <div className="flex items-end justify-center mb-3">
+            <span className="text-5xl font-bold text-[var(--bs-text-primary)] leading-none tracking-tight">{score}</span>
+            <span className="text-xl font-medium text-[var(--bs-text-tertiary)] leading-tight ml-1">/ 100</span>
           </div>
+          <Badge status={badgeStatus} className="w-full justify-center py-1 mt-2">
+            {valStatus.toUpperCase()}
+          </Badge>
         </div>
+        
       </div>
     </div>
   );

@@ -1,87 +1,136 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { getAnalyses } from '../../services/analysis_service';
-import { History, Clock, FileText, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, History, Clock } from 'lucide-react';
+import Card from '../ui/Card';
+import SectionHeader from '../ui/SectionHeader';
+import Badge from '../ui/Badge';
+import EmptyState from '../ui/EmptyState';
 
-const HistorySection = () => {
-  const [analyses, setAnalyses] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+const HistorySection = ({ history, isLoading, error }) => {
+  if (isLoading) {
+    return (
+      <div className="mb-6 h-full flex flex-col">
+        <SectionHeader title="Analysis History" />
+        <Card className="flex-1 p-6 flex items-center justify-center min-h-[200px]">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-8 w-8 bg-[var(--bs-border-light)] rounded-full mb-3"></div>
+            <div className="h-3 w-32 bg-[var(--bs-border-light)] rounded mb-2"></div>
+            <div className="h-2 w-24 bg-[var(--bs-border-light)] rounded"></div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const data = await getAnalyses();
-        setAnalyses(data || []);
-      } catch (err) {
-        setError('Analysis history unavailable.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchHistory();
-  }, []);
+  if (error) {
+    return (
+      <div className="mb-6 h-full flex flex-col">
+        <SectionHeader title="Analysis History" />
+        <Card className="flex-1 p-6 border-[var(--bs-status-critical-border)] min-h-[200px]">
+          <EmptyState 
+            icon={History} 
+            title="History Unavailable" 
+            description={error}
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  if (!history || history.length === 0) {
+    return (
+      <div className="mb-6 h-full flex flex-col">
+        <SectionHeader title="Analysis History" />
+        <Card className="flex-1 p-6 min-h-[200px]">
+          <EmptyState 
+            icon={History} 
+            title="No previous analyses" 
+            description="Run your first analysis to see it here."
+          />
+        </Card>
+      </div>
+    );
+  }
+
+  // Limit to 4 most recent
+  const topHistory = history.slice(0, 4);
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg p-5 mt-6 shadow-sm flex-1 flex flex-col h-[400px]">
-      <div className="flex items-center gap-2 mb-4">
-        <History className="h-5 w-5 text-blue-400" />
-        <h2 className="text-sm font-semibold text-white tracking-wide">Analysis History</h2>
-      </div>
+    <div className="mb-6 h-full flex flex-col">
+      <SectionHeader title="Analysis History" />
+      <div className="flex flex-col gap-3 flex-1">
+        {topHistory.map((h) => {
+          const score = h.validation_result?.overall_score ?? 0;
+          const status = (h.validation_result?.overall_status || 'UNKNOWN').toLowerCase();
+          
+          let badgeStatus = 'neutral';
+          if (status === 'pass') badgeStatus = 'success';
+          if (status === 'warning') badgeStatus = 'warning';
+          if (status === 'fail') badgeStatus = 'critical';
+          
+          const timeLabel = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); // mock date since API doesn't return created_at easily yet
+          
+          const reqs = h.requirements_count ?? h.requirements?.length ?? 0;
+          
+          let reuseCount = 0;
+          let adaptCount = 0;
+          let buildCount = 0;
+          const decisions = h.decisions || [];
+          decisions.forEach(d => {
+            const type = (d.decision_type || d.type || '').toUpperCase();
+            if (type === 'REUSE') reuseCount++;
+            if (type === 'ADAPT') adaptCount++;
+            if (type === 'BUILD') buildCount++;
+          });
+          
+          // Fallback simple counts if missing full decisions array but has counts
+          if (decisions.length === 0) {
+             reuseCount = h.decision_summary?.reuse || 0;
+             adaptCount = h.decision_summary?.adapt || 0;
+             buildCount = h.decision_summary?.build || 0;
+          }
 
-      <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-full text-slate-400">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-          </div>
-        ) : error ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2">
-            <AlertCircle className="h-6 w-6 text-red-400" />
-            <p className="text-xs text-center">{error}</p>
-          </div>
-        ) : analyses.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-2 p-4 text-center border border-slate-700/50 border-dashed rounded-lg">
-            <FileText className="h-6 w-6 text-slate-500" />
-            <p className="text-xs">No analysis history found.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {analyses.map((item) => (
-              <div key={item.analysis_id} className="bg-slate-900 border border-slate-700 p-3 rounded-md hover:border-slate-500 transition-colors group">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xs font-medium text-slate-200 line-clamp-2 pr-2">
-                    {item.user_request || "Unknown Request"}
-                  </h3>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap ${
-                    item.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-400' :
-                    item.status === 'FAILED' ? 'bg-red-500/20 text-red-400' :
-                    'bg-blue-500/20 text-blue-400'
-                  }`}>
-                    {item.status}
-                  </span>
+          return (
+            <Link 
+              key={h.analysis_id} 
+              to={`/analyses/${h.analysis_id}`}
+              className="block group"
+            >
+              <Card className="p-4 hover:border-[var(--bs-orange-400)] transition-colors flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-sm text-[var(--bs-text-primary)] line-clamp-1 mb-1 group-hover:text-[var(--bs-orange-500)] transition-colors">
+                    {h.domain || 'Unnamed Analysis'}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--bs-text-tertiary)]">
+                    <span className="flex items-center"><Clock className="w-3 h-3 mr-1"/> {timeLabel}</span>
+                    <span>{reqs} requirements</span>
+                    {(reuseCount > 0 || adaptCount > 0 || buildCount > 0) && (
+                      <span className="font-medium text-[var(--bs-text-secondary)]">
+                        {adaptCount} ADAPT &middot; {buildCount} BUILD
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
-                <div className="flex items-center text-[10px] text-slate-400 mb-3 gap-1">
-                  <Clock className="h-3 w-3" />
-                  {item.created_at ? new Date(item.created_at).toLocaleString() : 'Unknown Date'}
+                <div className="flex flex-col items-end ml-4 gap-1">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-lg font-bold text-[var(--bs-text-primary)] leading-none">{score}</span>
+                    <span className="text-[10px] font-medium text-[var(--bs-text-tertiary)]">/ 100</span>
+                  </div>
+                  <Badge status={badgeStatus} className="text-[9px] px-1.5 py-0.5">
+                    {status.toUpperCase()}
+                  </Badge>
                 </div>
-                
-                <div className="flex gap-2 text-[10px] font-medium border-t border-slate-800 pt-2">
-                  <Link to={`/analyses/${item.analysis_id}`} className="text-blue-400 hover:text-blue-300 flex items-center flex-1">
-                    Result
-                  </Link>
-                  <Link to={`/mcp/${item.analysis_id}`} className="text-slate-400 hover:text-slate-300 flex items-center border-l border-slate-700 pl-2">
-                    MCP
-                  </Link>
-                  <Link to={`/traces/${item.analysis_id}`} className="text-slate-400 hover:text-slate-300 flex items-center border-l border-slate-700 pl-2">
-                    Trace
-                  </Link>
-                  <Link to={`/metrics/${item.analysis_id}`} className="text-slate-400 hover:text-slate-300 flex items-center border-l border-slate-700 pl-2">
-                    Metrics
-                  </Link>
-                </div>
-              </div>
-            ))}
+              </Card>
+            </Link>
+          );
+        })}
+        
+        {history.length > 4 && (
+          <div className="mt-2 text-center">
+             <Link to="/analyses" className="text-xs font-semibold text-[var(--bs-text-tertiary)] hover:text-[var(--bs-text-primary)] transition-colors inline-flex items-center">
+               View All Analyses <ArrowRight className="w-3 h-3 ml-1" />
+             </Link>
           </div>
         )}
       </div>
