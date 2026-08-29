@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         description="Groq API key. Optional — only used when LLM_PROVIDER=groq.",
     )
     groq_model: str = Field(
-        default="llama-3.3-70b-versatile",
+        default="llama3-70b-8192",
         description="Groq model identifier (only used when LLM_PROVIDER=groq).",
     )
 

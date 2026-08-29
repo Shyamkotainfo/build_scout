@@ -14,6 +14,20 @@ class DecisionSummaryResponse(BaseModel):
     adapt: int = 0
     build: int = 0
 
+class StageStatus(BaseModel):
+    name: str
+    status: str
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    duration_ms: Optional[int] = None
+
+class AnalysisStatusResponse(BaseModel):
+    analysis_id: str
+    status: str
+    current_stage: Optional[str] = None
+    stages: List[StageStatus] = Field(default_factory=list)
+    error: Optional[str] = None
+
 class AnalysisSummaryResponse(BaseModel):
     analysis_id: str
     user_request: str
@@ -25,8 +39,8 @@ class AnalysisSummaryResponse(BaseModel):
     component_count: int = 0
     candidate_count: int = 0
     requirements_count: int = 0
-    validation_score: int = 0
-    validation_status: str = "UNKNOWN"
+    validation_score: Optional[int] = None
+    validation_status: Optional[str] = None
     decision_summary: DecisionSummaryResponse = Field(default_factory=DecisionSummaryResponse)
 
 class RequirementResponse(BaseModel):
@@ -160,7 +174,7 @@ class AnalysisResultResponse(BaseModel):
     evaluations: List[EvaluationResponse] = Field(default_factory=list)
     decisions: List[DecisionResponse] = Field(default_factory=list)
     blueprint: Optional[BlueprintResponse] = Field(default_factory=BlueprintResponse)
-    validation_result: Optional[ValidationResponse] = Field(default_factory=ValidationResponse)
+    validation_result: Optional[ValidationResponse] = None
     agent_history: List[str] = Field(default_factory=list)
     traces: List[AgentTraceResponse] = Field(default_factory=list)
     llm_metrics: Optional[LLMMetricsResponse] = None

@@ -73,13 +73,18 @@ const AnalysesList = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {history.map((h) => {
-          const score = h.validation_result?.overall_score ?? h.validation_score ?? 0;
-          const status = (h.validation_result?.overall_status || h.validation_status || 'UNKNOWN').toLowerCase();
+          const score = h.validation_result?.overall_score ?? h.validation_score;
+          const status = (h.validation_result?.overall_status || h.validation_status || '');
           
           let badgeStatus = 'neutral';
-          if (status === 'pass') badgeStatus = 'success';
-          if (status === 'warning') badgeStatus = 'warning';
-          if (status === 'fail') badgeStatus = 'critical';
+          let statusText = 'NOT AVAILABLE';
+          
+          if (status) {
+            statusText = status.toUpperCase();
+            if (status.toLowerCase() === 'pass') badgeStatus = 'success';
+            if (status.toLowerCase() === 'warning') badgeStatus = 'warning';
+            if (status.toLowerCase() === 'fail') badgeStatus = 'critical';
+          }
           
           const timeLabel = h.created_at 
             ? new Date(h.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
@@ -114,7 +119,7 @@ const AnalysesList = () => {
                 <div className="absolute top-0 left-0 w-1 h-full bg-[var(--bs-border-light)] group-hover:bg-[var(--bs-orange-500)] transition-colors"></div>
                 <div className="flex justify-between items-start mb-4">
                   <Badge status={badgeStatus} className="text-[10px] px-2 py-0.5">
-                    {status.toUpperCase()}
+                    {statusText}
                   </Badge>
                   <span className="flex items-center text-xs text-[var(--bs-text-tertiary)]">
                     <Clock className="w-3 h-3 mr-1"/> {timeLabel}
@@ -133,7 +138,7 @@ const AnalysesList = () => {
                     </span>
                     <span className="flex items-center gap-1">
                       <Activity className="w-3 h-3" />
-                      {score}/100 Score
+                      {score != null ? `${score}/100 Score` : 'Score N/A'}
                     </span>
                   </div>
                   

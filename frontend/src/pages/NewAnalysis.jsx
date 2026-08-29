@@ -31,8 +31,12 @@ const NewAnalysis = () => {
       const result = await createAnalysis(request.trim());
       localStorage.setItem('latest_analysis_id', result.analysis_id);
       
-      // Instantly inject the successful analysis into the Context so the user doesn't need to refresh
-      addAnalysis(result);
+      // Add the initial queued analysis to the context so it appears in history
+      addAnalysis({
+        analysis_id: result.analysis_id,
+        user_request: request.trim(),
+        status: result.status || 'QUEUED',
+      });
       
       navigate(`/analyses/${result.analysis_id}`);
     } catch (err) {
@@ -51,57 +55,9 @@ const NewAnalysis = () => {
 
   if (isExecuting) {
     return (
-      <div className="flex flex-col h-full max-w-3xl mx-auto w-full pt-16 pb-8">
-        <div className="flex flex-col mb-12">
-          <h1 className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight">
-            ANALYSIS RUNNING
-          </h1>
-          <p className="text-sm text-[var(--bs-text-secondary)] mt-2">
-            BuildScout is investigating your request. This process performs a comprehensive search and evaluation across available candidates.
-          </p>
-        </div>
-
-        <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] rounded-lg p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <Loader2 className="w-5 h-5 text-[var(--bs-orange-500)] animate-spin" />
-            <h2 className="text-lg font-semibold text-[var(--bs-text-primary)]">Running multi-agent analysis...</h2>
-          </div>
-          
-          <div className="flex flex-col gap-4 font-mono text-sm ml-2">
-            <div className="flex items-center gap-3 text-[var(--bs-text-tertiary)]">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span>Prompt Optimizer</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--bs-text-tertiary)]">
-              <CheckCircle2 className="w-4 h-4 text-green-500" />
-              <span>Supervisor</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--bs-text-primary)] font-medium">
-              <div className="w-4 h-4 rounded-full border-2 border-[var(--bs-orange-500)] border-t-transparent animate-spin" />
-              <span>Decomposition</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--bs-text-tertiary)] opacity-60">
-              <Circle className="w-4 h-4" />
-              <span>Research</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--bs-text-tertiary)] opacity-60">
-              <Circle className="w-4 h-4" />
-              <span>Evaluation</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--bs-text-tertiary)] opacity-60">
-              <Circle className="w-4 h-4" />
-              <span>Decision</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--bs-text-tertiary)] opacity-60">
-              <Circle className="w-4 h-4" />
-              <span>Blueprint</span>
-            </div>
-            <div className="flex items-center gap-3 text-[var(--bs-text-tertiary)] opacity-60">
-              <Circle className="w-4 h-4" />
-              <span>Validation</span>
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-col h-full items-center justify-center pt-32 pb-8">
+        <Loader2 className="w-12 h-12 text-[var(--bs-orange-500)] animate-spin mb-4" />
+        <h2 className="text-xl font-semibold text-[var(--bs-text-primary)] tracking-tight">Starting analysis...</h2>
       </div>
     );
   }

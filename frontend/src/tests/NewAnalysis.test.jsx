@@ -62,10 +62,6 @@ describe('NewAnalysis Component', () => {
     const btn = screen.getByRole('button', { name: /Analyze/i });
     fireEvent.click(btn);
     
-    // Check loading state
-    expect(screen.getByText(/Running multi-agent analysis/i)).toBeInTheDocument();
-    expect(screen.getByText(/Supervisor/i)).toBeInTheDocument();
-    
     await waitFor(() => {
       expect(localStorage.getItem('latest_analysis_id')).toBe('test-123');
       expect(screen.getByTestId('result-page')).toBeInTheDocument();

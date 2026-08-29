@@ -4,6 +4,7 @@ import Card from '../ui/Card';
 import SectionHeader from '../ui/SectionHeader';
 import Badge from '../ui/Badge';
 import Button from '../ui/Button';
+import { getConfidencePercent } from '../../utils/formatters';
 
 const DecisionHighlights = ({ analysis }) => {
   if (!analysis || !analysis.decisions || analysis.decisions.length === 0) return null;
@@ -21,7 +22,7 @@ const DecisionHighlights = ({ analysis }) => {
     // Arbitrary sorting logic for highlights: lower confidence first or BUILD first
     if (a.decision === 'BUILD' && b.decision !== 'BUILD') return -1;
     if (a.decision !== 'BUILD' && b.decision === 'BUILD') return 1;
-    return a.confidence - b.confidence;
+    return (a.confidence || 0) - (b.confidence || 0);
   });
 
   const highlights = sortedDecisions.slice(0, 3);
@@ -42,7 +43,7 @@ const DecisionHighlights = ({ analysis }) => {
           const compName = componentsMap[d.component_id] || d.component || d.component_id || 'Unknown Component';
           const decisionStatus = (d.decision || d.type || '').toLowerCase();
           const badgeValue = d.decision || d.type || 'UNKNOWN';
-          const confPercent = Math.round((d.confidence || 0) * 100);
+          const confPercent = getConfidencePercent(d.confidence);
 
           return (
             <Card key={idx} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">

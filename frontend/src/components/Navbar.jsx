@@ -24,12 +24,12 @@ const Navbar = () => {
           <div className="flex flex-col items-end mr-2">
             <div className="flex items-center gap-2">
               {refreshError && (
-                <div className="flex items-center text-red-500 text-xs" title={refreshError}>
+                <div className="flex items-center text-[var(--bs-status-critical)] text-xs font-medium" title={refreshError}>
                   <AlertTriangle className="w-3 h-3 mr-1" /> Failed
                 </div>
               )}
               {isCached && (
-                <div className="hidden sm:flex items-center bg-orange-500/10 text-orange-500 border border-orange-500/30 px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase" title="Showing cached analysis history">
+                <div className="hidden sm:flex items-center bg-[var(--bs-status-warning-light)] text-[var(--bs-status-warning)] border border-[var(--bs-status-warning-border)] px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase" title="Showing cached analysis history">
                   Cached
                 </div>
               )}
@@ -38,7 +38,7 @@ const Navbar = () => {
                 size="sm" 
                 onClick={() => refreshData()}
                 disabled={isRefreshing}
-                className="bg-[var(--bs-bg-secondary)] border-[var(--bs-border-light)] text-[var(--bs-text-secondary)] hover:text-white"
+                className="bg-[var(--bs-bg-secondary)] border-[var(--bs-border-light)] text-[var(--bs-text-secondary)] hover:text-[var(--bs-text-primary)]"
               >
                 <RefreshCw className={`mr-2 h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {isRefreshing ? 'Refreshing...' : 'Refresh Data'}

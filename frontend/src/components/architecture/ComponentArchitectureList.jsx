@@ -66,7 +66,7 @@ const ComponentArchitectureList = ({ blueprint, decisions, analysisId }) => {
                         {comp.component_name}
                       </td>
                       <td className="px-4 py-4">
-                        <span className="inline-flex items-center rounded bg-blue-900/30 px-2 py-1 text-xs font-mono font-medium text-blue-400 border border-blue-800/50">
+                        <span className="inline-flex items-center rounded bg-[var(--bs-status-running-light)] px-2 py-1 text-xs font-mono font-medium text-[var(--bs-status-running)] border border-[var(--bs-status-running-border)]">
                           {comp.technology || 'Unknown'}
                         </span>
                       </td>
@@ -137,10 +137,10 @@ const ComponentArchitectureList = ({ blueprint, decisions, analysisId }) => {
                                     )}
                                     {decisionData.implementation_notes?.length > 0 && (
                                       <div className="mb-4">
-                                        <h4 className="text-[10px] font-bold text-[var(--bs-blue-500)] uppercase tracking-widest mb-1">Implementation Notes</h4>
+                                        <h4 className="text-[10px] font-bold text-[var(--bs-status-running)] uppercase tracking-widest mb-1">Implementation Notes</h4>
                                         <ul className="space-y-1">
                                           {decisionData.implementation_notes.map((note, i) => (
-                                            <li key={i} className="text-sm text-[var(--bs-text-secondary)] flex items-start gap-2 before:content-['•'] before:text-[var(--bs-blue-500)]">{note}</li>
+                                            <li key={i} className="text-sm text-[var(--bs-text-secondary)] flex items-start gap-2 before:content-['•'] before:text-[var(--bs-status-running)]">{note}</li>
                                           ))}
                                         </ul>
                                       </div>

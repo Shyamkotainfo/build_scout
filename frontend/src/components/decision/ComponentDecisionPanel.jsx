@@ -3,6 +3,7 @@ import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 import { GitBranch, Link as LinkIcon, CheckCircle, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getConfidencePercent } from '../../utils/formatters';
 
 const ComponentDecisionPanel = ({ component, decision, allCandidates, analysisId }) => {
   if (!component) return null;
@@ -67,12 +68,12 @@ const ComponentDecisionPanel = ({ component, decision, allCandidates, analysisId
           <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Confidence</span>
           <div className="flex items-center gap-2">
             <span className="font-mono text-xl font-bold text-[var(--bs-text-primary)]">
-              {Math.round((decision.confidence || 0) * 100)}%
+              {getConfidencePercent(decision.confidence)}%
             </span>
             <div className="w-16 h-2 bg-[var(--bs-bg-tertiary)] rounded-full overflow-hidden border border-[var(--bs-border-light)]">
               <div 
-                className={`h-full ${decision.confidence > 0.8 ? 'bg-[var(--bs-status-success)]' : decision.confidence > 0.5 ? 'bg-[var(--bs-status-warning)]' : 'bg-[var(--bs-status-critical)]'}`}
-                style={{ width: `${Math.min(100, Math.max(0, (decision.confidence || 0) * 100))}%` }}
+                className={`h-full ${getConfidencePercent(decision.confidence) > 80 ? 'bg-[var(--bs-status-success)]' : getConfidencePercent(decision.confidence) > 50 ? 'bg-[var(--bs-status-warning)]' : 'bg-[var(--bs-status-critical)]'}`}
+                style={{ width: `${getConfidencePercent(decision.confidence)}%` }}
               />
             </div>
           </div>

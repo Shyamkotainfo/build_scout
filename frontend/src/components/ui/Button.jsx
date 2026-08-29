@@ -1,8 +1,8 @@
 import React from 'react';
 
 const variantClasses = {
-  primary:   'bg-[var(--bs-orange-500)] text-white hover:bg-[var(--bs-orange-600)] border-transparent',
-  secondary: 'bg-[var(--bs-navy-800)] text-white hover:bg-[var(--bs-navy-700)] border-transparent',
+  primary:   'bg-[var(--bs-orange-500)] text-[var(--bs-text-primary)] hover:bg-[var(--bs-orange-600)] border-transparent',
+  secondary: 'bg-[var(--bs-navy-800)] text-[var(--bs-text-primary)] hover:bg-[var(--bs-navy-700)] border-transparent',
   outline:   'bg-transparent text-[var(--bs-navy-800)] border-[var(--bs-border-medium)] hover:bg-[var(--bs-bg-tertiary)]',
   ghost:     'bg-transparent text-[var(--bs-text-secondary)] border-transparent hover:bg-[var(--bs-bg-tertiary)]',
 };

@@ -5,24 +5,24 @@ import { CheckCircle2, Circle, Clock, ArrowLeft, ExternalLink } from 'lucide-rea
 // ── Status config ───────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
   COMPLETED: {
-    badge: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    cardBorder: 'border-emerald-200 hover:border-emerald-300',
-    nodeOuter: 'border-emerald-400 bg-white',
-    nodeDot: 'bg-emerald-500',
+    badge: 'bg-[var(--bs-status-success-light)] text-[var(--bs-status-success)] border border-[var(--bs-status-success-border)]',
+    cardBorder: 'border-[var(--bs-status-success-border)] hover:border-[var(--bs-status-success)]',
+    nodeOuter: 'border-[var(--bs-status-success)] bg-white',
+    nodeDot: 'bg-[var(--bs-status-success)]',
     icon: CheckCircle2,
   },
   CURRENT: {
-    badge: 'bg-blue-50 text-blue-700 border border-blue-200',
-    cardBorder: 'border-blue-300 hover:border-blue-400 shadow-sm',
-    nodeOuter: 'border-blue-500 bg-white shadow-[0_0_0_4px_rgba(59,130,246,0.12)]',
-    nodeDot: 'bg-blue-500 animate-pulse',
+    badge: 'bg-[var(--bs-status-running-light)] text-[var(--bs-status-running)] border border-[var(--bs-status-running-border)]',
+    cardBorder: 'border-[var(--bs-status-running-border)] hover:border-[var(--bs-status-running)] shadow-sm',
+    nodeOuter: 'border-[var(--bs-status-running)] bg-white shadow-[0_0_0_4px_rgba(37,99,235,0.12)]',
+    nodeDot: 'bg-[var(--bs-status-running)] animate-pulse',
     icon: Clock,
   },
   PLANNED: {
-    badge: 'bg-slate-100 text-slate-500 border border-slate-200',
-    cardBorder: 'border-slate-200 hover:border-slate-300',
-    nodeOuter: 'border-slate-300 bg-white',
-    nodeDot: 'bg-slate-300',
+    badge: 'bg-[var(--bs-bg-tertiary)] text-[var(--bs-text-secondary)] border border-[var(--bs-border-medium)]',
+    cardBorder: 'border-[var(--bs-border-medium)] hover:border-[var(--bs-border-dark)]',
+    nodeOuter: 'border-[var(--bs-border-medium)] bg-white',
+    nodeDot: 'bg-[var(--bs-border-dark)]',
     icon: Circle,
   },
 };
@@ -50,19 +50,19 @@ const RoadmapItem = ({ title, description, status, taskNumber, isV2 }) => {
 
       {/* ── Card — always in document flow, positioned via flex order ── */}
       <div className={`flex-1 md:w-[46%] ${alignRight ? '' : 'md:order-first md:pr-8'} pl-4 md:pl-0 ${alignRight ? 'md:pl-8' : ''}`}>
-        <div className={`bg-white rounded-xl border p-5 transition-all duration-200 ${cfg.cardBorder}`}>
+        <div className={`bg-[var(--bs-bg-primary)] rounded-xl border p-5 transition-all duration-200 ${cfg.cardBorder}`}>
           {/* Card header */}
-          <div className="flex items-start justify-between gap-2 mb-3">
-            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5 ${displayBadge}`}>
-              {status === 'COMPLETED' && <CheckCircle2 size={11} aria-hidden="true" />}
-              {status === 'CURRENT' && <Clock size={11} aria-hidden="true" />}
-              {status === 'PLANNED' && <Circle size={11} aria-hidden="true" />}
-              <span>{displayLabel}</span>
-            </span>
-            <span className="text-[11px] font-mono text-slate-400 shrink-0 mt-0.5">{versionLabel}</span>
+          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <h3 className="text-xl font-bold text-[var(--bs-navy-900)] flex items-center gap-2">{title}</h3>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${displayBadge}`}>
+                {displayLabel}
+              </span>
+            </div>
+            <span className="text-[11px] font-mono text-[var(--bs-text-tertiary)] shrink-0 mt-0.5">{versionLabel}</span>
           </div>
-          <h3 className="text-[0.9375rem] font-bold text-[var(--bs-navy-900)] mb-1.5 leading-snug">{title}</h3>
-          <p className="text-sm text-slate-500 leading-relaxed">{description}</p>
+          
+          <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed">{description}</p>
         </div>
       </div>
     </div>
@@ -70,12 +70,17 @@ const RoadmapItem = ({ title, description, status, taskNumber, isV2 }) => {
 };
 
 // ── Legend chip ──────────────────────────────────────────────────────────────
-const LegendChip = ({ dotClass, label }) => (
-  <div className="flex items-center gap-2 text-sm text-slate-600">
-    <div className={`w-3 h-3 rounded-full ${dotClass}`} />
-    {label}
-  </div>
-);
+const LegendItem = ({ status, label }) => {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PLANNED;
+  return (
+    <div className="flex items-center gap-2 text-sm text-[var(--bs-text-secondary)]">
+      <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${cfg.nodeOuter}`}>
+        <div className={`w-1 h-1 rounded-full ${cfg.nodeDot}`} />
+      </div>
+      <span>{label}</span>
+    </div>
+  );
+};
 
 // ── Roadmap page ─────────────────────────────────────────────────────────────
 const Roadmap = () => {
@@ -94,53 +99,55 @@ const Roadmap = () => {
   ];
 
   return (
-    <div className="min-h-full bg-white -m-6 pb-24">
-
-      {/* ── Page header ──────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 bg-white sticky top-0 z-20">
-        <div className="max-w-[1100px] mx-auto px-6 lg:px-12 py-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link
-              to="/docs"
-              className="p-1.5 text-slate-400 hover:text-[var(--bs-navy-900)] hover:bg-slate-100 rounded-lg transition-colors"
-              aria-label="Back to docs"
+    <div className="flex flex-col h-full overflow-hidden bg-[var(--bs-bg-secondary)] -m-6">
+      {/* Header */}
+      <div className="border-b border-[var(--bs-border-light)] bg-[var(--bs-bg-primary)] sticky top-0 z-20">
+        <div className="max-w-[1000px] mx-auto px-6 lg:px-12 py-6 flex items-start justify-between gap-4">
+          
+          <div className="flex items-start gap-4">
+            <Link to="/docs" 
+              className="p-1.5 text-[var(--bs-text-secondary)] hover:text-[var(--bs-text-primary)] hover:bg-[var(--bs-bg-hover)] rounded-lg transition-colors"
+              aria-label="Back to documentation"
             >
               <ArrowLeft size={18} />
             </Link>
             <div>
-              <h1 className="text-xl font-extrabold text-[var(--bs-navy-900)] tracking-tight">
-                Product Roadmap
-              </h1>
-              <p className="text-sm text-slate-500 mt-0.5">
-                Past milestones, current focus, and future V2 plans.
+              <h1 className="text-2xl font-extrabold text-[var(--bs-navy-900)] tracking-tight">Product Roadmap</h1>
+              <p className="text-sm text-[var(--bs-text-secondary)] mt-0.5">
+                Strategic evolution and upcoming features for BuildSmart.
               </p>
             </div>
           </div>
-
-          <Link
-            to="/v2"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-slate-200 text-sm font-semibold text-[var(--bs-navy-900)] hover:bg-slate-50 hover:border-slate-300 transition-all"
-          >
-            V2 Detail <ExternalLink size={13} className="text-slate-400" />
-          </Link>
+          <div>
+            <Link 
+              to="/v2" 
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[var(--bs-border-light)] text-sm font-semibold text-[var(--bs-text-primary)] hover:bg-[var(--bs-bg-hover)] hover:border-[var(--bs-border-medium)] transition-all"
+            >
+              V2 Detail <ExternalLink size={13} className="text-[var(--bs-text-tertiary)]" />
+            </Link>
+          </div>
         </div>
 
         {/* Status legend */}
         <div className="max-w-[1100px] mx-auto px-6 lg:px-12 pb-4 flex items-center gap-6">
-          <LegendChip dotClass="bg-emerald-500" label="Completed" />
-          <LegendChip dotClass="bg-blue-500" label="Current" />
-          <LegendChip dotClass="bg-slate-300" label="Planned — V2" />
+          <LegendItem status="COMPLETED" label="Completed" />
+          <LegendItem status="CURRENT" label="Current" />
+          <LegendItem status="PLANNED" label="Planned — V2" />
         </div>
       </div>
 
       {/* ── Timeline ─────────────────────────────────────────────── */}
-      <div className="max-w-[1100px] mx-auto px-6 lg:px-12 py-14 relative">
-        {/* Vertical line — positioned at left for mobile, center for desktop */}
-        <div className="absolute top-14 bottom-14 left-[calc(1.5rem+4px)] md:left-1/2 w-px bg-slate-200 -translate-x-1/2 pointer-events-none" />
-        <div>
-          {items.map((item) => (
-            <RoadmapItem key={item.taskNumber} {...item} />
-          ))}
+      <div className="flex-1 overflow-y-auto px-6 lg:px-12 py-12 scroll-smooth">
+        <div className="max-w-[1000px] mx-auto relative pb-20">
+          
+          {/* Central Line */}
+          <div className="absolute top-14 bottom-14 left-[calc(1.5rem+4px)] md:left-1/2 w-px bg-[var(--bs-border-light)] -translate-x-1/2 pointer-events-none" />
+          
+          <div>
+            {items.map((item) => (
+              <RoadmapItem key={item.taskNumber} {...item} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

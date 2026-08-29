@@ -136,6 +136,7 @@ def test_openapi_no_unexpected_business_endpoints():
         "/health",
         "/api/v1/analyses",
         "/api/v1/analyses/{analysis_id}",
+        "/api/v1/analyses/{analysis_id}/status",
         "/api/v1/settings",
     }
     unexpected = paths - expected
@@ -186,7 +187,7 @@ def test_post_invalid_body_does_not_expose_stack_trace():
 
 # ─── PART 3: POST → mocked LangGraph (integration) ───────────────────────────
 
-@patch("api.routes.analyze")
+@patch("api.routes.run_analysis_background")
 def test_post_analysis_returns_200(mock_analyze):
     """POST with valid request returns 200."""
     aid = str(uuid.uuid4())
@@ -195,61 +196,17 @@ def test_post_analysis_returns_200(mock_analyze):
     assert resp.status_code == 200
 
 
-@patch("api.routes.analyze")
+@patch("api.routes.run_analysis_background")
 def test_post_analysis_returns_analysis_id(mock_analyze):
-    """POST response must contain a non-empty analysis_id."""
-    aid = str(uuid.uuid4())
-    state = _minimal_state(aid)
-    state["analysis_id"] = aid
-    mock_analyze.return_value = state
-    resp = client.post("/api/v1/analyses", json={"user_request": "Build a blog"})
-    assert resp.status_code == 200, resp.text
-    assert resp.json().get("analysis_id") == aid
-
-
-@patch("api.routes.analyze")
-def test_post_response_contains_all_required_fields(mock_analyze):
-    """POST response must include all AnalysisResultResponse fields."""
-    aid = str(uuid.uuid4())
-    mock_analyze.return_value = _minimal_state(aid)
+    """POST response must contain a non-empty analysis_id and QUEUED status."""
     resp = client.post("/api/v1/analyses", json={"user_request": "Build a blog"})
     assert resp.status_code == 200, resp.text
     data = resp.json()
-    required_keys = [
-        "analysis_id", "user_request", "normalized_request", "domain", "status",
-        "requirements", "components", "candidates", "evaluations", "decisions",
-        "blueprint", "validation_result", "agent_history", "traces"
-    ]
-    for key in required_keys:
-        assert key in data, f"Missing key: {key}"
+    assert "analysis_id" in data
+    assert data["status"] == "QUEUED"
 
 
-@patch("api.routes.analyze")
-def test_post_response_agent_history_contains_all_agents(mock_analyze):
-    """Agent history must show all 7 agents in order."""
-    aid = str(uuid.uuid4())
-    mock_analyze.return_value = _minimal_state(aid)
-    resp = client.post("/api/v1/analyses", json={"user_request": "Build a blog"})
-    assert resp.status_code == 200, resp.text
-    history = resp.json()["agent_history"]
-    expected = ["SupervisorAgent", "DecompositionAgent", "ResearchAgent",
-                "EvaluationAgent", "DecisionAgent", "BlueprintAgent", "ValidationAgent"]
-    for agent in expected:
-        assert agent in history
-
-
-@patch("api.routes.analyze")
-def test_post_empty_candidates_is_valid_mcp_offline(mock_analyze):
-    """Empty candidates/evaluations must be accepted (MCP offline expected)."""
-    aid = str(uuid.uuid4())
-    state = _minimal_state(aid)
-    state["candidates"] = []
-    state["evaluations"] = []
-    mock_analyze.return_value = state
-    resp = client.post("/api/v1/analyses", json={"user_request": "Build a blog"})
-    assert resp.status_code == 200, resp.text
-    assert resp.json()["candidates"] == []
-    assert resp.json()["evaluations"] == []
+# Removed synchronous integration tests that no longer apply to the POST endpoint
 
 
 # ─── PART 4: GET → mocked retrieval (integration) ────────────────────────────
@@ -357,23 +314,7 @@ def test_db_failure_returns_500(mock_retrieve):
     assert resp.json()["error"]["code"] == "DATABASE_RETRIEVAL_FAILED"
 
 
-@patch("api.routes.analyze")
-def test_llm_failure_returns_503(mock_analyze):
-    """LLM service failure returns 503 via the existing exception architecture."""
-    from api.exceptions import LLMServiceException
-    mock_analyze.side_effect = LLMServiceException()
-    resp = client.post("/api/v1/analyses", json={"user_request": "Build something"})
-    assert resp.status_code == 503
-    assert resp.json()["error"]["code"] == "LLM_SERVICE_UNAVAILABLE"
-
-
-@patch("api.routes.analyze")
-def test_generic_exception_returns_500(mock_analyze):
-    """Unexpected exception returns 500 with INTERNAL_ERROR (no stack trace)."""
-    mock_analyze.side_effect = Exception("Unexpected crash")
-    resp = client.post("/api/v1/analyses", json={"user_request": "Build something"})
-    assert resp.status_code == 500
-    assert "Traceback" not in resp.text
+# Async endpoints do not immediately return 500/503 on execution errors.
 
 
 # ─── PART 7: Security ─────────────────────────────────────────────────────────
@@ -396,7 +337,7 @@ def test_500_does_not_expose_credentials(mock_retrieve):
     assert "Traceback" not in body
 
 
-@patch("api.routes.analyze")
+@patch("api.routes.run_analysis_background")
 def test_post_422_does_not_expose_credentials(mock_analyze):
     """Validation errors must not expose any internal credentials."""
     resp = client.post("/api/v1/analyses", json={})

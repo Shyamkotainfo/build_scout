@@ -3,25 +3,26 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, Brain, Zap, Wrench, Network, Archive, Settings2, BarChart2, Layers } from 'lucide-react';
 
 const V2FeatureCard = ({ icon: Icon, title, description, status }) => (
-  <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 relative overflow-hidden group hover:border-slate-600 transition-colors">
+  <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] rounded-xl p-6 relative overflow-hidden group hover:border-[var(--bs-border-medium)] transition-colors">
     <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
       <Icon size={120} />
     </div>
     
     <div className="flex items-start justify-between mb-4 relative z-10">
-      <div className="p-3 bg-slate-800 rounded-lg text-blue-400">
-        <Icon size={24} />
+      <div className="p-3 bg-[var(--bs-navy-800)] rounded-lg text-[var(--bs-orange-400)]">
+        <Icon size={20} />
       </div>
       <div className={`px-3 py-1 rounded-full text-xs font-bold border ${
-        status === 'PLANNED' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
-        'bg-slate-800 text-slate-400 border-slate-700'
+        status === 'PLANNED' ? 'bg-[var(--bs-status-running-light)] text-[var(--bs-status-running)] border-[var(--bs-status-running-border)]' : 
+        status === 'IN_PROGRESS' ? 'bg-[var(--bs-status-warning-light)] text-[var(--bs-status-warning)] border-[var(--bs-status-warning-border)]' : 
+        'bg-[var(--bs-status-success-light)] text-[var(--bs-status-success)] border-[var(--bs-status-success-border)]'
       }`}>
         {status} — V2
       </div>
     </div>
     
-    <h3 className="text-lg font-bold text-white mb-2 relative z-10">{title}</h3>
-    <p className="text-sm text-slate-400 leading-relaxed relative z-10">
+    <h3 className="text-lg font-bold text-[var(--bs-text-primary)] mb-2 relative z-10">{title}</h3>
+    <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed relative z-10">
       {description}
     </p>
   </div>
@@ -29,21 +30,21 @@ const V2FeatureCard = ({ icon: Icon, title, description, status }) => (
 
 const V2Specification = () => {
   return (
-    <div className="min-h-screen bg-slate-950 pb-20">
+    <div className="min-h-screen bg-[var(--bs-bg-primary)] pb-20">
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800 sticky top-0 z-20">
+      <div className="bg-[var(--bs-bg-primary)] border-b border-[var(--bs-border-light)] sticky top-0 z-20">
         <div className="max-w-[1200px] mx-auto px-6 lg:px-12 py-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/docs" className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg transition-colors">
+            <Link to="/docs" className="p-2 text-[var(--bs-text-secondary)] hover:text-[var(--bs-text-primary)] bg-[var(--bs-bg-hover)] rounded-lg transition-colors">
               <ArrowLeft size={18} />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-white">V2 Specification</h1>
-              <p className="text-sm text-slate-400">Planned features and architectural enhancements.</p>
+              <h1 className="text-2xl font-bold text-[var(--bs-text-primary)]">V2 Specification</h1>
+              <p className="text-sm text-[var(--bs-text-secondary)]">Planned features and architectural enhancements.</p>
             </div>
           </div>
-          <Link to="/roadmap" className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors">
-            View Product Roadmap
+          <Link to="/roadmap" className="px-4 py-2 bg-[var(--bs-orange-500)] hover:bg-[var(--bs-orange-600)] text-[var(--bs-text-primary)] text-sm font-semibold rounded-lg transition-colors">
+            View Full Roadmap
           </Link>
         </div>
       </div>
@@ -51,29 +52,31 @@ const V2Specification = () => {
       <div className="max-w-[1200px] mx-auto px-6 lg:px-12 py-12">
         {/* V1 vs V2 Summary Table */}
         <div className="mb-16">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <Layers className="text-blue-400" size={24} />
-            Architecture Evolution
-          </h2>
+          <div className="mb-6 flex justify-center">
+            <Layers className="text-[var(--bs-orange-400)]" size={24} />
+          </div>
+          <h2 className="text-2xl font-bold text-[var(--bs-text-primary)] mb-2">BuildScout V2</h2>
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Current V1</h3>
+            <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] rounded-xl p-6">
+              <h3 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-wider mb-4 border-b border-[var(--bs-border-light)] pb-2">Current V1</h3>
               <ul className="space-y-3">
                 {['Multi-Agent Architecture', 'Research & Evaluation', 'Decision & Blueprinting', 'MCP Integration & Local Fallback', 'LLM Retry & Observability', 'Developer Dashboard'].map(item => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-slate-300">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <li key={item} className="flex items-center gap-3 text-sm text-[var(--bs-text-secondary)]">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--bs-status-success)]" />
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="bg-blue-900/10 border border-blue-900/30 rounded-xl p-6">
-              <h3 className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-4 border-b border-blue-900/50 pb-2">Planned V2</h3>
-              <ul className="space-y-3">
-                {['Human Feedback Loop', 'Memory / Context Retrieval', 'Prompt Optimizer', 'Expanded Skills Framework', 'Internal Solution Catalog', 'Advanced Evaluation Metrics'].map(item => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-slate-300">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                    {item}
+            <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-medium)] rounded-xl p-6">
+              <h3 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-wider mb-4 border-b border-[var(--bs-border-light)] pb-2">Planned V2</h3>
+              <ul className="space-y-4">
+                {['Interactive iterative blueprints', 'Terraform & Pulumi generation', 'Multi-cloud comparative analysis', 'Architecture export (Draw.io/IcePanel)'].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="mt-1.5 shrink-0 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--bs-orange-500)]" />
+                    </div>
+                    <span className="text-sm text-[var(--bs-text-secondary)] leading-relaxed">{item}</span>
                   </li>
                 ))}
               </ul>

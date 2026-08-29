@@ -31,24 +31,24 @@ const CapabilityRegistry = ({ traces }) => {
   ];
 
   const getBadgeClass = (status) => {
-    if (status === 'Used') return 'bg-emerald-900/30 text-emerald-400 border border-emerald-800/50';
-    if (status === 'Not Used') return 'bg-slate-800 text-slate-500 border border-slate-700';
-    return 'bg-slate-800 text-slate-400 border border-slate-700 border-dashed';
+    if (status === 'Used') return 'bg-[var(--bs-status-success-light)] text-[var(--bs-status-success)] border border-[var(--bs-status-success-border)]';
+    if (status === 'Not Used') return 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-secondary)] border border-[var(--bs-border-light)]';
+    return 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-secondary)] border border-[var(--bs-border-light)] border-dashed';
   };
 
   const getTypeBadge = (type) => {
-    if (type === 'MCP') return <span className="bg-purple-900/30 text-purple-400 border border-purple-800/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">MCP</span>;
-    return <span className="bg-emerald-900/30 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">LOCAL</span>;
+    if (type === 'MCP') return <span className="bg-[var(--bs-orange-100)] text-[var(--bs-orange-600)] border border-[var(--bs-orange-200)] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">MCP</span>;
+    return <span className="bg-[var(--bs-status-success-light)] text-[var(--bs-status-success)] border border-[var(--bs-status-success-border)] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">LOCAL</span>;
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden mb-8 shadow-sm">
-      <div className="p-4 border-b border-slate-700/50 bg-slate-800/50">
-        <h3 className="text-sm font-semibold text-slate-200">Registered Capabilities</h3>
+    <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg overflow-hidden mb-8 shadow-sm">
+      <div className="p-4 border-b border-[var(--bs-border-light)] bg-[var(--bs-bg-tertiary)]">
+        <h3 className="text-sm font-semibold text-[var(--bs-text-primary)]">Registered Capabilities</h3>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-slate-300">
-          <thead className="bg-slate-800/30 text-xs uppercase font-semibold text-slate-400">
+        <table className="w-full text-left text-sm text-[var(--bs-text-secondary)]">
+          <thead className="bg-[var(--bs-bg-secondary)] text-xs uppercase font-semibold text-[var(--bs-text-tertiary)]">
             <tr>
               <th className="px-6 py-4">Capability</th>
               <th className="px-6 py-4">Provider Type</th>
@@ -57,13 +57,13 @@ const CapabilityRegistry = ({ traces }) => {
               <th className="px-6 py-4">Execution Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/50">
+          <tbody className="divide-y divide-[var(--bs-border-light)]">
             {capabilities.map((row, i) => (
-              <tr key={i} className="hover:bg-slate-800/30 transition-colors">
-                <td className="px-6 py-4 font-mono text-slate-200 text-xs">{row.cap}</td>
+              <tr key={i} className="hover:bg-[var(--bs-bg-hover)] transition-colors">
+                <td className="px-6 py-4 font-mono text-[var(--bs-text-primary)] text-xs">{row.cap}</td>
                 <td className="px-6 py-4">{getTypeBadge(row.type)}</td>
                 <td className="px-6 py-4">{row.provider}</td>
-                <td className="px-6 py-4 text-slate-400">{row.fallback}</td>
+                <td className="px-6 py-4 text-[var(--bs-text-secondary)]">{row.fallback}</td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${getBadgeClass(row.status)}`}>
                     {row.status}

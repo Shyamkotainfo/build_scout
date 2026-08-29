@@ -26,7 +26,7 @@ const SearchTracePanel = ({ traces, analysisId }) => {
   const getProviderBadge = (provider) => {
     const p = provider?.toUpperCase() || 'SYSTEM';
     if (p === 'FALLBACK') return <Badge variant="error">FALLBACK</Badge>;
-    if (p === 'MCP') return <span className="bg-purple-900/30 text-purple-400 border border-purple-800/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">MCP</span>;
+    if (p === 'MCP') return <span className="bg-[var(--bs-orange-100)] text-[var(--bs-orange-600)] border border-[var(--bs-orange-200)] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">MCP</span>;
     if (p === 'LOCAL') return <Badge variant="success">LOCAL</Badge>;
     return <Badge variant="default">{p}</Badge>;
   };

@@ -29,9 +29,9 @@ const IntegrationPoints = ({ integrationPoints }) => {
           const isExternal = point.type === 'External' || point.type === 'MCP' || point.type === 'Cloud service';
           
           const typeBadgeStyle = isInternal 
-            ? 'bg-blue-900/30 text-blue-400 border-blue-800/50' 
+            ? 'bg-[var(--bs-status-running-light)] text-[var(--bs-status-running)] border-[var(--bs-status-running-border)]' 
             : isExternal 
-            ? 'bg-purple-900/30 text-purple-400 border-purple-800/50' 
+            ? 'bg-[var(--bs-orange-100)] text-[var(--bs-orange-600)] border-[var(--bs-orange-200)]' 
             : 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-secondary)] border-[var(--bs-border-light)]';
 
           const extraKeys = Object.keys(point).filter(k => !['name', 'description', 'type'].includes(k));

@@ -46,7 +46,9 @@ function App() {
           <Route path="decisions" element={<EvaluationDecisionExplorer />} />
           <Route path="architecture" element={<ArchitectureExplorer />} />
           <Route path="validation" element={<ValidationExplorer />} />
+          <Route path="agent-trace/:analysisId" element={<AgentTraceExplorer />} />
           <Route path="agent-trace" element={<AgentTraceExplorer />} />
+          <Route path="tools/:analysisId" element={<McpConsole />} />
           <Route path="tools" element={<McpConsole />} />
           <Route path="metrics" element={<LlmMetricsConsole />} />
         </Route>

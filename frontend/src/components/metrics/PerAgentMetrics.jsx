@@ -6,13 +6,13 @@ const PerAgentMetrics = ({ agentMetrics }) => {
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden mb-8 shadow-sm">
-      <div className="p-4 border-b border-slate-700/50 bg-slate-800/50">
-        <h3 className="text-sm font-semibold text-slate-200">LLM Usage by Agent</h3>
+    <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] rounded-lg overflow-hidden mb-8 shadow-sm">
+      <div className="p-4 border-b border-[var(--bs-border-light)] bg-[var(--bs-bg-secondary)]">
+        <h3 className="text-sm font-semibold text-[var(--bs-text-primary)]">LLM Usage by Agent</h3>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm text-slate-300">
-          <thead className="bg-slate-800/30 text-xs uppercase font-semibold text-slate-400">
+        <table className="w-full text-left text-sm text-[var(--bs-text-secondary)]">
+          <thead className="bg-[var(--bs-bg-secondary)] text-xs uppercase font-semibold text-[var(--bs-text-tertiary)]">
             <tr>
               <th className="px-6 py-4">Agent</th>
               <th className="px-6 py-4 text-right">Calls</th>
@@ -24,21 +24,21 @@ const PerAgentMetrics = ({ agentMetrics }) => {
               <th className="px-6 py-4">Status</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/50">
+          <tbody className="divide-y divide-[var(--bs-border-light)]">
             {agentMetrics.map((row, i) => (
-              <tr key={i} className="hover:bg-slate-800/30 transition-colors">
-                <td className="px-6 py-4 font-semibold text-slate-200">{row.agent}</td>
+              <tr key={i} className="hover:bg-[var(--bs-bg-secondary)] transition-colors">
+                <td className="px-6 py-4 font-semibold text-[var(--bs-text-primary)]">{row.agent}</td>
                 <td className="px-6 py-4 text-right font-mono">{row.calls}</td>
-                <td className="px-6 py-4 text-right font-mono text-blue-400">{row.inputTokens?.toLocaleString()}</td>
-                <td className="px-6 py-4 text-right font-mono text-emerald-400">{row.outputTokens?.toLocaleString()}</td>
-                <td className="px-6 py-4 text-right font-mono font-bold text-white">{row.totalTokens?.toLocaleString()}</td>
+                <td className="px-6 py-4 text-right font-mono text-[var(--bs-status-running)]">{row.inputTokens?.toLocaleString()}</td>
+                <td className="px-6 py-4 text-right font-mono text-[var(--bs-status-success)]">{row.outputTokens?.toLocaleString()}</td>
+                <td className="px-6 py-4 text-right font-mono font-bold text-[var(--bs-text-primary)]">{row.totalTokens?.toLocaleString()}</td>
                 <td className="px-6 py-4 text-right font-mono text-amber-400">{row.retries}</td>
-                <td className="px-6 py-4 text-right font-mono text-slate-400">{row.latencyMs ? `${row.latencyMs}ms` : '—'}</td>
+                <td className="px-6 py-4 text-right font-mono text-[var(--bs-text-tertiary)]">{row.latencyMs ? `${row.latencyMs}ms` : '—'}</td>
                 <td className="px-6 py-4">
                   <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wider ${
-                    row.status === 'SUCCESS' ? 'bg-green-900/30 text-green-400 border border-green-800/50' : 
-                    row.status === 'FAILED' ? 'bg-red-900/30 text-red-400 border border-red-800/50' : 
-                    'bg-slate-800 text-slate-400 border border-slate-700'
+                    row.status === 'SUCCESS' ? 'bg-green-900/30 text-[var(--bs-status-success)] border border-green-800/50' : 
+                    row.status === 'FAILED' ? 'bg-red-900/30 text-[var(--bs-status-critical)] border border-red-800/50' : 
+                    'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-tertiary)] border border-[var(--bs-border-light)]'
                   }`}>
                     {row.status || 'UNKNOWN'}
                   </span>

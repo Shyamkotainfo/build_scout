@@ -16,13 +16,18 @@ const LatestAnalysisCard = ({ analysis }) => {
     decisions = []
   } = analysis;
 
-  const score = validation_result?.overall_score ?? 0;
-  const valStatus = (validation_result?.overall_status || 'UNKNOWN').toLowerCase();
+  const score = validation_result?.overall_score;
+  const valStatus = (validation_result?.overall_status || '');
   
   let badgeStatus = 'neutral';
-  if (valStatus === 'pass') badgeStatus = 'success';
-  if (valStatus === 'warning') badgeStatus = 'warning';
-  if (valStatus === 'fail') badgeStatus = 'critical';
+  let statusText = 'NOT AVAILABLE';
+  
+  if (valStatus) {
+    statusText = valStatus.toUpperCase();
+    if (valStatus.toLowerCase() === 'pass') badgeStatus = 'success';
+    if (valStatus.toLowerCase() === 'warning') badgeStatus = 'warning';
+    if (valStatus.toLowerCase() === 'fail') badgeStatus = 'critical';
+  }
 
   // Calculate decisions
   let reuseCount = 0;
@@ -101,11 +106,17 @@ const LatestAnalysisCard = ({ analysis }) => {
             Validation
           </span>
           <div className="flex items-end justify-center mb-3">
-            <span className="text-5xl font-bold text-[var(--bs-text-primary)] leading-none tracking-tight">{score}</span>
-            <span className="text-xl font-medium text-[var(--bs-text-tertiary)] leading-tight ml-1">/ 100</span>
+            {score != null ? (
+              <>
+                <span className="text-5xl font-bold text-[var(--bs-text-primary)] leading-none tracking-tight">{score}</span>
+                <span className="text-xl font-medium text-[var(--bs-text-tertiary)] leading-tight ml-1">/ 100</span>
+              </>
+            ) : (
+              <span className="text-3xl font-bold text-[var(--bs-text-primary)] leading-none tracking-tight">N/A</span>
+            )}
           </div>
           <Badge status={badgeStatus} className="w-full justify-center py-1 mt-2">
-            {valStatus.toUpperCase()}
+            {statusText}
           </Badge>
         </div>
         

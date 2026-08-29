@@ -8,9 +8,9 @@ const ValidationSection = ({ validation }) => {
 
   const getStatusColor = (status) => {
     switch (status?.toUpperCase()) {
-      case 'PASS': return 'text-[var(--bs-status-success)] bg-green-900/10 border-[var(--bs-status-success)]/30';
-      case 'FAIL': return 'text-[var(--bs-status-critical)] bg-red-900/10 border-[var(--bs-status-critical)]/30';
-      case 'WARN': return 'text-[var(--bs-status-warning)] bg-yellow-900/10 border-[var(--bs-status-warning)]/30';
+      case 'PASS': return 'text-[var(--bs-status-success)] bg-[var(--bs-status-success-light)] border-[var(--bs-status-success-border)]';
+      case 'FAIL': return 'text-[var(--bs-status-critical)] bg-[var(--bs-status-critical-light)] border-[var(--bs-status-critical-border)]';
+      case 'WARN': return 'text-[var(--bs-status-warning)] bg-[var(--bs-status-warning-light)] border-[var(--bs-status-warning-border)]';
       default: return 'text-[var(--bs-text-secondary)] bg-[var(--bs-bg-secondary)] border-[var(--bs-border-light)]';
     }
   };

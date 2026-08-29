@@ -62,15 +62,15 @@ const DocumentationExplorer = () => {
 
   return (
     /* Full-bleed docs layout — overrides the Layout's p-6 padding */
-    <div className="flex -m-6 min-h-[calc(100vh-3.5rem)] bg-white">
+    <div className="flex -m-6 min-h-[calc(100vh-3.5rem)] bg-[var(--bs-bg-primary)]">
 
       {/* ── Doc Secondary Sidebar ─────────────────────────────────── */}
-      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-slate-200 bg-slate-50 overflow-y-auto">
-        <div className="p-5 border-b border-slate-200">
+      <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-[var(--bs-border-light)] bg-[var(--bs-bg-secondary)] overflow-y-auto">
+        <div className="p-5 border-b border-[var(--bs-border-light)]">
           {/* Back link */}
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-[var(--bs-orange-500)] mb-4 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--bs-text-secondary)] hover:text-[var(--bs-orange-500)] mb-4 transition-colors"
           >
             <ArrowLeft size={13} /> Back to App
           </Link>
@@ -83,15 +83,15 @@ const DocumentationExplorer = () => {
         </div>
 
         {/* Search */}
-        <div className="px-4 py-3 border-b border-slate-200">
+        <div className="px-4 py-3 border-b border-[var(--bs-border-light)]">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--bs-text-muted)]" />
             <input
               type="text"
               placeholder="Search docs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-md pl-8 pr-3 py-1.5 text-sm text-[var(--bs-navy-900)] placeholder-slate-400 focus:outline-none focus:border-[var(--bs-orange-500)] focus:ring-1 focus:ring-[var(--bs-orange-500)] transition-all"
+              className="w-full bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] rounded-md pl-8 pr-3 py-1.5 text-sm text-[var(--bs-navy-900)] placeholder-[var(--bs-text-muted)] focus:outline-none focus:border-[var(--bs-orange-500)] focus:ring-1 focus:ring-[var(--bs-orange-500)] transition-all"
             />
           </div>
         </div>
@@ -100,11 +100,11 @@ const DocumentationExplorer = () => {
         <nav className="flex-1 py-4 px-3 overflow-y-auto">
           {searchQuery.trim().length > 1 ? (
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-2">
+              <p className="text-[10px] font-bold text-[var(--bs-text-muted)] uppercase tracking-wider px-2 mb-2">
                 Search Results
               </p>
               {isSearching ? (
-                <p className="text-xs text-slate-400 px-2">Searching...</p>
+                <p className="text-xs text-[var(--bs-text-muted)] px-2">Searching...</p>
               ) : searchResults.length > 0 ? (
                 <ul className="space-y-0.5">
                   {searchResults.map(result => (
@@ -112,10 +112,10 @@ const DocumentationExplorer = () => {
                       <Link
                         to={`/docs/${result.id}`}
                         onClick={() => setSearchQuery('')}
-                        className="block px-3 py-1.5 rounded-md text-sm text-slate-600 hover:text-[var(--bs-navy-900)] hover:bg-slate-100 transition-colors"
+                        className="block px-3 py-1.5 rounded-md text-sm text-[var(--bs-text-secondary)] hover:text-[var(--bs-navy-900)] hover:bg-[var(--bs-bg-hover)] transition-colors"
                       >
                         <div className="font-medium">{result.title}</div>
-                        <div className="text-[11px] text-slate-400 mt-0.5 capitalize">
+                        <div className="text-[11px] text-[var(--bs-text-muted)] mt-0.5 capitalize">
                           Matches {result.matchType}
                         </div>
                       </Link>
@@ -123,14 +123,14 @@ const DocumentationExplorer = () => {
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-slate-400 px-2">No results for "{searchQuery}"</p>
+                <p className="text-xs text-[var(--bs-text-muted)] px-2">No results for "{searchQuery}"</p>
               )}
             </div>
           ) : (
             <div className="space-y-5">
               {Object.entries(categories).map(([category, docs]) => (
                 <div key={category}>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1.5">
+                  <p className="text-[10px] font-bold text-[var(--bs-text-muted)] uppercase tracking-wider px-2 mb-1.5">
                     {category}
                   </p>
                   <ul className="space-y-0.5">
@@ -141,7 +141,7 @@ const DocumentationExplorer = () => {
                           className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
                             documentId === doc.id
                               ? 'bg-[var(--bs-orange-50)] text-[var(--bs-orange-600)] font-semibold border-l-2 border-[var(--bs-orange-500)] pl-[10px]'
-                              : 'text-slate-600 hover:text-[var(--bs-navy-900)] hover:bg-slate-100'
+                              : 'text-[var(--bs-text-secondary)] hover:text-[var(--bs-navy-900)] hover:bg-[var(--bs-bg-hover)]'
                           }`}
                         >
                           {doc.title}
@@ -153,18 +153,18 @@ const DocumentationExplorer = () => {
               ))}
 
               {/* Future section */}
-              <div className="border-t border-slate-200 pt-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1.5">
+              <div className="border-t border-[var(--bs-border-light)] pt-4">
+                <p className="text-[10px] font-bold text-[var(--bs-text-muted)] uppercase tracking-wider px-2 mb-1.5">
                   Future
                 </p>
                 <ul className="space-y-0.5">
                   <li>
                     <Link
                       to="/v2"
-                      className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm text-slate-600 hover:text-[var(--bs-navy-900)] hover:bg-slate-100 transition-colors"
+                      className="flex items-center justify-between px-3 py-1.5 rounded-md text-sm text-[var(--bs-text-secondary)] hover:text-[var(--bs-navy-900)] hover:bg-[var(--bs-bg-hover)] transition-colors"
                     >
                       <span>V2 Specification</span>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 border border-blue-100">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--bs-status-running-light)] text-[var(--bs-status-running)] border border-[var(--bs-status-running-border)]">
                         PLANNED
                       </span>
                     </Link>
@@ -172,7 +172,7 @@ const DocumentationExplorer = () => {
                   <li>
                     <Link
                       to="/roadmap"
-                      className="flex items-center px-3 py-1.5 rounded-md text-sm text-slate-600 hover:text-[var(--bs-navy-900)] hover:bg-slate-100 transition-colors"
+                      className="flex items-center px-3 py-1.5 rounded-md text-sm text-[var(--bs-text-secondary)] hover:text-[var(--bs-navy-900)] hover:bg-[var(--bs-bg-hover)] transition-colors"
                     >
                       Product Roadmap
                     </Link>
@@ -186,7 +186,7 @@ const DocumentationExplorer = () => {
 
       {/* ── Main Content Area ─────────────────────────────────────── */}
       <div
-        className="flex-1 overflow-y-auto bg-white scroll-smooth"
+        className="flex-1 overflow-y-auto bg-[var(--bs-bg-primary)] scroll-smooth"
         id="docs-content-container"
       >
         {activeDocument ? (
@@ -196,7 +196,7 @@ const DocumentationExplorer = () => {
             <article className="flex-1 min-w-0 pb-24">
 
               {/* Breadcrumb */}
-              <nav className="flex items-center gap-1.5 text-xs text-slate-400 mb-6 font-medium">
+              <nav className="flex items-center gap-1.5 text-xs text-[var(--bs-text-muted)] mb-6 font-medium">
                 <Link to="/docs" className="hover:text-[var(--bs-orange-500)] transition-colors">Docs</Link>
                 <ChevronRight size={12} />
                 <span>{activeDocument.category}</span>
@@ -205,7 +205,7 @@ const DocumentationExplorer = () => {
               </nav>
 
               {/* Page header */}
-              <div className="mb-8 pb-6 border-b border-slate-200">
+              <div className="mb-8 pb-6 border-b border-[var(--bs-border-light)]">
                 <div className="flex items-start justify-between gap-4">
                   <h1 className="text-3xl font-extrabold text-[var(--bs-navy-900)] tracking-tight leading-tight">
                     {activeDocument.title}
@@ -220,13 +220,13 @@ const DocumentationExplorer = () => {
               <MarkdownRenderer content={content} />
 
               {/* Prev / Next footer */}
-              <div className="mt-16 pt-8 border-t border-slate-200 flex justify-between items-center gap-4">
+              <div className="mt-16 pt-8 border-t border-[var(--bs-border-light)] flex justify-between items-center gap-4">
                 {prevDoc ? (
                   <Link
                     to={`/docs/${prevDoc.id}`}
-                    className="flex flex-col items-start p-4 rounded-xl border border-slate-200 hover:border-[var(--bs-orange-300)] hover:bg-[var(--bs-orange-50)] transition-all min-w-[180px] group"
+                    className="flex flex-col items-start p-4 rounded-xl border border-[var(--bs-border-light)] hover:border-[var(--bs-orange-300)] hover:bg-[var(--bs-orange-50)] transition-all min-w-[180px] group"
                   >
-                    <span className="text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1">
+                    <span className="text-[11px] font-medium text-[var(--bs-text-muted)] mb-1 flex items-center gap-1">
                       <ArrowLeft size={11} /> Previous
                     </span>
                     <span className="text-sm font-semibold text-[var(--bs-navy-900)] group-hover:text-[var(--bs-orange-600)] transition-colors">
@@ -238,9 +238,9 @@ const DocumentationExplorer = () => {
                 {nextDoc ? (
                   <Link
                     to={`/docs/${nextDoc.id}`}
-                    className="flex flex-col items-end p-4 rounded-xl border border-slate-200 hover:border-[var(--bs-orange-300)] hover:bg-[var(--bs-orange-50)] transition-all min-w-[180px] group"
+                    className="flex flex-col items-end p-4 rounded-xl border border-[var(--bs-border-light)] hover:border-[var(--bs-orange-300)] hover:bg-[var(--bs-orange-50)] transition-all min-w-[180px] group"
                   >
-                    <span className="text-[11px] font-medium text-slate-400 mb-1 flex items-center gap-1">
+                    <span className="text-[11px] font-medium text-[var(--bs-text-muted)] mb-1 flex items-center gap-1">
                       Next <ArrowRight size={11} />
                     </span>
                     <span className="text-sm font-semibold text-[var(--bs-navy-900)] group-hover:text-[var(--bs-orange-600)] transition-colors">
@@ -256,11 +256,11 @@ const DocumentationExplorer = () => {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full py-32 text-center px-6">
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <BookOpen size={28} className="text-slate-400" />
+            <div className="w-14 h-14 rounded-2xl bg-[var(--bs-bg-tertiary)] flex items-center justify-center mb-4">
+              <BookOpen size={28} className="text-[var(--bs-text-muted)]" />
             </div>
             <h2 className="text-xl font-bold text-[var(--bs-navy-900)] mb-2">Document not available.</h2>
-            <p className="text-sm text-slate-500 max-w-sm">
+            <p className="text-sm text-[var(--bs-text-secondary)] max-w-sm">
               The requested document does not exist or is not yet available. Select a document from the sidebar.
             </p>
           </div>

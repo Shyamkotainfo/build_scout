@@ -124,8 +124,8 @@ def list_analyses() -> list[dict]:
                     "component_count": comp_count,
                     "candidate_count": cand_count,
                     "requirements_count": req_count,
-                    "validation_score": 0,
-                    "validation_status": "UNKNOWN",
+                    "validation_score": a.validation_score,
+                    "validation_status": a.validation_status,
                     "decision_summary": {
                         "reuse": reuse_count,
                         "adapt": adapt_count,

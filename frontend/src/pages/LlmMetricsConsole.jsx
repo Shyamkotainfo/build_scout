@@ -42,8 +42,8 @@ const LlmMetricsConsole = () => {
 
   if (isLoading && !analysis) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-300 py-24">
-        <Loader2 className="h-10 w-10 text-emerald-500 animate-spin mb-4" />
+      <div className="flex flex-col items-center justify-center h-full text-[var(--bs-text-secondary)] py-24">
+        <Loader2 className="h-10 w-10 text-[var(--bs-orange-500)] animate-spin mb-4" />
         <p className="text-sm font-medium">Loading LLM telemetry...</p>
       </div>
     );
@@ -54,15 +54,15 @@ const LlmMetricsConsole = () => {
       <div className="max-w-3xl mx-auto w-full px-4 py-12">
         {analysisId && (
           <div className="mb-6">
-            <Link to={`/analyses/${analysisId}`} className="text-sm font-medium text-slate-400 hover:text-slate-300 flex items-center gap-1 w-fit">
+            <Link to={`/analyses/${analysisId}`} className="text-sm font-medium text-[var(--bs-text-secondary)] hover:text-[var(--bs-text-primary)] flex items-center gap-1 w-fit">
               <ArrowLeft className="h-4 w-4" /> Back
             </Link>
           </div>
         )}
-        <div className="bg-slate-800 border border-slate-700 p-8 rounded-lg text-center">
-          <AlertCircle className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2 text-white">No Analysis Selected</h2>
-          <p className="text-sm text-slate-400 mb-6">
+        <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-medium)] p-8 rounded-lg text-center">
+          <AlertCircle className="h-12 w-12 text-[var(--bs-text-tertiary)] mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2 text-[var(--bs-text-primary)]">No Analysis Selected</h2>
+          <p className="text-sm text-[var(--bs-text-secondary)] mb-6">
             {isInitialLoad
               ? "Click 'Refresh Data' to load your workspace."
               : "Please select an analysis from the Dashboard or History to view LLM Metrics."}
@@ -89,24 +89,24 @@ const LlmMetricsConsole = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
           {displayId && (
-            <Link to={`/analyses/${displayId}`} className="text-sm font-medium text-slate-400 hover:text-slate-300 flex items-center gap-1 mb-2 w-fit">
+            <Link to={`/analyses/${displayId}`} className="text-sm font-medium text-[var(--bs-text-secondary)] hover:text-[var(--bs-text-primary)] flex items-center gap-1 mb-2 w-fit">
               <ArrowLeft className="h-4 w-4" /> Back to Analysis Result
             </Link>
           )}
-          <h1 className="text-2xl font-bold text-white tracking-wide flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 text-blue-400" />
+          <h1 className="text-2xl font-bold text-[var(--bs-text-primary)] tracking-wide flex items-center gap-2">
+            <BarChart3 className="h-6 w-6 text-[var(--bs-orange-500)]" />
             LLM Observability Console
           </h1>
-          <p className="text-sm text-slate-400 mt-1">How much LLM usage did this analysis consume?</p>
+          <p className="text-sm text-[var(--bs-text-secondary)] mt-1">How much LLM usage did this analysis consume?</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg mr-2">
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">LLM Execution:</span>
+          <div className="flex items-center gap-2 bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] px-3 py-1.5 rounded-lg mr-2">
+            <span className="text-[10px] font-semibold text-[var(--bs-text-tertiary)] uppercase tracking-wider">LLM Execution:</span>
             <span className={`text-xs font-bold ${
-              status === 'SUCCESS' ? 'text-green-400' :
-              status === 'PARTIAL' ? 'text-amber-400' :
-              status === 'FAILED' ? 'text-red-400' : 'text-slate-400'
+              status === 'SUCCESS' ? 'text-[var(--bs-status-success)]' :
+              status === 'PARTIAL' ? 'text-[var(--bs-status-warning)]' :
+              status === 'FAILED' ? 'text-[var(--bs-status-critical)]' : 'text-[var(--bs-text-secondary)]'
             }`}>
               {status}
             </span>
@@ -115,9 +115,9 @@ const LlmMetricsConsole = () => {
           {displayId && (
             <Link
               to={`/traces/${displayId}`}
-              className="inline-flex items-center gap-2 rounded-md bg-slate-800 border border-slate-600 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition-colors shadow-sm whitespace-nowrap h-fit"
+              className="inline-flex items-center gap-2 rounded-md bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-medium)] px-4 py-2 text-sm font-medium text-[var(--bs-text-primary)] hover:bg-[var(--bs-bg-hover)] transition-colors shadow-sm whitespace-nowrap h-fit"
             >
-              <Activity className="h-4 w-4 text-emerald-400" />
+              <Activity className="h-4 w-4 text-[var(--bs-orange-500)]" />
               View Agent Trace
             </Link>
           )}

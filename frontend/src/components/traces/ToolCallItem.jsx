@@ -5,25 +5,25 @@ const ToolCallItem = ({ call }) => {
   const provider = call.provider?.toUpperCase();
   
   const getProviderBadge = () => {
-    if (provider === 'FALLBACK') return <span className="bg-red-900/30 text-red-400 border border-red-800/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">FALLBACK</span>;
-    if (provider === 'MCP') return <span className="bg-purple-900/30 text-purple-400 border border-purple-800/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">MCP</span>;
-    if (provider === 'LOCAL') return <span className="bg-emerald-900/30 text-emerald-400 border border-emerald-800/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">LOCAL</span>;
-    return <span className="bg-slate-800 text-slate-400 border border-slate-700 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">{provider || 'UNKNOWN'}</span>;
+    if (provider === 'FALLBACK') return <span className="bg-red-900/30 text-[var(--bs-status-critical)] border border-red-800/50 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">FALLBACK</span>;
+    if (provider === 'MCP') return <span className="bg-[var(--bs-orange-100)] text-[var(--bs-orange-600)] border border-[var(--bs-orange-200)] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">MCP</span>;
+    if (provider === 'LOCAL') return <span className="bg-[var(--bs-status-success-light)] text-[var(--bs-status-success)] border border-[var(--bs-status-success-border)] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">LOCAL</span>;
+    return <span className="bg-[var(--bs-bg-secondary)] text-[var(--bs-text-tertiary)] border border-[var(--bs-border-light)] px-2 py-0.5 rounded text-[10px] font-bold tracking-wider">{provider || 'UNKNOWN'}</span>;
   };
 
   const isFailed = call.status?.toUpperCase() === 'FAILED' || call.status?.toUpperCase() === 'ERROR';
 
   return (
-    <div className={`bg-slate-800/80 border rounded-lg overflow-hidden ${isFailed ? 'border-red-900/50' : 'border-slate-700'}`}>
+    <div className={`bg-slate-800/80 border rounded-lg overflow-hidden ${isFailed ? 'border-red-900/50' : 'border-[var(--bs-border-light)]'}`}>
       
       {/* Header */}
-      <div className={`p-4 flex items-center justify-between border-b ${isFailed ? 'bg-red-900/10 border-red-900/30' : 'bg-slate-900/50 border-slate-700/50'}`}>
+      <div className={`p-4 flex items-center justify-between border-b ${isFailed ? 'bg-red-900/10 border-red-900/30' : 'bg-[var(--bs-bg-secondary)] border-[var(--bs-border-light)]'}`}>
         <div className="flex items-center gap-3">
-          <Settings className={`h-4 w-4 ${isFailed ? 'text-red-400' : 'text-slate-400'}`} />
-          <h4 className="text-sm font-bold text-slate-200">{call.name || call.tool}</h4>
+          <Settings className={`h-4 w-4 ${isFailed ? 'text-[var(--bs-status-critical)]' : 'text-[var(--bs-text-tertiary)]'}`} />
+          <h4 className="text-sm font-bold text-[var(--bs-text-primary)]">{call.name || call.tool}</h4>
         </div>
         <div className="flex items-center gap-3">
-          {call.latency_ms && <span className="text-xs font-mono text-slate-500">{call.latency_ms}ms</span>}
+          {call.latency_ms && <span className="text-xs font-mono text-[var(--bs-text-secondary)]">{call.latency_ms}ms</span>}
           {getProviderBadge()}
         </div>
       </div>
@@ -39,14 +39,14 @@ const ToolCallItem = ({ call }) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Server</span>
-            <div className="flex items-center gap-1.5 text-sm font-mono text-slate-300">
-              <Server className="h-3 w-3 text-slate-500" /> {call.server || 'Unknown'}
+            <span className="text-[10px] font-semibold text-[var(--bs-text-secondary)] uppercase tracking-wider block mb-1">Server</span>
+            <div className="flex items-center gap-1.5 text-sm font-mono text-[var(--bs-text-secondary)]">
+              <Server className="h-3 w-3 text-[var(--bs-text-secondary)]" /> {call.server || 'Unknown'}
             </div>
           </div>
           <div>
-            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Status</span>
-            <span className={`text-sm font-mono font-semibold ${isFailed ? 'text-red-400' : 'text-green-400'}`}>
+            <span className="text-[10px] font-semibold text-[var(--bs-text-secondary)] uppercase tracking-wider block mb-1">Status</span>
+            <span className={`text-sm font-mono font-semibold ${isFailed ? 'text-[var(--bs-status-critical)]' : 'text-[var(--bs-status-success)]'}`}>
               {call.status || 'COMPLETED'}
             </span>
           </div>
@@ -54,10 +54,10 @@ const ToolCallItem = ({ call }) => {
 
         {/* Arguments Box (Always masked/sanitized by backend) */}
         <div>
-          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1 flex items-center gap-1">
+          <span className="text-[10px] font-semibold text-[var(--bs-text-secondary)] uppercase tracking-wider block mb-1 flex items-center gap-1">
             <ShieldCheck className="h-3 w-3 text-green-500/70" /> Sanitized Arguments
           </span>
-          <pre className="bg-slate-950 border border-slate-800 rounded p-3 text-xs font-mono text-slate-400 overflow-x-auto">
+          <pre className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded p-3 text-xs font-mono text-[var(--bs-text-tertiary)] overflow-x-auto">
             {call.arguments 
               ? (typeof call.arguments === 'object' ? JSON.stringify(call.arguments, null, 2) : call.arguments) 
               : '{}'}

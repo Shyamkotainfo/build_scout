@@ -32,7 +32,7 @@ const Tooltip = ({
         <span
           role="tooltip"
           className={`absolute z-50 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium
-            bg-[var(--bs-navy-800)] text-white shadow-[var(--bs-shadow-md)]
+            bg-[var(--bs-navy-800)] text-[var(--bs-text-primary)] shadow-[var(--bs-shadow-md)]
             pointer-events-none
             ${positionClasses[position] || positionClasses.top}`}
         >

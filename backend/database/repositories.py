@@ -56,6 +56,8 @@ class AnalysisRepository:
         comp_id_map = {}
         cand_id_map = {}
 
+        val_result = state.get("validation_result", {})
+        
         # 1. Create Analysis
         analysis = Analysis(
             id=analysis_id,
@@ -63,7 +65,10 @@ class AnalysisRepository:
             normalized_request=state.get("normalized_request", ""),
             domain=state.get("domain", ""),
             status=state.get("status", ""),
-            reuse_confidence=state.get("validation_result", {}).get("confidence_score")
+            reuse_confidence=val_result.get("confidence_score"),
+            validation_score=val_result.get("overall_score"),
+            validation_status=val_result.get("overall_status"),
+            validation_result=val_result if val_result else None
         )
         session.add(analysis)
         session.flush()
@@ -511,7 +516,7 @@ class AnalysisRepository:
             "evaluations": eval_list,
             "decisions": dec_list,
             "blueprint": bp_dict,
-            "validation_result": None,
+            "validation_result": analysis.validation_result,
             "agent_history": agent_history,
             "traces": traces,
             "llm_metrics": llm_metrics if llm_calls else None

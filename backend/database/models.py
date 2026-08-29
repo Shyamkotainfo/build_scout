@@ -20,6 +20,9 @@ class Analysis(Base):
     reuse_confidence = Column(Numeric)
     effort_from_scratch_days = Column(Numeric)
     effort_with_reuse_days = Column(Numeric)
+    validation_score = Column(Integer, nullable=True)
+    validation_status = Column(String, nullable=True)
+    validation_result = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), default=utcnow)
     updated_at = Column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
