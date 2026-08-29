@@ -99,18 +99,12 @@ const ResearchExplorer = () => {
               <ArrowLeft className="h-4 w-4" /> Back to Analysis
             </Link>
           )}
-          <h1 className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight mb-2">RESEARCH EXPLORER</h1>
+          <h1 className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight mb-2">Research</h1>
           <p className="text-sm font-bold text-[var(--bs-text-secondary)] uppercase tracking-widest flex items-center gap-2">
             <span className="text-[var(--bs-orange-500)]">{analysis.domain || 'Analysis'}</span>
-            {displayId && (
-              <>
-                <span className="text-[var(--bs-text-tertiary)]">|</span>
-                <span className="text-[var(--bs-text-tertiary)]">{displayId}</span>
-              </>
-            )}
           </p>
           <p className="text-sm text-[var(--bs-text-secondary)] mt-4 max-w-2xl">
-            Explore the solutions BuildScout discovered and the evidence behind each candidate.
+            Explore the solutions BuildScout discovered and the evidence behind each recommendation.
           </p>
         </div>
 
@@ -120,9 +114,9 @@ const ResearchExplorer = () => {
               to={`/decisions/${displayId}`}
               className="flex flex-col border border-[var(--bs-border-light)] rounded-lg p-3 bg-[var(--bs-bg-secondary)] hover:border-[var(--bs-border-medium)] transition-colors min-w-[150px]"
             >
-              <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Next</span>
+              <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Next Step</span>
               <span className="text-sm font-bold text-[var(--bs-text-primary)] flex items-center gap-2">
-                Evaluation <ArrowRight className="h-3 w-3" />
+                Evaluation <ArrowRight className="h-4 w-4" />
               </span>
             </Link>
           )}
@@ -146,12 +140,13 @@ const ResearchExplorer = () => {
           <CandidateList 
             componentId={selectedComponentId}
             candidates={analysis.candidates}
+            decisions={analysis.decisions}
             selectedCandidate={selectedCandidate}
             onSelectCandidate={setSelectedCandidate}
           />
         </div>
         
-        {/* Right Column: Evidence Panel OR Search Traces */}
+        {/* Right Column: Evidence Panel */}
         <div className="w-full lg:w-[400px] shrink-0 h-[600px] flex flex-col gap-6">
           {selectedCandidate ? (
             <CandidateDetailPanel
@@ -162,13 +157,31 @@ const ResearchExplorer = () => {
               onClose={() => setSelectedCandidate(null)}
             />
           ) : (
+            <div className="flex-1 bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] border-dashed rounded-lg flex items-center justify-center p-8 text-center">
+              <p className="text-[var(--bs-text-secondary)]">Select a candidate to view evidence details.</p>
+            </div>
+          )}
+        </div>
+        
+      </div>
+
+      {/* Internal Tooling / Research Details (Hidden by default) */}
+      <div className="mt-12 border-t border-[var(--bs-border-light)] pt-8">
+        <details className="group">
+          <summary className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest cursor-pointer hover:text-[var(--bs-text-primary)] list-none flex items-center gap-2 mb-4">
+            <span className="group-open:rotate-90 transition-transform">▶</span>
+            Research Details (Internal)
+          </summary>
+          <div className="text-xs text-[var(--bs-text-tertiary)] mb-4 font-mono">
+            Analysis UUID: {displayId}
+          </div>
+          <div className="max-w-3xl">
             <SearchTracePanel 
               traces={analysis.traces} 
               analysisId={displayId}
             />
-          )}
-        </div>
-        
+          </div>
+        </details>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Box, Cpu, FileCheck } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Badge from '../ui/Badge';
 
 const LatestAnalysisCard = ({ analysis }) => {
@@ -9,12 +9,23 @@ const LatestAnalysisCard = ({ analysis }) => {
   const {
     analysis_id,
     domain = 'Unknown Domain',
+    requirements = [],
     components = [],
     candidates = [],
-    evaluations = [],
     validation_result = {},
-    decisions = []
+    decisions = [],
+    created_at,
+    updated_at
   } = analysis;
+
+  const dateStr = created_at || updated_at;
+  let formattedDate = 'N/A';
+  let formattedTime = 'N/A';
+  if (dateStr) {
+    const d = new Date(dateStr);
+    formattedDate = d.toLocaleDateString();
+    formattedTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 
   const score = validation_result?.overall_score;
   const valStatus = (validation_result?.overall_status || '');
@@ -42,8 +53,10 @@ const LatestAnalysisCard = ({ analysis }) => {
   });
 
   return (
-    <div className="rounded-lg border bg-[var(--bs-bg-primary)] border-[var(--bs-border-light)] p-8 shadow-sm">
-      <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
+    <div className="relative group rounded-xl border bg-[var(--bs-bg-primary)] border-[var(--bs-border-light)] p-8 shadow-sm hover:shadow-2xl hover:shadow-[var(--bs-orange-400)]/10 hover:border-[var(--bs-orange-400)] hover:-translate-y-1 transition-all duration-500 ease-out overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-[var(--bs-orange-400)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+      <div className="absolute -inset-24 bg-gradient-to-r from-transparent via-[var(--bs-bg-primary)] to-transparent opacity-0 group-hover:opacity-20 group-hover:animate-spin-slow blur-2xl pointer-events-none transition-all duration-1000"></div>
+      <div className="relative flex flex-col md:flex-row gap-8 items-start justify-between z-10">
         
         {/* Left side: Main Content */}
         <div className="flex-1 w-full">
@@ -52,7 +65,7 @@ const LatestAnalysisCard = ({ analysis }) => {
               Latest Analysis
             </span>
             <span className="text-[10px] bg-[var(--bs-bg-tertiary)] text-[var(--bs-text-secondary)] px-2 py-0.5 rounded-full font-mono">
-              {analysis_id}
+              {formattedDate} at {formattedTime}
             </span>
           </div>
           
@@ -65,37 +78,44 @@ const LatestAnalysisCard = ({ analysis }) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             <div className="flex flex-col">
               <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
-                Discovered
+                Requirements
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-[var(--bs-text-primary)]">{candidates.length}</span>
-                <span className="text-sm text-[var(--bs-text-secondary)]">candidates</span>
-              </div>
-            </div>
-            
-            <div className="flex flex-col">
-              <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
-                Evaluated
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-[var(--bs-text-primary)]">{evaluations.length}</span>
-                <span className="text-sm text-[var(--bs-text-secondary)]">candidates</span>
+                <span className="text-2xl font-bold text-[var(--bs-text-primary)]">{requirements.length}</span>
               </div>
             </div>
 
-            <div className="flex flex-col col-span-2">
+            <div className="flex flex-col">
+              <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
+                Components
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-[var(--bs-text-primary)]">{components.length}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
+                Candidates
+              </span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-[var(--bs-text-primary)]">{candidates.length}</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col">
               <span className="text-xs text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold mb-1">
                 Decisions
               </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-medium text-[var(--bs-text-primary)]">
+                <span className="text-sm font-medium text-[var(--bs-text-primary)] mt-1">
                   {adaptCount} ADAPT &middot; {buildCount} BUILD &middot; {reuseCount} REUSE
                 </span>
               </div>
             </div>
           </div>
           
-          <Link to={`/analyses/${analysis_id}`} className="inline-flex items-center text-sm font-medium text-[var(--bs-orange-500)] hover:text-[var(--bs-orange-600)] transition-colors">
+          <Link to={`/analyses/${analysis_id}`} className="inline-flex items-center text-sm font-bold text-[var(--bs-orange-500)] hover:text-[var(--bs-orange-600)] transition-colors">
             View Full Analysis <ArrowRight className="ml-2 w-4 h-4" />
           </Link>
         </div>
@@ -126,3 +146,4 @@ const LatestAnalysisCard = ({ analysis }) => {
 };
 
 export default LatestAnalysisCard;
+

@@ -10,7 +10,7 @@ const HistorySection = ({ history, isLoading, error }) => {
   if (isLoading) {
     return (
       <div className="mb-6 h-full flex flex-col">
-        <SectionHeader title="Analysis History" />
+        <SectionHeader title="Recent Analyses" />
         <Card className="flex-1 p-6 flex items-center justify-center min-h-[200px]">
           <div className="animate-pulse flex flex-col items-center">
             <div className="h-8 w-8 bg-[var(--bs-border-light)] rounded-full mb-3"></div>
@@ -25,7 +25,7 @@ const HistorySection = ({ history, isLoading, error }) => {
   if (error) {
     return (
       <div className="mb-6 h-full flex flex-col">
-        <SectionHeader title="Analysis History" />
+        <SectionHeader title="Recent Analyses" />
         <Card className="flex-1 p-6 border-[var(--bs-status-critical-border)] min-h-[200px]">
           <EmptyState 
             icon={History} 
@@ -40,7 +40,7 @@ const HistorySection = ({ history, isLoading, error }) => {
   if (!history || history.length === 0) {
     return (
       <div className="mb-6 h-full flex flex-col">
-        <SectionHeader title="Analysis History" />
+        <SectionHeader title="Recent Analyses" />
         <Card className="flex-1 p-6 min-h-[200px]">
           <EmptyState 
             icon={History} 
@@ -52,44 +52,36 @@ const HistorySection = ({ history, isLoading, error }) => {
     );
   }
 
-  // Limit to 4 most recent
-  const topHistory = history.slice(0, 4);
+  // Limit to 3 most recent
+  const topHistory = history.slice(0, 3);
 
   return (
     <div className="mb-6 h-full flex flex-col">
-      <SectionHeader title="Analysis History" />
+      <SectionHeader title="Recent Analyses" />
       <div className="flex flex-col gap-3 flex-1">
         {topHistory.map((h) => {
-          const score = h.validation_result?.overall_score ?? 0;
-          const status = (h.validation_result?.overall_status || 'UNKNOWN').toLowerCase();
+          const score = h.validation_score;
+          const status = h.validation_status || '';
           
           let badgeStatus = 'neutral';
-          if (status === 'pass') badgeStatus = 'success';
-          if (status === 'warning') badgeStatus = 'warning';
-          if (status === 'fail') badgeStatus = 'critical';
+          let statusText = 'NOT AVAILABLE';
+
+          if (status) {
+            statusText = status.toUpperCase();
+            if (status.toLowerCase() === 'pass') badgeStatus = 'success';
+            if (status.toLowerCase() === 'warning') badgeStatus = 'warning';
+            if (status.toLowerCase() === 'fail') badgeStatus = 'critical';
+          }
           
-          const timeLabel = new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); // mock date since API doesn't return created_at easily yet
+          const dateStr = h.created_at || h.updated_at;
+          let timeLabel = 'N/A';
+          if (dateStr) {
+            const d = new Date(dateStr);
+            timeLabel = `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          }
           
           const reqs = h.requirements_count ?? h.requirements?.length ?? 0;
           
-          let reuseCount = 0;
-          let adaptCount = 0;
-          let buildCount = 0;
-          const decisions = h.decisions || [];
-          decisions.forEach(d => {
-            const type = (d.decision_type || d.type || '').toUpperCase();
-            if (type === 'REUSE') reuseCount++;
-            if (type === 'ADAPT') adaptCount++;
-            if (type === 'BUILD') buildCount++;
-          });
-          
-          // Fallback simple counts if missing full decisions array but has counts
-          if (decisions.length === 0) {
-             reuseCount = h.decision_summary?.reuse || 0;
-             adaptCount = h.decision_summary?.adapt || 0;
-             buildCount = h.decision_summary?.build || 0;
-          }
-
           return (
             <Link 
               key={h.analysis_id} 
@@ -104,21 +96,22 @@ const HistorySection = ({ history, isLoading, error }) => {
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--bs-text-tertiary)]">
                     <span className="flex items-center"><Clock className="w-3 h-3 mr-1"/> {timeLabel}</span>
                     <span>{reqs} requirements</span>
-                    {(reuseCount > 0 || adaptCount > 0 || buildCount > 0) && (
-                      <span className="font-medium text-[var(--bs-text-secondary)]">
-                        {adaptCount} ADAPT &middot; {buildCount} BUILD
-                      </span>
-                    )}
                   </div>
                 </div>
                 
                 <div className="flex flex-col items-end ml-4 gap-1">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg font-bold text-[var(--bs-text-primary)] leading-none">{score}</span>
-                    <span className="text-[10px] font-medium text-[var(--bs-text-tertiary)]">/ 100</span>
+                    {score != null ? (
+                      <>
+                        <span className="text-lg font-bold text-[var(--bs-text-primary)] leading-none">{score}</span>
+                        <span className="text-[10px] font-medium text-[var(--bs-text-tertiary)]">/ 100</span>
+                      </>
+                    ) : (
+                      <span className="text-lg font-bold text-[var(--bs-text-primary)] leading-none">N/A</span>
+                    )}
                   </div>
                   <Badge status={badgeStatus} className="text-[9px] px-1.5 py-0.5">
-                    {status.toUpperCase()}
+                    {statusText}
                   </Badge>
                 </div>
               </Card>
@@ -126,13 +119,20 @@ const HistorySection = ({ history, isLoading, error }) => {
           );
         })}
         
-        {history.length > 4 && (
-          <div className="mt-2 text-center">
-             <Link to="/analyses" className="text-xs font-semibold text-[var(--bs-text-tertiary)] hover:text-[var(--bs-text-primary)] transition-colors inline-flex items-center">
-               View All Analyses <ArrowRight className="w-3 h-3 ml-1" />
-             </Link>
-          </div>
-        )}
+        <div className="mt-4 flex justify-between items-center px-1">
+          {history.length > 3 ? (
+            <span className="text-[10px] text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold">
+              Showing 3 of {history.length}
+            </span>
+          ) : (
+             <span className="text-[10px] text-[var(--bs-text-tertiary)] uppercase tracking-widest font-semibold">
+              All Analyses
+            </span>
+          )}
+          <Link to="/analyses" className="group text-xs font-semibold text-[var(--bs-text-secondary)] hover:text-[var(--bs-orange-500)] transition-colors inline-flex items-center">
+            View All Analyses <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
       </div>
     </div>
   );

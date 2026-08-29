@@ -17,6 +17,7 @@ import {
   Eye,
   Box,
   Cog,
+  Database,
 } from 'lucide-react';
 
 const navGroups = [
@@ -50,6 +51,7 @@ const navGroups = [
     items: [
       { name: 'Documentation', href: '/docs',          icon: BookOpen },
       { name: 'Roadmap',       href: '/roadmap',       icon: Map },
+      { name: 'Data Model',    href: '/data-model',    icon: Database },
     ],
   },
   {
@@ -68,8 +70,8 @@ const Sidebar = () => {
   return (
     <div className="flex h-full w-64 flex-col border-r border-[var(--bs-border-light)] bg-[var(--bs-navy-900)] text-[var(--bs-text-muted)]">
       {/* Brand */}
-      <div className="flex h-16 items-center px-6 border-b border-[var(--bs-navy-800)]">
-        <h1 className="text-xl font-bold text-[var(--bs-text-primary)] tracking-wide">
+      <div className="flex h-14 flex-shrink-0 items-center px-6 border-b border-[var(--bs-border-light)] bg-[var(--bs-bg-primary)] w-full overflow-hidden">
+        <h1 className="text-xl font-bold text-[var(--bs-text-primary)] tracking-wide whitespace-nowrap">
           Build<span className="text-[var(--bs-orange-500)]">Scout</span>
         </h1>
       </div>

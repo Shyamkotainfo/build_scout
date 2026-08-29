@@ -73,16 +73,6 @@ const CandidateDetailPanel = ({ candidate, evaluation, decision, onClose, analys
               )}
             </div>
 
-            <div className="bg-[var(--bs-bg-primary)] rounded-md border border-[var(--bs-border-light)] p-3 mt-4">
-               <span className="block text-[10px] uppercase font-bold text-[var(--bs-text-tertiary)] mb-2">Metadata Dump</span>
-               {candidate.metadata && Object.keys(candidate.metadata).length > 0 ? (
-                 <pre className="text-[10px] text-[var(--bs-text-secondary)] overflow-x-auto whitespace-pre-wrap">
-                   {JSON.stringify(candidate.metadata, null, 2)}
-                 </pre>
-               ) : (
-                 <span className="text-xs text-[var(--bs-text-tertiary)] italic">No additional metadata found.</span>
-               )}
-            </div>
           </div>
         </section>
 

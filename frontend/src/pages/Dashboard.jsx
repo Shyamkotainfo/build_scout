@@ -3,12 +3,8 @@ import { Link } from 'react-router-dom';
 import { PlusCircle, ArrowRight } from 'lucide-react';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import LatestAnalysisCard from '../components/dashboard/LatestAnalysisCard';
-import DecisionSummary from '../components/dashboard/DecisionSummary';
 import AgentWorkflowVisualizer from '../components/dashboard/AgentWorkflowVisualizer';
-import ResearchDiscovery from '../components/dashboard/ResearchDiscovery';
 import DecisionHighlights from '../components/dashboard/DecisionHighlights';
-import ValidationPanel from '../components/dashboard/ValidationPanel';
-import WhyBuild from '../components/dashboard/WhyBuild';
 import HistorySection from '../components/dashboard/HistorySection';
 import { useData } from '../contexts/DataContext';
 import LoadingState from '../components/ui/LoadingState';
@@ -63,13 +59,8 @@ const Dashboard = () => {
             </ol>
           </div>
           
-          <div className="flex items-center space-x-2 text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-10 overflow-x-auto w-full max-w-2xl justify-center whitespace-nowrap">
-            <span>Prompt</span> <ArrowRight className="w-3 h-3" /> 
-            <span>Discover</span> <ArrowRight className="w-3 h-3" /> 
-            <span>Evaluate</span> <ArrowRight className="w-3 h-3" /> 
-            <span>Decide</span> <ArrowRight className="w-3 h-3" /> 
-            <span>Blueprint</span> <ArrowRight className="w-3 h-3" /> 
-            <span>Validate</span>
+          <div className="w-full max-w-4xl mb-10">
+            <AgentWorkflowVisualizer />
           </div>
 
           <Link to="/new-analysis">
@@ -84,36 +75,26 @@ const Dashboard = () => {
         <div className="flex flex-col gap-6 pb-6">
           
           {/* Top Row: Hero */}
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-6 animate-fade-in-up stagger-1">
             <div className="col-span-1">
               <LatestAnalysisCard analysis={analysis} />
             </div>
           </div>
-
-          {/* Decision Summary */}
-          {analysis && <DecisionSummary analysis={analysis} />}
           
-          {/* Agent Workflow */}
-          {analysis && <AgentWorkflowVisualizer analysis={analysis} />}
-          
-          {/* Research & Validation */}
-          {analysis && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <ResearchDiscovery analysis={analysis} />
-              <ValidationPanel analysis={analysis} />
-            </div>
-          )}
+          {/* Agent Workflow (Static Visual) */}
+          <div className="animate-fade-in-up stagger-2">
+            <AgentWorkflowVisualizer />
+          </div>
           
           {/* Decision Highlights & History */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {analysis && (
-              <div className="flex flex-col gap-6">
-                <DecisionHighlights analysis={analysis} />
-                <WhyBuild analysis={analysis} />
-              </div>
-            )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up stagger-3">
+            <DecisionHighlights analysis={analysis} />
             <div>
-              <HistorySection history={history} isLoading={isRefreshing} error={refreshError} />
+              <HistorySection 
+                history={history.filter(h => h.analysis_id !== analysis?.analysis_id && h.id !== analysis?.id)} 
+                isLoading={isRefreshing} 
+                error={refreshError} 
+              />
             </div>
           </div>
           

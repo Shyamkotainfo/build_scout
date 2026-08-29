@@ -36,14 +36,11 @@ const ComponentSidebar = ({ components, selectedComponentId, onSelect, candidate
               >
                 <div className="flex justify-between items-start">
                   <span className={`font-semibold text-sm truncate ${isSelected ? 'text-[var(--bs-orange-500)]' : 'text-[var(--bs-text-primary)]'}`}>{comp.name}</span>
-                  <span className="text-[10px] font-mono text-[var(--bs-text-tertiary)] bg-[var(--bs-bg-secondary)] px-1.5 py-0.5 rounded border border-[var(--bs-border-light)] ml-2 shrink-0">
-                    {comp.id}
-                  </span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
+                <div className="flex justify-between items-center text-xs mt-1">
                   <span className="text-[var(--bs-text-secondary)] truncate pr-2">{comp.category}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${compCandidates.length > 0 ? 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-primary)] border-[var(--bs-border-medium)]' : 'bg-[var(--bs-bg-primary)] text-[var(--bs-text-tertiary)] border-[var(--bs-border-light)]'}`}>
-                    {compCandidates.length}
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap ${compCandidates.length > 0 ? 'bg-[var(--bs-bg-secondary)] text-[var(--bs-text-primary)] border-[var(--bs-border-medium)]' : 'bg-[var(--bs-status-warning-light)] text-[var(--bs-status-warning)] border-[var(--bs-status-warning-border)]'}`}>
+                    {compCandidates.length > 0 ? `${compCandidates.length} ${compCandidates.length === 1 ? 'candidate' : 'candidates'}` : 'No strong matches'}
                   </span>
                 </div>
               </button>

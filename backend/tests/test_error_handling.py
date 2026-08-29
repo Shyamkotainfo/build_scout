@@ -45,8 +45,8 @@ def test_generic_unexpected_exception(mock_optimizer):
     run_analysis_background(analysis_id, "Build something")
     
     status = build_status_response(analysis_id)
-    assert status.status == "FAILED"
-    assert status.error == "Unable to complete the analysis."
+    assert status["status"] == "FAILED"
+    assert status["error"] == "Unable to complete the analysis."
 
 
 @patch("services.analysis_service.build_buildsmart_graph")
@@ -63,14 +63,14 @@ def test_analysis_execution_exception(mock_graph):
     run_analysis_background(analysis_id, "Build something")
     
     status = build_status_response(analysis_id)
-    assert status.status == "FAILED"
-    assert status.error == "Unable to complete the analysis."
+    assert status["status"] == "FAILED"
+    assert status["error"] == "Unable to complete the analysis."
 
 
 @patch("services.analysis_service.PromptOptimizer")
 def test_llm_service_failure(mock_optimizer):
     """TEST 6 — LLM service failure/rate limit."""
-    mock_optimizer.return_value.optimize.side_effect = LLMServiceException(analysis_id="456")
+    mock_optimizer.return_value.optimize.side_effect = Exception("429 Too Many Requests")
     
     from services.analysis_service import run_analysis_background
     from services.job_store import init_job, build_status_response

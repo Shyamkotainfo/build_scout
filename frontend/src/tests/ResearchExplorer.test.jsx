@@ -118,7 +118,7 @@ describe('ResearchExplorer Page Phase 4', () => {
       expect(screen.getByText('PassportJS')).toBeInTheDocument();
     });
 
-    const searchInput = screen.getByPlaceholderText(/Search candidates/i);
+    const searchInput = screen.getByPlaceholderText(/Search solutions/i);
     fireEvent.change(searchInput, { target: { value: 'Passport' } });
 
     await waitFor(() => {

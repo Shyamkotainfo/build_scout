@@ -203,11 +203,16 @@ const AnalysisResult = () => {
 
   return (
     <div className="max-w-5xl mx-auto w-full pb-12">
+      <div className="mb-6">
+        <Link to="/" className="text-sm font-bold text-[var(--bs-text-tertiary)] hover:text-[var(--bs-orange-500)] flex items-center gap-1 w-fit transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+        </Link>
+      </div>
       <AnalysisHeader analysis={analysis} />
       <DecisionSummary decisions={analysis.decisions} />
       <CandidatesSection candidates={analysis.candidates} evaluations={analysis.evaluations} />
       <DecisionsSection decisions={analysis.decisions} />
-      <ValidationSection validation={analysis.validation_result} />
+      <ValidationSection analysis={analysis} />
       <RequirementsSection requirements={analysis.requirements} />
       <BlueprintSection blueprint={analysis.blueprint} />
       <AgentTraceSection agentHistory={analysis.agent_history} traces={analysis.traces} analysisId={analysis.analysis_id || analysis.id} />

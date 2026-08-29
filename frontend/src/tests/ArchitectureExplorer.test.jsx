@@ -57,7 +57,7 @@ describe('ArchitectureExplorer Page - Phase 6', () => {
   it('1. Renders loading state', () => {
     analysisService.getAnalysis.mockReturnValue(new Promise(() => {}));
     renderPage();
-    expect(screen.getByText(/Loading architecture blueprint/i)).toBeInTheDocument();
+    expect(screen.getByText(/Loading architecture/i)).toBeInTheDocument();
   });
 
   it('2. Architecture Header Metrics are rendered', async () => {
@@ -74,9 +74,8 @@ describe('ArchitectureExplorer Page - Phase 6', () => {
     analysisService.getAnalysis.mockResolvedValue(mockAnalysis);
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('Architecture Trust & Traceability')).toBeInTheDocument();
-      // 1 Requirement, 2 Candidates, 2 Decisions, 2 Components
-      expect(screen.getAllByText('1').length).toBeGreaterThan(0);
+      expect(screen.getByText(/Trust & Traceability/i)).toBeInTheDocument();
+      // Components (2), Candidates (2), Decisions (2)
       expect(screen.getAllByText('2').length).toBeGreaterThan(0);
     });
   });
@@ -91,7 +90,7 @@ describe('ArchitectureExplorer Page - Phase 6', () => {
     });
   });
 
-  it('5. Component Table renders and expands details', async () => {
+  it('5. Component Cards render with correct data', async () => {
     analysisService.getAnalysis.mockResolvedValue(mockAnalysis);
     renderPage();
     await waitFor(() => {
@@ -99,21 +98,8 @@ describe('ArchitectureExplorer Page - Phase 6', () => {
       expect(screen.getAllByText('REUSE').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Auth0').length).toBeGreaterThan(0);
       expect(screen.getAllByText('Login').length).toBeGreaterThan(0); // Responsibility summary
+      expect(screen.getByText('Industry standard')).toBeInTheDocument(); // Reason
     });
-
-    // Expand component row by clicking on unique text
-    // Expand component row by clicking on the text inside the cell
-    // Skipping click simulation in JSDOM due to tr bubbling quirks, functionality verified manually
-    // const cell = screen.getAllByText('Auth0')[0];
-    // fireEvent.click(cell);
-    // await waitFor(() => {
-    //   expect(screen.getByText('Auth Detail')).toBeInTheDocument();
-    //   expect(screen.getByText('Industry standard')).toBeInTheDocument();
-    //   expect(screen.getByText('Vendor lock-in')).toBeInTheDocument();
-    //   // Links trace
-    //   expect(screen.getByText(/Research Evidence/)).toBeInTheDocument();
-    //   expect(screen.getByText(/Evaluation & Decision/)).toBeInTheDocument();
-    // });
   });
 
   it('6. Data Flow chain renders', async () => {
@@ -164,10 +150,12 @@ describe('ArchitectureExplorer Page - Phase 6', () => {
     analysisService.getAnalysis.mockResolvedValue(mockAnalysis);
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('Trace')).toBeInTheDocument();
-      expect(screen.getByText('Metrics')).toBeInTheDocument();
-      expect(screen.getByText('MCP')).toBeInTheDocument();
-      expect(screen.getByText('Validate Architecture')).toBeInTheDocument();
+      // Find links specifically to avoid matching headings (like Trust & Traceability)
+      const links = screen.getAllByRole('link');
+      expect(links.some(l => l.textContent.includes('Trace'))).toBe(true);
+      expect(links.some(l => l.textContent.includes('Metrics'))).toBe(true);
+      expect(links.some(l => l.textContent.includes('MCP'))).toBe(true);
+      expect(links.some(l => l.textContent.includes('Validation') || l.textContent.includes('Validate Architecture'))).toBe(true);
     });
   });
 

@@ -3,13 +3,17 @@ import { Search, Filter, ExternalLink, ShieldCheck } from 'lucide-react';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
 
-const CandidateList = ({ componentId, candidates, onSelectCandidate, selectedCandidate }) => {
+const CandidateList = ({ componentId, candidates, decisions, onSelectCandidate, selectedCandidate }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSource, setFilterSource] = useState('ALL');
 
   const componentCandidates = useMemo(() => {
     return candidates?.filter(c => c.component_id === componentId) || [];
   }, [candidates, componentId]);
+
+  const componentDecision = useMemo(() => {
+    return decisions?.find(d => d.component_id === componentId);
+  }, [decisions, componentId]);
 
   const sources = useMemo(() => {
     const s = new Set(componentCandidates.map(c => c.metadata?.source?.toLowerCase() || 'unknown'));
@@ -56,7 +60,7 @@ const CandidateList = ({ componentId, candidates, onSelectCandidate, selectedCan
           <input
             type="text"
             className="block w-full rounded-md border border-[var(--bs-border-medium)] bg-[var(--bs-bg-primary)] py-2 pl-10 pr-3 text-sm text-[var(--bs-text-primary)] placeholder-[var(--bs-text-tertiary)] focus:border-[var(--bs-orange-500)] focus:ring-[var(--bs-orange-500)] outline-none"
-            placeholder="Search candidates..."
+            placeholder="Search solutions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -68,15 +72,21 @@ const CandidateList = ({ componentId, candidates, onSelectCandidate, selectedCan
             value={filterSource}
             onChange={(e) => setFilterSource(e.target.value)}
           >
-            {sources.map(s => <option key={s} value={s}>{s === 'ALL' ? 'All Sources' : s}</option>)}
+            {sources.map(s => <option key={s} value={s}>{s === 'ALL' ? 'Source' : s}</option>)}
           </select>
         </div>
       </Card>
 
       <div className="flex-1 overflow-y-auto pr-2 space-y-4">
         {filteredCandidates.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-[var(--bs-text-secondary)]">No candidates discovered for this component.</p>
+          <div className="text-center py-16 bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] rounded-lg">
+            <h3 className="text-lg font-bold text-[var(--bs-text-primary)] mb-2">No solutions found</h3>
+            <p className="text-sm text-[var(--bs-text-secondary)] mb-6 max-w-sm mx-auto">BuildScout did not identify a suitable reusable solution for this component.</p>
+            {componentDecision?.decision === 'BUILD' && (
+              <span className="inline-block px-3 py-1 bg-[var(--bs-status-critical-light)] text-[var(--bs-status-critical)] border border-[var(--bs-status-critical-border)] rounded text-xs font-bold uppercase tracking-widest">
+                Recommendation: BUILD
+              </span>
+            )}
           </div>
         ) : (
           filteredCandidates.map(candidate => {
@@ -107,7 +117,17 @@ const CandidateList = ({ componentId, candidates, onSelectCandidate, selectedCan
                   )}
                 </div>
                 
-                <p className="text-sm text-[var(--bs-text-secondary)] line-clamp-2 mb-4">{candidate.description}</p>
+                <div className="mb-4">
+                  <h4 className="text-[10px] uppercase font-bold text-[var(--bs-text-tertiary)] mb-1">Description</h4>
+                  <p className="text-sm text-[var(--bs-text-secondary)] line-clamp-2">{candidate.description}</p>
+                </div>
+
+                <div className="mb-4 bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] p-3 rounded-md">
+                  <h4 className="text-[10px] uppercase font-bold text-[var(--bs-text-tertiary)] mb-1 text-[var(--bs-orange-500)]">Why Relevant</h4>
+                  <p className="text-sm text-[var(--bs-text-primary)]">
+                    {candidate.metadata?.relevance || candidate.description || 'Relevance explanation not available.'}
+                  </p>
+                </div>
                 
                 <div className="flex items-center gap-4 mt-auto pt-2 border-t border-[var(--bs-border-light)]">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--bs-text-secondary)]">

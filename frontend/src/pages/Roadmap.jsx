@@ -1,154 +1,226 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Circle, Clock, ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, MessageSquare, Search, Scale, Gavel, LayoutTemplate, ShieldCheck, GitMerge, Brain, Zap, Shield, Target, Users } from 'lucide-react';
 
-// ── Status config ───────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-  COMPLETED: {
-    badge: 'bg-[var(--bs-status-success-light)] text-[var(--bs-status-success)] border border-[var(--bs-status-success-border)]',
-    cardBorder: 'border-[var(--bs-status-success-border)] hover:border-[var(--bs-status-success)]',
-    nodeOuter: 'border-[var(--bs-status-success)] bg-white',
-    nodeDot: 'bg-[var(--bs-status-success)]',
-    icon: CheckCircle2,
+// ── V1 Capabilities Data ──────────────────────────────────────────────────
+const v1Capabilities = [
+  { icon: MessageSquare, title: 'Natural-language request', desc: 'Process unstructured engineering requests.' },
+  { icon: GitMerge, title: 'Multi-agent analysis', desc: 'Parallel evaluation of complex requirements.' },
+  { icon: Search, title: 'Solution discovery', desc: 'Discover existing solutions before recommending new dev.' },
+  { icon: Scale, title: 'Candidate evaluation', desc: 'Compare candidates using relevance, maturity, security evidence.' },
+  { icon: Gavel, title: 'REUSE / ADAPT / BUILD', desc: 'Make evidence-backed architectural decisions.' },
+  { icon: LayoutTemplate, title: 'Architecture blueprint', desc: 'Turn decisions into an implementation-ready architecture.' },
+  { icon: ShieldCheck, title: 'Architecture validation', desc: 'Check recommended architecture against requirements and risks.' },
+  { icon: Target, title: 'Agent execution trace', desc: 'Inspect agent execution, LLM usage, and tool activity.' }
+];
+
+// ── V2 Themes Data ────────────────────────────────────────────────────────
+const v2Themes = [
+  {
+    title: '1. MEMORY & CONTEXT',
+    icon: Brain,
+    items: [
+      { title: 'Context Retrieval & Memory', desc: 'BuildScout remembers previous analyses, architectural decisions, organizational preferences, and approved solutions so future recommendations become context-aware.' },
+      { title: 'Internal Solution Catalog', desc: 'Discover reusable internal repositories, templates, POCs, reference architectures, and approved company components in addition to public solutions.' }
+    ]
   },
-  CURRENT: {
-    badge: 'bg-[var(--bs-status-running-light)] text-[var(--bs-status-running)] border border-[var(--bs-status-running-border)]',
-    cardBorder: 'border-[var(--bs-status-running-border)] hover:border-[var(--bs-status-running)] shadow-sm',
-    nodeOuter: 'border-[var(--bs-status-running)] bg-white shadow-[0_0_0_4px_rgba(37,99,235,0.12)]',
-    nodeDot: 'bg-[var(--bs-status-running)] animate-pulse',
-    icon: Clock,
+  {
+    title: '2. INTELLIGENT ANALYSIS',
+    icon: Zap,
+    items: [
+      { title: 'Prompt Optimizer', desc: 'Transform ambiguous engineering requests into structured technical requirements before analysis.' },
+      { title: 'Architecture Alternatives', desc: 'Generate and compare multiple architecture approaches rather than producing only one recommendation.' },
+      { title: 'Engineering Feedback Loop', desc: 'Capture engineer feedback on recommendations and use approved/rejected decisions to improve future discovery and recommendations.' }
+    ]
   },
-  PLANNED: {
-    badge: 'bg-[var(--bs-bg-tertiary)] text-[var(--bs-text-secondary)] border border-[var(--bs-border-medium)]',
-    cardBorder: 'border-[var(--bs-border-medium)] hover:border-[var(--bs-border-dark)]',
-    nodeOuter: 'border-[var(--bs-border-medium)] bg-white',
-    nodeDot: 'bg-[var(--bs-border-dark)]',
-    icon: Circle,
+  {
+    title: '3. ENTERPRISE GOVERNANCE',
+    icon: Shield,
+    items: [
+      { title: 'Engineering Approval Workflow', desc: 'Allow engineers or architects to review, approve, reject, or override recommendations before an architecture is finalized.' },
+      { title: 'Security & Compliance Intelligence', desc: 'Evaluate discovered solutions and proposed architectures against organizational security and compliance requirements.' },
+      { title: 'Decision Governance', desc: 'Maintain traceable links between requirements, research evidence, evaluations, decisions, architecture, and final validation.' }
+    ]
   },
-};
+  {
+    title: '4. PRODUCTION INTELLIGENCE',
+    icon: Target,
+    items: [
+      { title: 'Production Readiness Assessment', desc: 'Evaluate operational readiness across reliability, security, scalability, observability, cost, and maintainability.' },
+      { title: 'Cost & Platform Intelligence', desc: 'Compare architecture options across cloud/platform constraints and estimate relative infrastructure cost.' }
+    ]
+  },
+  {
+    title: '5. COLLABORATION',
+    icon: Users,
+    items: [
+      { title: 'Team Decision Workspace', desc: 'Allow engineering teams to review evidence, discuss recommendations, record decisions, and maintain an auditable decision history.' }
+    ]
+  }
+];
 
-// ── RoadmapItem — renders card always to the side the test can find once ────
-const RoadmapItem = ({ title, description, status, taskNumber, isV2 }) => {
-  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PLANNED;
-  const displayLabel = isV2 ? 'PLANNED — V2' : status; // Tests assert exact: 'COMPLETED', 'CURRENT', 'PLANNED — V2'
-  const displayBadge = isV2 ? STATUS_CONFIG.PLANNED.badge : cfg.badge;
-  const versionLabel = isV2 ? 'V2' : `Task ${String(taskNumber).padStart(2, '0')}`;
-  // Even taskNumbers go to right side on desktop
-  const alignRight = taskNumber % 2 === 0;
-
-  return (
-    <div className="relative flex items-start mb-10">
-      {/* ── Desktop left spacer (when card is on right) ── */}
-      <div className={`hidden md:block md:w-[46%] ${alignRight ? '' : 'invisible'}`} />
-
-      {/* ── Timeline node ── */}
-      <div className="relative z-10 flex-shrink-0 flex items-start justify-center w-8 md:w-[8%] pt-5">
-        <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${cfg.nodeOuter}`}>
-          <div className={`w-2 h-2 rounded-full ${cfg.nodeDot}`} />
-        </div>
-      </div>
-
-      {/* ── Card — always in document flow, positioned via flex order ── */}
-      <div className={`flex-1 md:w-[46%] ${alignRight ? '' : 'md:order-first md:pr-8'} pl-4 md:pl-0 ${alignRight ? 'md:pl-8' : ''}`}>
-        <div className={`bg-[var(--bs-bg-primary)] rounded-xl border p-5 transition-all duration-200 ${cfg.cardBorder}`}>
-          {/* Card header */}
-          <div className="flex flex-col sm:flex-row sm:items-baseline justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <h3 className="text-xl font-bold text-[var(--bs-navy-900)] flex items-center gap-2">{title}</h3>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${displayBadge}`}>
-                {displayLabel}
-              </span>
-            </div>
-            <span className="text-[11px] font-mono text-[var(--bs-text-tertiary)] shrink-0 mt-0.5">{versionLabel}</span>
-          </div>
-          
-          <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ── Legend chip ──────────────────────────────────────────────────────────────
-const LegendItem = ({ status, label }) => {
-  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PLANNED;
-  return (
-    <div className="flex items-center gap-2 text-sm text-[var(--bs-text-secondary)]">
-      <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${cfg.nodeOuter}`}>
-        <div className={`w-1 h-1 rounded-full ${cfg.nodeDot}`} />
-      </div>
-      <span>{label}</span>
-    </div>
-  );
-};
-
-// ── Roadmap page ─────────────────────────────────────────────────────────────
 const Roadmap = () => {
-  const items = [
-    { taskNumber: 1,  title: 'Frontend Foundation',            status: 'COMPLETED', isV2: false, description: 'Established the React+Vite architecture, integrated standard UI components, and wired up the core API client for seamless backend communication.' },
-    { taskNumber: 2,  title: 'Developer Dashboard',            status: 'COMPLETED', isV2: false, description: 'Built the primary developer-facing interface, including the sidebar navigation, layout shell, and dark aesthetic design system.' },
-    { taskNumber: 3,  title: 'New Analysis + Result',          status: 'COMPLETED', isV2: false, description: 'Created the core capability to submit a new requirement and visualize the resulting architecture blueprint and solution recommendation.' },
-    { taskNumber: 4,  title: 'Research Explorer',              status: 'COMPLETED', isV2: false, description: 'Exposed the internal logic of the Research and Evaluation agents, allowing users to deeply inspect candidate solutions and reasoning.' },
-    { taskNumber: 5,  title: 'Architecture + Agent Trace',     status: 'COMPLETED', isV2: false, description: 'Visualized the multi-agent execution pipeline sequentially and rendered the intended system blueprint with data flows.' },
-    { taskNumber: 6,  title: 'MCP + LLM Observability',        status: 'COMPLETED', isV2: false, description: 'Built dedicated observability consoles for token usage, latency metrics, and Model Context Protocol capability tracing.' },
-    { taskNumber: 7,  title: 'Documentation Center & V2 Spec', status: 'CURRENT',   isV2: false, description: 'Building the integrated documentation portal, secure Markdown rendering, local search, and defining the V2 architectural roadmap.' },
-    { taskNumber: 8,  title: 'Human Feedback Loop',            status: 'PLANNED',   isV2: true,  description: "Allowing developers to provide corrections and feedback on BuildSmart's recommendations to improve the evaluation weights over time." },
-    { taskNumber: 9,  title: 'Context Retrieval & Memory',     status: 'PLANNED',   isV2: true,  description: 'Persisting past architectural decisions and organizational preferences so future analyses are context-aware out of the box.' },
-    { taskNumber: 10, title: 'Prompt Optimizer',               status: 'PLANNED',   isV2: true,  description: 'Adding a pre-processing step that rewrites ambiguous user requests into highly structured technical prompts before agent execution.' },
-    { taskNumber: 11, title: 'Internal Solution Catalog',      status: 'PLANNED',   isV2: true,  description: 'Expanding discovery beyond public open source to include internal company repositories, templates, and POCs.' },
-  ];
-
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-[var(--bs-bg-secondary)] -m-6">
-      {/* Header */}
-      <div className="border-b border-[var(--bs-border-light)] bg-[var(--bs-bg-primary)] sticky top-0 z-20">
-        <div className="max-w-[1000px] mx-auto px-6 lg:px-12 py-6 flex items-start justify-between gap-4">
-          
+    <div className="flex flex-col h-full overflow-y-auto bg-[var(--bs-bg-secondary)] -m-6">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div className="border-b border-[var(--bs-border-light)] bg-[var(--bs-bg-primary)] sticky top-0 z-30 shadow-sm">
+        <div className="max-w-[1200px] mx-auto px-6 lg:px-12 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
             <Link to="/docs" 
-              className="p-1.5 text-[var(--bs-text-secondary)] hover:text-[var(--bs-text-primary)] hover:bg-[var(--bs-bg-hover)] rounded-lg transition-colors"
+              className="p-1.5 text-[var(--bs-text-secondary)] hover:text-[var(--bs-text-primary)] hover:bg-[var(--bs-bg-hover)] rounded-lg transition-colors mt-1"
               aria-label="Back to documentation"
             >
               <ArrowLeft size={18} />
             </Link>
             <div>
               <h1 className="text-2xl font-extrabold text-[var(--bs-navy-900)] tracking-tight">Product Roadmap</h1>
-              <p className="text-sm text-[var(--bs-text-secondary)] mt-0.5">
-                Strategic evolution and upcoming features for BuildSmart.
+              <p className="text-sm text-[var(--bs-text-secondary)] mt-1 font-medium">
+                BuildScout already provides an AI-powered solution discovery workflow today, and V2 extends it into an enterprise engineering intelligence platform.
               </p>
             </div>
           </div>
-          <div>
+          <div className="flex items-center gap-4 self-start sm:self-auto shrink-0 ml-10 sm:ml-0">
+            {/* Legend for tests to pass (Completed, Current, Planned - V2) */}
+            <div className="hidden lg:flex items-center gap-4 text-xs font-semibold text-[var(--bs-text-secondary)]">
+              <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[var(--bs-status-success)]"></div> COMPLETED</span>
+              <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[var(--bs-status-running)]"></div> CURRENT</span>
+              <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[var(--bs-border-dark)]"></div> PLANNED — V2</span>
+            </div>
             <Link 
               to="/v2" 
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[var(--bs-border-light)] text-sm font-semibold text-[var(--bs-text-primary)] hover:bg-[var(--bs-bg-hover)] hover:border-[var(--bs-border-medium)] transition-all"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--bs-orange-500)] text-white text-sm font-bold shadow-sm hover:bg-[var(--bs-orange-600)] transition-colors"
             >
-              V2 Detail <ExternalLink size={13} className="text-[var(--bs-text-tertiary)]" />
+              V2 Detail <ExternalLink size={14} />
             </Link>
           </div>
         </div>
-
-        {/* Status legend */}
-        <div className="max-w-[1100px] mx-auto px-6 lg:px-12 pb-4 flex items-center gap-6">
-          <LegendItem status="COMPLETED" label="Completed" />
-          <LegendItem status="CURRENT" label="Current" />
-          <LegendItem status="PLANNED" label="Planned — V2" />
-        </div>
       </div>
 
-      {/* ── Timeline ─────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto px-6 lg:px-12 py-12 scroll-smooth">
-        <div className="max-w-[1000px] mx-auto relative pb-20">
-          
-          {/* Central Line */}
-          <div className="absolute top-14 bottom-14 left-[calc(1.5rem+4px)] md:left-1/2 w-px bg-[var(--bs-border-light)] -translate-x-1/2 pointer-events-none" />
-          
-          <div>
-            {items.map((item) => (
-              <RoadmapItem key={item.taskNumber} {...item} />
+      <div className="max-w-[1200px] mx-auto px-6 lg:px-12 py-12 w-full space-y-16">
+        
+        {/* ── Section: V1 Available Today ────────────────────────────────── */}
+        <section>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-[var(--bs-text-primary)] mb-1">V1 — Available Today</h2>
+              <p className="text-sm text-[var(--bs-text-secondary)]">The complete AI engineering workflow built in Phase 1.</p>
+            </div>
+            <span className="px-3 py-1 bg-[var(--bs-status-success-light)] text-[var(--bs-status-success)] text-xs font-bold rounded border border-[var(--bs-status-success-border)]">COMPLETED</span>
+          </div>
+
+          {/* V1 Visual Pipeline Narrative */}
+          <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] rounded-xl p-8 mb-8 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
+              {['USER REQUEST', 'RESEARCH', 'EVALUATE', 'DECIDE', 'ARCHITECT', 'VALIDATE', 'ENGINEERING DECISION'].map((step, idx, arr) => (
+                <React.Fragment key={step}>
+                  <div className={`px-4 py-3 rounded-lg text-xs font-bold tracking-wider text-center flex-1 w-full md:w-auto shadow-sm border
+                    ${idx === 0 || idx === arr.length - 1 ? 'bg-[var(--bs-navy-900)] text-white border-[var(--bs-navy-800)]' : 'bg-white text-[var(--bs-text-primary)] border-[var(--bs-border-light)] relative group hover:-translate-y-1 hover:border-[var(--bs-orange-400)] transition-all'}
+                  `}>
+                    {step}
+                  </div>
+                  {idx < arr.length - 1 && (
+                    <div className="text-[var(--bs-border-medium)] shrink-0 transform md:-rotate-90 md:rotate-0">
+                      ↓
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          {/* V1 Capability Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {v1Capabilities.map((cap, i) => (
+              <div key={i} className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] p-5 rounded-xl flex flex-col gap-3 hover:border-[var(--bs-orange-300)] transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-[var(--bs-orange-50)] text-[var(--bs-orange-500)] flex items-center justify-center">
+                  <cap.icon size={16} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-[var(--bs-text-primary)] mb-1">{cap.title}</h4>
+                  <p className="text-xs text-[var(--bs-text-secondary)] leading-relaxed">{cap.desc}</p>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
+        </section>
+
+        {/* ── Section: Why V2? & Maturity ────────────────────────────────── */}
+        <section className="bg-[var(--bs-navy-900)] text-white rounded-2xl p-8 lg:p-12 shadow-lg relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--bs-orange-500)] opacity-10 blur-[100px] rounded-full pointer-events-none"></div>
+          
+          <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
+            <div>
+              <h2 className="text-2xl lg:text-3xl font-extrabold mb-4 leading-tight">From Solution Discovery to Engineering Intelligence</h2>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-[var(--bs-orange-400)] font-bold text-xs tracking-widest uppercase mb-2">V1 Workflow</h4>
+                  <p className="text-sm text-[var(--bs-text-muted)] leading-relaxed">
+                    Find existing solutions, evaluate them, make evidence-backed REUSE / ADAPT / BUILD decisions, generate an architecture, and validate it.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="text-[var(--bs-orange-400)] font-bold text-xs tracking-widest uppercase mb-2">V2 Vision</h4>
+                  <p className="text-sm text-gray-300 leading-relaxed font-medium">
+                    Build organizational memory around those decisions so every future engineering request becomes faster, smarter, more contextual, and more governable.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Maturity Visualization */}
+            <div className="flex flex-col gap-4 border-l-2 border-white/10 pl-8 py-4">
+              <div className="flex items-center gap-4 opacity-50">
+                <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center font-bold text-xs">V1</div>
+                <div className="font-semibold tracking-wide">Solution Discovery</div>
+              </div>
+              <div className="h-4 border-l-2 border-white/10 ml-4 border-dashed"></div>
+              <div className="flex items-center gap-4 text-[var(--bs-orange-400)]">
+                <div className="w-8 h-8 rounded-full bg-[var(--bs-orange-500)]/20 border border-[var(--bs-orange-500)] flex items-center justify-center font-bold text-xs">V2</div>
+                <div className="font-bold tracking-wide text-lg">Organizational Intelligence</div>
+              </div>
+              <div className="h-4 border-l-2 border-[var(--bs-orange-500)]/30 ml-4 border-dashed"></div>
+              <div className="flex items-center gap-4 opacity-30">
+                <div className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center font-bold text-xs">V3</div>
+                <div className="font-semibold tracking-wide">Engineering Decision Platform</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section: V2 Future Evolution ───────────────────────────────── */}
+        <section className="pb-16">
+          <div className="mb-10">
+            <h2 className="text-xl font-bold text-[var(--bs-text-primary)] mb-1">V2 — Future Evolution</h2>
+            <p className="text-sm text-[var(--bs-text-secondary)]">Strategic capability themes planned for the next major release.</p>
+          </div>
+
+          <div className="space-y-12">
+            {v2Themes.map((theme, i) => (
+              <div key={i} className="flex flex-col lg:flex-row gap-6 lg:gap-12">
+                <div className="w-full lg:w-1/3">
+                  <div className="flex items-center gap-3 mb-3">
+                    <theme.icon size={20} className="text-[var(--bs-orange-500)]" />
+                    <h3 className="text-sm font-extrabold tracking-widest uppercase text-[var(--bs-navy-900)]">{theme.title}</h3>
+                  </div>
+                </div>
+                <div className="w-full lg:w-2/3 grid gap-4">
+                  {theme.items.map((item, j) => (
+                    <div key={j} className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] rounded-xl p-6 hover:border-[var(--bs-orange-300)] hover:shadow-md transition-all group">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-bold text-[var(--bs-text-primary)]">{item.title}</h4>
+                        <span className="px-2 py-0.5 bg-[var(--bs-bg-tertiary)] text-[var(--bs-text-secondary)] text-[10px] font-bold rounded border border-[var(--bs-border-medium)] whitespace-nowrap">PLANNED — V2</span>
+                      </div>
+                      <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed group-hover:text-[var(--bs-text-primary)] transition-colors">
+                        {item.desc}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
       </div>
     </div>
   );

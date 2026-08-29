@@ -12,6 +12,7 @@ import LlmMetricsConsole from './pages/LlmMetricsConsole';
 import DocumentationExplorer from './pages/DocumentationExplorer';
 import V2Specification from './pages/V2Specification';
 import Roadmap from './pages/Roadmap';
+import DataModel from './pages/DataModel';
 import Settings from './pages/Settings';
 import PlaceholderPage from './pages/PlaceholderPage';
 import DesignSystem from './pages/DesignSystem';
@@ -38,6 +39,7 @@ function App() {
           <Route path="docs/:documentId" element={<DocumentationExplorer />} />
           <Route path="v2" element={<V2Specification />} />
           <Route path="roadmap" element={<Roadmap />} />
+          <Route path="data-model" element={<DataModel />} />
           <Route path="settings" element={<Settings />} />
           <Route path="design-system" element={<DesignSystem />} />
           

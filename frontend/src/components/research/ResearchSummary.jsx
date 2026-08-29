@@ -7,44 +7,48 @@ const ResearchSummary = ({ analysis }) => {
   const numComponents = analysis.components?.length || 0;
   const numCandidates = analysis.candidates?.length || 0;
   
-  const sources = useMemo(() => {
+  const sourcesText = useMemo(() => {
+    if (!analysis.candidates || analysis.candidates.length === 0) return 'Unavailable';
     const s = new Set();
-    (analysis.candidates || []).forEach(c => {
+    analysis.candidates.forEach(c => {
       if (c.metadata?.source) {
         s.add(c.metadata.source.toLowerCase());
       }
     });
-    const arr = Array.from(s);
-    if (arr.length === 0) return 'None';
-    return arr.map(source => source === 'tavily' ? 'web' : source).join(' · ');
+    const numSources = s.size;
+    if (numSources === 0) return 'Unavailable';
+    return `${numSources} ${numSources === 1 ? 'source' : 'sources'}`;
   }, [analysis.candidates]);
 
-  const numSearchOperations = useMemo(() => {
-    if (!analysis.traces) return 0;
-    return analysis.traces.reduce((total, trace) => {
-      const calls = trace.tool_calls?.filter(t => t.name?.includes('search') || t.name?.includes('lookup') || t.provider === 'MCP') || [];
-      return total + calls.length;
-    }, 0);
-  }, [analysis.traces]);
+  const strongMatches = useMemo(() => {
+    if (!analysis.evaluations || analysis.evaluations.length === 0) return 'N/A';
+    const strongCount = analysis.evaluations.filter(e => {
+      const score = e.score ?? e.overall_score ?? 0;
+      return score >= 80;
+    }).length;
+    return strongCount;
+  }, [analysis.evaluations]);
 
   return (
     <Card className="mb-6 bg-[var(--bs-bg-secondary)] border-[var(--bs-border-light)] p-5">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 divide-x divide-[var(--bs-border-light)]">
         <div className="px-4 first:pl-0 flex flex-col items-start">
-          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Components Investigated</span>
+          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Components Analyzed</span>
           <span className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight">{numComponents}</span>
         </div>
         <div className="px-4 flex flex-col items-start">
-          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Candidates Discovered</span>
+          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Candidates Found</span>
           <span className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight">{numCandidates}</span>
         </div>
         <div className="px-4 flex flex-col items-start">
-          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Sources</span>
-          <span className="text-lg font-bold text-[var(--bs-text-secondary)] uppercase tracking-widest mt-2">{sources}</span>
+          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Sources Reviewed</span>
+          <span className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight">{sourcesText !== 'Unavailable' ? sourcesText.split(' ')[0] : 'N/A'}</span>
+          {sourcesText !== 'Unavailable' && <span className="text-[10px] text-[var(--bs-text-tertiary)] font-bold uppercase tracking-widest mt-1">Unique Sources</span>}
         </div>
         <div className="px-4 flex flex-col items-start">
-          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Search Operations</span>
-          <span className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight">{numSearchOperations}</span>
+          <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-1">Strong Matches</span>
+          <span className="text-3xl font-bold text-[var(--bs-text-primary)] tracking-tight">{strongMatches}</span>
+          {strongMatches !== 'N/A' && <span className="text-[10px] text-[var(--bs-text-tertiary)] font-bold uppercase tracking-widest mt-1">Score ≥ 80</span>}
         </div>
       </div>
     </Card>

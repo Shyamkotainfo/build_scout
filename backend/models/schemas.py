@@ -147,6 +147,15 @@ class AgentTraceResponse(BaseModel):
     agent_name: str
     status: str
     execution_order: int
+    started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    duration_ms: Optional[int] = None
+    llm_calls_count: int = 0
+    total_tokens: int = 0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    retry_count: int = 0
+    error_message: Optional[str] = None
     tool_calls: List[Dict[str, Any]] = Field(default_factory=list)
 
 class LLMMetricsResponse(BaseModel):
