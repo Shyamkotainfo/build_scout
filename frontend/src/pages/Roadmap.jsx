@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, MessageSquare, Search, Scale, Gavel, LayoutTemplate, ShieldCheck, GitMerge, Brain, Zap, Shield, Target, Users } from 'lucide-react';
+import { ArrowLeft, ExternalLink, MessageSquare, Search, Scale, Gavel, LayoutTemplate, ShieldCheck, GitMerge, Brain, Zap, Shield, Target, Users, Network } from 'lucide-react';
 
 // ── V1 Capabilities Data ──────────────────────────────────────────────────
 const v1Capabilities = [
@@ -55,6 +55,13 @@ const v2Themes = [
     icon: Users,
     items: [
       { title: 'Team Decision Workspace', desc: 'Allow engineering teams to review evidence, discuss recommendations, record decisions, and maintain an auditable decision history.' }
+    ]
+  },
+  {
+    title: '6. AGENT INTEGRATION (MCP)',
+    icon: Network,
+    items: [
+      { title: 'BuildScout MCP Server', desc: 'Expose BuildScout as a Model Context Protocol (MCP) server so external AI coding agents and enterprise workflows can invoke solution discovery and architecture generation programmatically.' }
     ]
   }
 ];

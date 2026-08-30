@@ -9,15 +9,16 @@ BuildSmart is an agentic AI backend that analyses a user's software project requ
 ## 2. High-Level Architecture
 
 ```
-Client (Frontend / curl)
-         │
-         ▼
-    ┌─────────────┐
-    │   FastAPI   │   GET /health
-    │   API Layer │   POST /api/v1/analyses
-    │             │   GET  /api/v1/analyses/{id}
-    └──────┬──────┘
-           │
+    ┌──────────────────────────┐    ┌───────────────────────────────┐
+    │ Client (Frontend / curl) │    │ External AI Agents [PLANNED]  │
+    └─────────────┬────────────┘    └──────────────┬────────────────┘
+                  │                                │
+                  ▼                                ▼
+    ┌─────────────┴────────────┐    ┌──────────────┴────────────────┐
+    │         FastAPI          │    │     BuildScout MCP Server     │
+    │        API Layer         │    │      (Intelligence API)       │
+    └─────────────┬────────────┘    └──────────────┬────────────────┘
+                  │                                │
     ┌──────▼──────────────┐
     │   AnalysisService   │  (WRITE path: create new analysis)
     │   RetrievalService  │  (READ path: fetch persisted analysis)
@@ -88,13 +89,21 @@ Seven agents implement the analysis pipeline. Each agent reads from and writes t
 - **Access**: `llm/client.py` → `get_llm()` returns a `ChatGroq` instance
 - **Usage**: Called by individual agents to invoke the LLM for decomposition, evaluation, decision-making, and blueprint generation
 
-### 3.6 MCP Layer — FUTURE / PLANNED
+### 3.6 MCP Layer (Client) — FUTURE / PLANNED
 
-> ⚠️ **MCP is NOT currently implemented.**
+> ⚠️ **MCP Client is NOT currently implemented.**
 
 MCP (Model Context Protocol) tools are planned to give the `ResearchAgent` access to GitHub search, web search, and package registry APIs. Currently, `ResearchAgent` runs without external tool calls, producing empty `candidates` lists.
 
-### 3.7 Persistence Layer (`backend/database/`)
+### 3.7 BuildScout MCP Server — FUTURE / PLANNED
+
+> ⚠️ **BuildScout MCP Server is NOT currently implemented.**
+
+In V2, BuildScout will expose its own capabilities as an MCP Server. This acts as the integration boundary for external agents to trigger Discovery, Evaluation, Decisions, Architecture, and Validation.
+
+Future tools will include `analyze_solution`, `discover_solutions`, `evaluate_candidates`, `make_build_decision`, `generate_architecture`, and `validate_architecture`.
+
+### 3.8 Persistence Layer (`backend/database/`)
 
 - **ORM**: SQLAlchemy (synchronous)
 - **Database**: Databricks Lakebase (PostgreSQL-compatible)

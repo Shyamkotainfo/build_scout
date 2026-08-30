@@ -160,7 +160,38 @@ We aggressively optimized the V1 backend to reduce a >10 minute pipeline to unde
 
 ## 11. V2 — FUTURE DIRECTION
 
-Using our V2 specification, the future direction focuses on deeper integration and stronger governance:
+Using our V2 specification, the future direction focuses on deeper integration and stronger governance. A major evolution path is positioning **BuildScout as an MCP Server**.
+
+**BuildScout MCP Server (PLANNED - V2):**
+BuildScout evolves from a standalone solution intelligence application into a reusable intelligence service that can participate in larger AI-agent ecosystems. The planned MCP Server will allow external AI Agents and enterprise workflows to programmatically invoke BuildScout's capabilities.
+
+**Future Architecture:**
+```
+External AI Agents
+        ↓
+MCP Client
+        ↓
+BuildScout MCP Server
+        ↓
+BuildScout Intelligence Layer
+        ↓
+Discovery → Evaluation → Decision → Architecture → Validation
+        ↓
+Structured Response
+```
+
+**Future MCP Tools:**
+The following are *PLANNED* MCP tools (they do not currently exist in V1):
+- `analyze_solution`: Run the complete BuildScout analysis
+- `discover_solutions`: Discover reusable solutions
+- `evaluate_candidates`: Evaluate discovered candidates
+- `make_build_decision`: Determine REUSE / ADAPT / BUILD
+- `generate_architecture`: Generate the architecture blueprint
+- `validate_architecture`: Validate the proposed architecture
+- `get_analysis`: Retrieve a previous analysis
+- `get_analysis_history`: Retrieve historical analyses
+
+**Other Future Capabilities:**
 - **Expanded solution intelligence**: Integrating Model Context Protocol (MCP) servers to actively search live GitHub repositories and NPM registries rather than relying on LLM parametric memory.
 - **Deeper enterprise integrations**: Native integrations into Jira and Confluence to automatically generate epics and tickets directly from the Architecture Blueprint.
 - **Advanced decision intelligence**: Allowing human-in-the-loop overrides on Decisions before the Architecture is generated.
@@ -177,6 +208,9 @@ Using our V2 specification, the future direction focuses on deeper integration a
 | Validation | Logical AI validation | Enterprise policy & compliance gating |
 | Enterprise Capabilities | Persistent history | Jira/Confluence automatic ticket generation |
 | Observability | Agent trace & basic token metrics | Deep LangSmith integration & cost analysis |
+| AI Agent Integration | Limited/Standalone | MCP-enabled |
+| External Agent Invocation | Not available | Planned |
+| MCP Server | Not available | Planned |
 
 ## 13. DATA MODEL
 
@@ -207,7 +241,7 @@ Relationships flow downwards from Analysis.
 | [API Documentation](docs/api.md) | Full API reference with schemas and examples. |
 | [Database Strategy](docs/database.md) | Lakebase configuration and persistence logic. |
 | [Testing Strategy](docs/testing.md) | Information on the backend and frontend testing suite. |
-| [Performance Optimization Report](backend/performance_optimization_report.md) | Summary of the performance metrics and scaling techniques used. |
+
 
 ## 15. HOW TO RUN
 
@@ -268,7 +302,7 @@ npm run build
 8. **Show Agent Trace**: "We can see exactly what the agents did in the background and how long they took."
 9. **Show Metrics**: "We have full observability over LLM latency and token usage."
 10. **Return to Analyses**: "And everything is safely persisted to Lakebase, allowing teams to review historical decisions."
-11. **Briefly show V1/V2 direction**: Navigate to the Roadmap/V2 specs on the UI to discuss the future vision.
+11. **Briefly show V1/V2 direction**: Navigate to the Roadmap/V2 specs on the UI to discuss the future vision. Conclude by explaining that while the current demo shows BuildScout as a standalone application, the future direction (V2) is to make this same intelligence callable by other AI coding and enterprise agents via an MCP Server.
 
 ## 17. PROJECT STRUCTURE
 

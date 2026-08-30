@@ -1799,3 +1799,9 @@ Next phase: EvaluationAgent certification.
   - Token reduction goal of 30-50K was successfully met.
   - Runtime goal of 2-3 minutes was explicitly missed. Sequential evaluation of 30+ candidates (even with bounded parallelism) establishes a hard latency floor of ~5m 30s given current LLM speed.
   - The optimization program is a massive success for stability, token reduction, context isolation, and cost.
+
+## 🟢 CHECKPOINT: V2 MCP Server Documentation Update
+- **Status:** COMPLETED
+- Updated the V2 documentation (README.md, docs/skills.md, docs/architecture.md, docs/agent_workflow.md) to explicitly include the future capability of **BuildScout as an MCP Server**.
+- Positioned the future MCP Server as the interface for external AI coding agents and enterprise agents to invoke BuildScout's solution discovery, evaluation, and architecture generation capabilities programmatically.
+- Maintained a strict separation between V1 (Current, Standalone) and V2 (Planned, MCP Server). No application code was modified.

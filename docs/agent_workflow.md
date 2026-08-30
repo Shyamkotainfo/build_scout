@@ -224,6 +224,7 @@ Every agent appends its class name to `state["agent_history"]`. The final histor
 
 > ⚠️ **MCP is NOT currently active.**
 
+### 5.1 MCP Client (Future Research)
 When MCP is implemented, `ResearchAgent` will have access to:
 - GitHub repository search
 - Web search
@@ -231,3 +232,16 @@ When MCP is implemented, `ResearchAgent` will have access to:
 - License analysis tools
 
 Until then, `candidates = []` and `evaluations = []` for all analyses.
+
+### 5.2 BuildScout MCP Server (Future Integration)
+In V2, the entire LangGraph workflow will be exposed to external AI agents via the **BuildScout MCP Server**. 
+
+Planned MCP tools to trigger this workflow include:
+- `analyze_solution`: Run the complete BuildScout analysis
+- `discover_solutions`: Discover reusable solutions
+- `evaluate_candidates`: Evaluate discovered candidates
+- `make_build_decision`: Determine REUSE / ADAPT / BUILD
+- `generate_architecture`: Generate the architecture blueprint
+- `validate_architecture`: Validate the proposed architecture
+- `get_analysis`: Retrieve a previous analysis
+- `get_analysis_history`: Retrieve historical analyses
