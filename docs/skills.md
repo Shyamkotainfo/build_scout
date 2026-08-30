@@ -694,7 +694,9 @@ The intended full lifecycle for a single skill invocation:
 ## 9. V2 Architecture — Full Target `[DESIGNED]`
 
 ```
-User Request
+User Request / External AI Agent
+    ↓
+(If External: MCP Client → BuildScout MCP Server)
     ↓
 Memory / Context Retrieval  [DESIGNED]
     │   Retrieve relevant previous analyses, candidates, decisions, user preferences
@@ -1072,6 +1074,7 @@ backend/skills/
 | Advanced Prompt Optimization | — | `[PLANNED]` (GEPA/DSPy) |
 | Personalized recommendations | — | `[PLANNED]` |
 | More MCP providers | — | `[PLANNED]` |
+| BuildScout MCP Server | — | `[PLANNED]` (Expose capabilities to external agents) |
 
 ---
 
@@ -1092,10 +1095,30 @@ The recommended implementation order for V2, explaining the rationale:
 | **Phase 9** | Memory / Context Retrieval | Requires stable Skill Planner and defined feedback schema |
 | **Phase 10** | Human Feedback (API + storage + application) | Requires Memory layer to be in place |
 | **Phase 11** | Feedback-driven Prompt Optimization | Requires human feedback to have accumulated enough signals |
+| **Phase 12** | **BuildScout MCP Server** | Expose BuildScout's solution discovery, evaluation, decision, architecture, and validation capabilities to external AI agents through MCP. Requires all skills to be fully modularized and stable. |
 
 **Why this order?**
 
-Skills must precede the Skill Planner (Phase 8) because the Planner needs concrete skills to select from. Memory (Phase 9) must precede Human Feedback (Phase 10) because feedback signals need a storage and retrieval substrate. Prompt Optimization evolution (Phase 11) is last because it requires accumulated feedback signal volume to be meaningful.
+Skills must precede the Skill Planner (Phase 8) because the Planner needs concrete skills to select from. Memory (Phase 9) must precede Human Feedback (Phase 10) because feedback signals need a storage and retrieval substrate. Prompt Optimization evolution (Phase 11) is last because it requires accumulated feedback signal volume to be meaningful. The BuildScout MCP Server (Phase 12) is the capstone, exposing the fully mature skill ecosystem to external agents.
+
+---
+
+## 21. Future Use Cases (PLANNED)
+
+With the completion of Phase 12 (BuildScout MCP Server), BuildScout will support the following external integration patterns:
+
+### AI Coding Agent
+A coding agent could ask:
+"Before I build this feature, check whether BuildScout can find reusable open-source solutions."
+
+BuildScout could return:
+- discovered candidates
+- evaluations
+- REUSE / ADAPT / BUILD recommendation
+- architecture guidance
+
+### Enterprise AI Agent
+An enterprise agent could invoke BuildScout before proposing a new system and use the resulting architecture and validation output in its workflow.
 
 ---
 
