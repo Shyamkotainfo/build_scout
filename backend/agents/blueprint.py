@@ -13,18 +13,8 @@ from llm.retry import ainvoke_with_retry
 from agents.context import build_blueprint_context
 
 
-class TechStackItem(BaseModel):
-    component_id: str
-    component_name: str
-    decision: Literal["REUSE", "ADAPT", "BUILD"]
-    technology: str
-    reason: str
-
 class BlueprintComponent(BaseModel):
     component_id: str
-    component_name: str
-    decision: Literal["REUSE", "ADAPT", "BUILD"]
-    technology: str
     responsibility: str
     integration: str
 
@@ -47,12 +37,9 @@ class BlueprintResult(BaseModel):
     """Pydantic model for the generated Blueprint."""
     solution_summary: str
     architecture_style: str
-    technology_stack: List[TechStackItem] = Field(default_factory=list)
-    components: List[BlueprintComponent] = Field(default_factory=list)
     data_flow: List[str] = Field(default_factory=list)
     integration_points: List[IntegrationPoint] = Field(default_factory=list)
     implementation_phases: List[ImplementationPhase] = Field(default_factory=list)
-    reuse_summary: ReuseSummary = Field(default_factory=ReuseSummary)
     risks: List[str] = Field(default_factory=list)
     assumptions: List[str] = Field(default_factory=list)
 
@@ -136,23 +123,55 @@ class BlueprintAgent:
             if parsed_blueprint:
                 # Enforce decision consistency programmatically
                 decisions = state.get("decisions", [])
-                decision_map = {d["component_id"]: d["decision"] for d in decisions}
+                decision_map = {d["component_id"]: d for d in decisions}
                 name_map = {}
                 for comp in state.get("components", []):
                     name_map[comp["id"]] = comp["name"]
 
-                # Fix component mappings
-                for b_comp in parsed_blueprint.components:
-                    if b_comp.component_id in decision_map:
-                        b_comp.decision = decision_map[b_comp.component_id]
-
+                # We dump the model to a dict, then inject the missing deterministic fields
+                bp_dict = parsed_blueprint.model_dump()
+                
+                bp_dict["components"] = []
+                tech_stack = []
+                
+                for comp in state.get("components", []):
+                    cid = comp["id"]
+                    decision = decision_map.get(cid, {})
+                    
+                    decision_val = decision.get("decision", "BUILD")
+                    tech = decision.get("selected_candidate_name")
+                    if not tech or decision_val == "BUILD":
+                        tech = "Custom implementation"
+                        
+                    # Rehydrate BlueprintComponent for frontend
+                    b_comp = {
+                        "component_id": cid,
+                        "component_name": comp.get("name", cid),
+                        "decision": decision_val,
+                        "technology": tech,
+                        "responsibility": comp.get("description", ""),
+                        "integration": "Standard integration"
+                    }
+                    bp_dict["components"].append(b_comp)
+                    
+                    # Build tech stack item
+                    tech_stack.append({
+                        "component_id": cid,
+                        "component_name": b_comp["component_name"],
+                        "decision": b_comp["decision"],
+                        "technology": tech,
+                        "reason": decision.get("reason", "")
+                    })
+                
+                bp_dict["technology_stack"] = tech_stack
+                
                 # Rebuild reuse_summary to ensure 100% consistency with state
-                parsed_blueprint.reuse_summary = self._build_reuse_summary(
+                bp_dict["reuse_summary"] = self._build_reuse_summary(
                     decisions=state.get("decisions", []),
                     components=state.get("components", [])
-                )
+                ).model_dump()
                 
-                state["blueprint"] = parsed_blueprint.model_dump()
+                state["blueprint"] = bp_dict
                 state["status"] = "BLUEPRINT_CREATED"
                 state["agent_history"].append("BlueprintAgent")
             else:

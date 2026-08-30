@@ -121,7 +121,7 @@ def test_blueprint_agent_run_updates_state(mock_blueprint_agent):
     assert len(blueprint["technology_stack"]) == 1
     assert blueprint["technology_stack"][0]["decision"] == "REUSE"
     assert len(blueprint["components"]) == 1
-    assert blueprint["components"][0]["responsibility"] == "To test"
+    assert blueprint["components"][0]["responsibility"] == "Test description"
     assert len(blueprint["data_flow"]) == 1
     assert len(blueprint["integration_points"]) == 1
     assert len(blueprint["implementation_phases"]) == 1

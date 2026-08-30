@@ -305,12 +305,11 @@ def test_optimized_request_stored_in_state(mock_graph, mock_retry):
             "normalized_request": state.get("normalized_request", ""),
             "domain": "",
         }
+    mock_graph.return_value.stream.side_effect = lambda state: [{"ValidationAgent": fake_invoke(state)}]
 
-    mock_graph.return_value.invoke.side_effect = fake_invoke
-
-    from services.analysis_service import analyze
+    from services.analysis_service import run_analysis_background
     try:
-        analyze("Build an NLP pipeline in Python.")
+        run_analysis_background("test_id", "Build an NLP pipeline in Python.")
     except Exception:
         pass  # DB not configured in unit tests
 

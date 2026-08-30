@@ -13,27 +13,10 @@ def mock_validation_agent():
     mock_response = MagicMock()
     mock_response.content = '''
     {
-        "architecture_consistency": {
-            "score": 90,
-            "findings": ["Architecture is solid"]
-        },
-        "data_flow_consistency": {
-            "score": 95,
-            "findings": ["Data flows logically"]
-        },
-        "integration_consistency": {
-            "score": 85,
-            "findings": ["Good integrations"]
-        },
-        "implementation_completeness": {
-            "score": 80,
-            "findings": ["Mostly complete"]
-        },
-        "risk_completeness": {
-            "score": 88,
-            "findings": ["Risks well documented"]
-        },
-        "recommendations": ["Proceed with development"]
+        "overall_architecture_score": 90,
+        "reasoning": "Architecture is solid, data flows logically.",
+        "critical_issues": [],
+        "warnings": []
     }
     '''
     from unittest.mock import AsyncMock

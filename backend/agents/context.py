@@ -100,9 +100,10 @@ def build_validation_context(requirements: List[Dict[str, Any]], components: Lis
     Provides the minimal context necessary for architectural validation.
     No raw candidates, no raw evaluations.
     """
+    compact_blueprint = {k: v for k, v in blueprint.items() if k not in ("technology_stack", "reuse_summary")}
     return {
         "requirements": requirements,
         "components": components,
         "decisions": decisions,
-        "blueprint": blueprint
+        "blueprint": compact_blueprint
     }
