@@ -1,0 +1,272 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.6, pytest-9.1.1, pluggy-1.6.0 -- /Users/Shyam/Desktop/Hackathon_2026/build_scout/backend/.venv/bin/python3.11
+cachedir: .pytest_cache
+rootdir: /Users/Shyam/Desktop/Hackathon_2026/build_scout/backend
+configfile: pytest.ini
+testpaths: tests
+plugins: langsmith-0.11.0, asyncio-1.4.0, anyio-4.14.2
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 187 items
+
+tests/test_analysis_api.py::test_create_analysis_valid PASSED            [  0%]
+tests/test_analysis_api.py::test_create_analysis_invalid_request PASSED  [  1%]
+tests/test_analysis_api.py::test_create_analysis_internal_error PASSED   [  1%]
+tests/test_analysis_service.py::test_analyze_creates_initial_state_and_invokes_graph PASSED [  2%]
+tests/test_api.py::test_api_can_be_imported PASSED                       [  2%]
+tests/test_api.py::test_health_returns_200 PASSED                        [  3%]
+tests/test_api.py::test_health_response_is_correct PASSED                [  3%]
+tests/test_blueprint.py::test_blueprint_agent_instantiation PASSED       [  4%]
+tests/test_blueprint.py::test_blueprint_agent_run_updates_state PASSED   [  4%]
+tests/test_blueprint.py::test_blueprint_agent_missing_reuse_summary PASSED [  5%]
+tests/test_blueprint.py::test_blueprint_agent_validation_failure PASSED  [  5%]
+tests/test_blueprint.py::test_blueprint_agent_empty_candidates_workflow PASSED [  6%]
+tests/test_blueprint.py::test_blueprint_agent_decision_consistency PASSED [  6%]
+tests/test_blueprint.py::test_blueprint_agent_overwrites_incorrect_reuse_summary PASSED [  7%]
+tests/test_database.py::test_database_url_not_configured PASSED          [  8%]
+tests/test_database.py::test_database_url_configured PASSED              [  8%]
+tests/test_database.py::test_is_database_configured PASSED               [  9%]
+tests/test_decision.py::test_decision_agent_instantiation PASSED         [  9%]
+tests/test_decision.py::test_decision_agent_empty_evaluations_produces_build PASSED [ 10%]
+tests/test_decision.py::test_decision_agent_run_updates_state PASSED     [ 10%]
+tests/test_decision.py::test_invalid_decision_build_with_candidate PASSED [ 11%]
+tests/test_decision.py::test_invalid_decision_reuse_without_candidate PASSED [ 11%]
+tests/test_decomposition.py::test_decomposition_agent_can_be_imported PASSED [ 12%]
+tests/test_decomposition.py::test_decomposition_agent_can_be_instantiated PASSED [ 12%]
+tests/test_decomposition.py::test_valid_state_can_be_passed PASSED       [ 13%]
+tests/test_decomposition.py::test_normalized_request_is_not_empty PASSED [ 13%]
+tests/test_decomposition.py::test_domain_is_not_empty PASSED             [ 14%]
+tests/test_decomposition.py::test_at_least_one_requirement PASSED        [ 14%]
+tests/test_decomposition.py::test_at_least_one_component PASSED          [ 15%]
+tests/test_decomposition.py::test_every_requirement_has_required_fields PASSED [ 16%]
+tests/test_decomposition.py::test_every_component_has_required_fields PASSED [ 16%]
+tests/test_decomposition.py::test_component_ids_are_unique PASSED        [ 17%]
+tests/test_decomposition.py::test_requirement_ids_are_unique PASSED      [ 17%]
+tests/test_decomposition.py::test_user_request_is_unchanged PASSED       [ 18%]
+tests/test_decomposition.py::test_status_is_decomposed PASSED            [ 18%]
+tests/test_decomposition.py::test_current_agent_is_decomposition PASSED  [ 19%]
+tests/test_decomposition.py::test_decomposition_agent_in_history PASSED  [ 19%]
+tests/test_e2e_api.py::test_health_endpoint_exists PASSED                [ 20%]
+tests/test_e2e_api.py::test_health_response_is_json_with_status PASSED   [ 20%]
+tests/test_e2e_api.py::test_post_analyses_endpoint_exists PASSED         [ 21%]
+tests/test_e2e_api.py::test_get_analysis_endpoint_exists PASSED          [ 21%]
+tests/test_e2e_api.py::test_openapi_schema_is_available PASSED           [ 22%]
+tests/test_e2e_api.py::test_openapi_contains_all_three_business_endpoints PASSED [ 22%]
+tests/test_e2e_api.py::test_openapi_no_unexpected_business_endpoints PASSED [ 23%]
+tests/test_e2e_api.py::test_post_missing_body_returns_422 PASSED         [ 24%]
+tests/test_e2e_api.py::test_post_missing_body_returns_invalid_request_code PASSED [ 24%]
+tests/test_e2e_api.py::test_post_empty_user_request_returns_422 PASSED   [ 25%]
+tests/test_e2e_api.py::test_post_whitespace_only_request_returns_422 PASSED [ 25%]
+tests/test_e2e_api.py::test_post_request_too_long_returns_422 PASSED     [ 26%]
+tests/test_e2e_api.py::test_post_invalid_body_does_not_expose_stack_trace PASSED [ 26%]
+tests/test_e2e_api.py::test_post_analysis_returns_200 PASSED             [ 27%]
+tests/test_e2e_api.py::test_post_analysis_returns_analysis_id PASSED     [ 27%]
+tests/test_e2e_api.py::test_post_response_contains_all_required_fields PASSED [ 28%]
+tests/test_e2e_api.py::test_post_response_agent_history_contains_all_agents PASSED [ 28%]
+tests/test_e2e_api.py::test_post_empty_candidates_is_valid_mcp_offline PASSED [ 29%]
+tests/test_e2e_api.py::test_get_existing_analysis_returns_200 PASSED     [ 29%]
+tests/test_e2e_api.py::test_get_returns_correct_analysis_id PASSED       [ 30%]
+tests/test_e2e_api.py::test_get_does_not_invoke_langgraph PASSED         [ 31%]
+tests/test_e2e_api.py::test_get_does_not_invoke_llm PASSED               [ 31%]
+tests/test_e2e_api.py::test_get_does_not_invoke_mcp PASSED               [ 32%]
+tests/test_e2e_api.py::test_get_nonexistent_analysis_returns_404 PASSED  [ 32%]
+tests/test_e2e_api.py::test_get_nonexistent_returns_analysis_not_found_code PASSED [ 33%]
+tests/test_e2e_api.py::test_get_malformed_id_returns_404 PASSED          [ 33%]
+tests/test_e2e_api.py::test_404_does_not_expose_stack_trace PASSED       [ 34%]
+tests/test_e2e_api.py::test_db_failure_returns_500 PASSED                [ 34%]
+tests/test_e2e_api.py::test_llm_failure_returns_503 PASSED               [ 35%]
+tests/test_e2e_api.py::test_generic_exception_returns_500 PASSED         [ 35%]
+tests/test_e2e_api.py::test_500_does_not_expose_credentials PASSED       [ 36%]
+tests/test_e2e_api.py::test_post_422_does_not_expose_credentials PASSED  [ 36%]
+tests/test_error_handling.py::test_health_endpoint PASSED                [ 37%]
+tests/test_error_handling.py::test_missing_user_request PASSED           [ 37%]
+tests/test_error_handling.py::test_empty_user_request PASSED             [ 38%]
+tests/test_error_handling.py::test_generic_unexpected_exception PASSED   [ 39%]
+tests/test_error_handling.py::test_analysis_execution_exception PASSED   [ 39%]
+tests/test_error_handling.py::test_llm_service_failure PASSED            [ 40%]
+tests/test_evaluation.py::test_evaluation_agent_instantiation PASSED     [ 40%]
+tests/test_evaluation.py::test_evaluation_agent_run_updates_state PASSED [ 41%]
+tests/test_evaluation.py::test_evaluation_agent_empty_candidates PASSED  [ 41%]
+tests/test_github_mcp.py::test_github_mcp_successful_search FAILED       [ 42%]
+tests/test_github_mcp.py::test_github_mcp_empty_result FAILED            [ 42%]
+tests/test_github_mcp.py::test_github_mcp_timeout_degraded_behavior PASSED [ 43%]
+tests/test_graph.py::test_graph_can_be_imported PASSED                   [ 43%]
+tests/test_graph.py::test_graph_can_be_compiled PASSED                   [ 44%]
+tests/test_graph.py::test_graph_contains_expected_nodes PASSED           [ 44%]
+tests/test_graph.py::test_graph_executes_successfully PASSED             [ 45%]
+tests/test_graph.py::test_supervisor_executed PASSED                     [ 45%]
+tests/test_graph.py::test_supervisor_created_execution_plan PASSED       [ 46%]
+tests/test_graph.py::test_decomposition_executed PASSED                  [ 47%]
+tests/test_graph.py::test_decomposition_populated_state PASSED           [ 47%]
+tests/test_graph.py::test_supervisor_output_preserved_after_decomposition PASSED [ 48%]
+tests/test_graph.py::test_final_status_is_validated PASSED               [ 48%]
+tests/test_graph.py::test_final_current_agent_is_validation PASSED       [ 49%]
+tests/test_graph.py::test_agent_history_contains_all_agents PASSED       [ 49%]
+tests/test_graph.py::test_agents_populated_state PASSED                  [ 50%]
+tests/test_llm.py::test_groq_llm_returns_nonempty_response PASSED        [ 50%]
+tests/test_mcp.py::test_mcp_client_init PASSED                           [ 51%]
+tests/test_mcp.py::test_mcp_client_init_empty_command PASSED             [ 51%]
+tests/test_mcp.py::test_mcp_client_list_tools PASSED                     [ 52%]
+tests/test_mcp.py::test_registry_allow_list FAILED                       [ 52%]
+tests/test_mcp.py::test_registry_server_config PASSED                    [ 53%]
+tests/test_mcp.py::test_registry_server_config_unknown PASSED            [ 54%]
+tests/test_mcp.py::test_manager_mask_secrets PASSED                      [ 54%]
+tests/test_mcp.py::test_manager_call_tool_success PASSED                 [ 55%]
+tests/test_mcp.py::test_manager_call_tool_not_allowed_tool PASSED        [ 55%]
+tests/test_mcp.py::test_manager_call_tool_not_allowed_server PASSED      [ 56%]
+tests/test_mcp.py::test_manager_call_tool_timeout PASSED                 [ 56%]
+tests/test_mcp.py::test_manager_call_tool_retry_exhausted PASSED         [ 57%]
+tests/test_mcp.py::test_manager_call_tool_result_size_protection PASSED  [ 57%]
+tests/test_repositories.py::test_save_analysis_success PASSED            [ 58%]
+tests/test_repositories.py::test_save_analysis_missing_id PASSED         [ 58%]
+tests/test_research.py::test_research_agent_instantiation PASSED         [ 59%]
+tests/test_research.py::test_research_agent_run_updates_state PASSED     [ 59%]
+tests/test_retrieval_api.py::test_get_analysis_returns_200 PASSED        [ 60%]
+tests/test_retrieval_api.py::test_get_analysis_returns_correct_analysis_id PASSED [ 60%]
+tests/test_retrieval_api.py::test_get_analysis_returns_user_request PASSED [ 61%]
+tests/test_retrieval_api.py::test_get_analysis_returns_requirements PASSED [ 62%]
+tests/test_retrieval_api.py::test_get_analysis_returns_components PASSED [ 62%]
+tests/test_retrieval_api.py::test_get_analysis_returns_candidates PASSED [ 63%]
+tests/test_retrieval_api.py::test_get_analysis_returns_evaluations PASSED [ 63%]
+tests/test_retrieval_api.py::test_get_analysis_returns_decisions PASSED  [ 64%]
+tests/test_retrieval_api.py::test_get_analysis_returns_blueprint PASSED  [ 64%]
+tests/test_retrieval_api.py::test_get_analysis_returns_validation_result PASSED [ 65%]
+tests/test_retrieval_api.py::test_get_analysis_returns_agent_history PASSED [ 65%]
+tests/test_retrieval_api.py::test_get_analysis_empty_candidates_is_valid PASSED [ 66%]
+tests/test_retrieval_api.py::test_get_analysis_not_found_returns_404 PASSED [ 66%]
+tests/test_retrieval_api.py::test_get_analysis_malformed_uuid_returns_404 PASSED [ 67%]
+tests/test_retrieval_api.py::test_get_analysis_db_failure_returns_500 PASSED [ 67%]
+tests/test_retrieval_api.py::test_retrieval_does_not_invoke_langgraph PASSED [ 68%]
+tests/test_retrieval_api.py::test_retrieval_does_not_invoke_llm PASSED   [ 68%]
+tests/test_retrieval_api.py::test_retrieval_does_not_invoke_mcp PASSED   [ 69%]
+tests/test_schemas.py::test_analysis_request_valid PASSED                [ 70%]
+tests/test_schemas.py::test_analysis_request_empty_rejected PASSED       [ 70%]
+tests/test_schemas.py::test_analysis_request_whitespace_only_rejected PASSED [ 71%]
+tests/test_schemas.py::test_analysis_request_too_long_rejected PASSED    [ 71%]
+tests/test_schemas.py::test_analysis_response_valid PASSED               [ 72%]
+tests/test_schemas.py::test_analysis_result_response_valid PASSED        [ 72%]
+tests/test_schemas.py::test_nested_requirement_serialization PASSED      [ 73%]
+tests/test_schemas.py::test_nested_component_serialization PASSED        [ 73%]
+tests/test_schemas.py::test_candidate_serialization PASSED               [ 74%]
+tests/test_schemas.py::test_evaluation_serialization PASSED              [ 74%]
+tests/test_schemas.py::test_decision_serialization PASSED                [ 75%]
+tests/test_schemas.py::test_blueprint_serialization PASSED               [ 75%]
+tests/test_schemas.py::test_validation_serialization PASSED              [ 76%]
+tests/test_schemas.py::test_agent_trace_serialization PASSED             [ 77%]
+tests/test_schemas.py::test_json_serialization_works PASSED              [ 77%]
+tests/test_schemas.py::test_existing_state_can_be_mapped PASSED          [ 78%]
+tests/test_state.py::test_create_initial_state_returns_valid_state PASSED [ 78%]
+tests/test_state.py::test_user_request_is_stored_correctly PASSED        [ 79%]
+tests/test_state.py::test_analysis_id_is_generated_and_not_empty PASSED  [ 79%]
+tests/test_state.py::test_analysis_id_is_valid_uuid PASSED               [ 80%]
+tests/test_state.py::test_status_starts_as_created PASSED                [ 80%]
+tests/test_state.py::test_current_agent_starts_as_supervisor PASSED      [ 81%]
+tests/test_state.py::test_requirements_starts_as_empty_list PASSED       [ 81%]
+tests/test_state.py::test_components_starts_as_empty_list PASSED         [ 82%]
+tests/test_state.py::test_candidates_starts_as_empty_list PASSED         [ 82%]
+tests/test_state.py::test_evaluations_starts_as_empty_list PASSED        [ 83%]
+tests/test_state.py::test_decisions_starts_as_empty_list PASSED          [ 83%]
+tests/test_state.py::test_blueprint_starts_as_empty_dict PASSED          [ 84%]
+tests/test_state.py::test_validation_result_starts_as_empty_dict PASSED  [ 85%]
+tests/test_state.py::test_retry_count_starts_as_zero PASSED              [ 85%]
+tests/test_state.py::test_agent_history_starts_as_empty_list PASSED      [ 86%]
+tests/test_state.py::test_execution_plan_starts_as_empty_list PASSED     [ 86%]
+tests/test_state.py::test_state_can_be_updated PASSED                    [ 87%]
+tests/test_state.py::test_each_run_produces_unique_analysis_id PASSED    [ 87%]
+tests/test_supervisor.py::test_supervisor_can_be_imported PASSED         [ 88%]
+tests/test_supervisor.py::test_supervisor_can_be_instantiated PASSED     [ 88%]
+tests/test_supervisor.py::test_execution_plan_is_not_empty PASSED        [ 89%]
+tests/test_supervisor.py::test_plan_contains_all_required_agents PASSED  [ 89%]
+tests/test_supervisor.py::test_each_plan_step_has_required_fields PASSED [ 90%]
+tests/test_supervisor.py::test_user_request_preserved_in_state PASSED    [ 90%]
+tests/test_supervisor.py::test_status_is_plan_created PASSED             [ 91%]
+tests/test_supervisor.py::test_current_agent_is_supervisor PASSED        [ 91%]
+tests/test_supervisor.py::test_supervisor_is_in_agent_history PASSED     [ 92%]
+tests/test_supervisor.py::test_execution_plan_stored_in_state PASSED     [ 93%]
+tests/test_validation.py::test_validation_agent_instantiation PASSED     [ 93%]
+tests/test_validation.py::test_validation_agent_missing_blueprint PASSED [ 94%]
+tests/test_validation.py::test_validation_agent_valid_blueprint PASSED   [ 94%]
+tests/test_validation.py::test_validation_agent_missing_components PASSED [ 95%]
+tests/test_validation.py::test_validation_agent_decision_contradiction_fails PASSED [ 95%]
+tests/test_validation.py::test_validation_agent_reuse_missing_candidate_warning PASSED [ 96%]
+tests/test_validation.py::test_validation_agent_empty_candidates_with_build PASSED [ 96%]
+tests/test_web_mcp.py::test_web_mcp_successful_search PASSED             [ 97%]
+tests/test_web_mcp.py::test_web_mcp_empty_result PASSED                  [ 97%]
+tests/test_web_mcp.py::test_web_mcp_timeout_degraded_behavior PASSED     [ 98%]
+tests/test_web_mcp.py::test_web_mcp_server_failure PASSED                [ 98%]
+tests/test_web_mcp.py::test_candidate_url_deduplication PASSED           [ 99%]
+tests/test_web_mcp.py::test_web_mcp_missing_config PASSED                [100%]
+
+=================================== FAILURES ===================================
+______________________ test_github_mcp_successful_search _______________________
+
+mock_call_tool = <AsyncMock name='call_tool' id='4846443024'>
+mock_llm_for_github = <MagicMock name='get_llm' id='4846411984'>
+
+    @pytest.mark.asyncio
+    @patch("agents.research.mcp_manager.call_tool", new_callable=AsyncMock)
+    async def test_github_mcp_successful_search(mock_call_tool, mock_llm_for_github):
+        mock_call_tool.return_value = {
+            "status": "SUCCESS",
+            "result_summary": {"content": "Found 1 repository: fastapi"},
+            "latency_ms": 100
+        }
+    
+        agent = ResearchAgent()
+        comp = {
+            "id": "COMP-001",
+            "name": "python_rest_api",
+            "description": "REST API framework"
+        }
+    
+        candidates, traces = await agent._research_component(comp)
+    
+        assert len(candidates) == 1
+        assert candidates[0]["name"] == "FastAPI"
+        assert candidates[0]["url"] == "https://github.com/tiangolo/fastapi"
+    
+>       assert len(traces) == 1
+E       AssertionError: assert 2 == 1
+E        +  where 2 = len([{'status': 'SUCCESS', 'result_summary': {'content': 'Found 1 repository: fastapi'}, 'latency_ms': 100}, {'status': 'SUCCESS', 'result_summary': {'content': 'Found 1 repository: fastapi'}, 'latency_ms': 100}])
+
+tests/test_github_mcp.py:56: AssertionError
+_________________________ test_github_mcp_empty_result _________________________
+
+mock_call_tool = <AsyncMock name='call_tool' id='4846945104'>
+mock_llm_for_github = <MagicMock name='get_llm' id='4843763664'>
+
+    @pytest.mark.asyncio
+    @patch("agents.research.mcp_manager.call_tool", new_callable=AsyncMock)
+    async def test_github_mcp_empty_result(mock_call_tool, mock_llm_for_github):
+        # MCP returns empty result
+        mock_call_tool.return_value = {
+            "status": "SUCCESS",
+            "result_summary": {"content": ""},
+            "latency_ms": 100
+        }
+    
+        agent = ResearchAgent()
+        comp = {"id": "COMP-001", "name": "unknown_tool", "description": "rare"}
+    
+        candidates, traces = await agent._research_component(comp)
+    
+        assert len(candidates) == 0
+>       assert len(traces) == 1
+E       AssertionError: assert 2 == 1
+E        +  where 2 = len([{'status': 'SUCCESS', 'result_summary': {'content': ''}, 'latency_ms': 100}, {'status': 'SUCCESS', 'result_summary': {'content': ''}, 'latency_ms': 100}])
+
+tests/test_github_mcp.py:81: AssertionError
+___________________________ test_registry_allow_list ___________________________
+
+    def test_registry_allow_list():
+        assert registry.is_tool_allowed("github", "search_repositories") is True
+>       assert registry.is_tool_allowed("web_search", "search") is True
+E       AssertionError: assert False is True
+E        +  where False = is_tool_allowed('web_search', 'search')
+E        +    where is_tool_allowed = <mcp_integration.registry.MCPRegistry object at 0x115cc4510>.is_tool_allowed
+
+tests/test_mcp.py:54: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_github_mcp.py::test_github_mcp_successful_search - Assertio...
+FAILED tests/test_github_mcp.py::test_github_mcp_empty_result - AssertionErro...
+FAILED tests/test_mcp.py::test_registry_allow_list - AssertionError: assert F...
+================== 3 failed, 184 passed in 270.33s (0:04:30) ===================

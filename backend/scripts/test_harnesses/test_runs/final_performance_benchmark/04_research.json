@@ -1,0 +1,1051 @@
+{
+  "analysis_id": "a71f08a9-8cd3-46aa-93b0-f64dee149361",
+  "user_request": "Build an AI document intelligence platform using AWS. It should allow users to upload PDF documents, extract text using OCR, store documents securely, provide semantic search and question answering using RAG, support user authentication, and expose APIs for integration with other enterprise systems. Prefer reusable open-source solutions where appropriate, but ensure the selected components have suitable licenses and acceptable security/maturity.",
+  "normalized_request": "An AWS-hosted document intelligence platform enabling PDF upload, OCR-based text extraction, secure storage, semantic search with RAG-based question answering, user authentication, and REST API exposure for enterprise integration.",
+  "domain": "Document Intelligence / Enterprise Knowledge Management",
+  "status": "RESEARCHED",
+  "requirements": [
+    {
+      "id": "REQ-001",
+      "description": "Users must authenticate securely before accessing the platform",
+      "priority": "HIGH"
+    },
+    {
+      "id": "REQ-002",
+      "description": "System must accept and store PDF documents securely with access controls",
+      "priority": "HIGH"
+    },
+    {
+      "id": "REQ-003",
+      "description": "System must extract text from PDF documents using OCR capabilities",
+      "priority": "HIGH"
+    },
+    {
+      "id": "REQ-004",
+      "description": "System must index extracted text for semantic search and retrieval",
+      "priority": "HIGH"
+    },
+    {
+      "id": "REQ-005",
+      "description": "System must answer user questions using retrieved document context (RAG pattern)",
+      "priority": "HIGH"
+    },
+    {
+      "id": "REQ-006",
+      "description": "System must expose REST APIs for third-party enterprise system integration",
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "REQ-007",
+      "description": "System must maintain audit logs and security compliance for enterprise requirements",
+      "priority": "MEDIUM"
+    },
+    {
+      "id": "REQ-008",
+      "description": "System must provide observability into document processing and query execution",
+      "priority": "MEDIUM"
+    }
+  ],
+  "components": [
+    {
+      "id": "COMP-001",
+      "name": "USER_AUTHENTICATION_AND_AUTHORIZATION",
+      "description": "Manages user identity verification, session management, and access control policies for platform resources and documents",
+      "category": "SECURITY"
+    },
+    {
+      "id": "COMP-002",
+      "name": "PDF_UPLOAD_AND_INGESTION_SERVICE",
+      "description": "Accepts PDF file uploads, validates format, manages file staging, and triggers downstream processing workflows",
+      "category": "INGESTION"
+    },
+    {
+      "id": "COMP-003",
+      "name": "OCR_AND_TEXT_EXTRACTION_ENGINE",
+      "description": "Extracts text from PDF documents using optical character recognition, handling scanned images and mixed content",
+      "category": "PROCESSING"
+    },
+    {
+      "id": "COMP-004",
+      "name": "TEXT_PROCESSING_AND_CHUNKING",
+      "description": "Cleans, normalizes, and segments extracted text into optimal chunks for embedding and retrieval",
+      "category": "PROCESSING"
+    },
+    {
+      "id": "COMP-005",
+      "name": "SEMANTIC_SEARCH_AND_RAG_PIPELINE",
+      "description": "Generates embeddings for text chunks, stores in vector index, retrieves relevant context, and orchestrates LLM-based question answering with retrieved documents",
+      "category": "AI"
+    },
+    {
+      "id": "COMP-006",
+      "name": "DOCUMENT_AND_METADATA_STORAGE",
+      "description": "Persists original PDF documents, extracted text, chunk records, embeddings, and associated metadata with encryption and access isolation",
+      "category": "STORAGE"
+    },
+    {
+      "id": "COMP-007",
+      "name": "ENTERPRISE_REST_API_GATEWAY",
+      "description": "Exposes documented REST endpoints for document upload, search, question answering, and platform integration with rate limiting and request validation",
+      "category": "BACKEND"
+    },
+    {
+      "id": "COMP-008",
+      "name": "AUDIT_LOGGING_AND_COMPLIANCE",
+      "description": "Records user actions, document access, queries, and system events for security audits, compliance reporting, and forensic analysis",
+      "category": "OBSERVABILITY"
+    },
+    {
+      "id": "COMP-009",
+      "name": "WORKFLOW_ORCHESTRATION_AND_ASYNC_PROCESSING",
+      "description": "Manages asynchronous document processing pipelines, handles retries, and coordinates multi-step operations between OCR, embedding, and indexing services",
+      "category": "BACKEND"
+    },
+    {
+      "id": "COMP-010",
+      "name": "MONITORING_AND_OBSERVABILITY_DASHBOARD",
+      "description": "Provides real-time visibility into document processing metrics, query performance, system health, and error tracking",
+      "category": "OBSERVABILITY"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "CAND-001",
+      "component_id": "COMP-001",
+      "name": "frontier",
+      "source": "github",
+      "url": "https://github.com/raystack/frontier",
+      "description": "All-in-one user management platform providing identity, access and billing management. Open source alternative to Clerk, WorkOS.",
+      "relevance_reason": "Directly addresses user authentication, authorization, and identity management. Explicitly provides access management and user identity verification, core components of COMP-001.",
+      "metadata": {
+        "created_at": "2021-02-26T05:52:53Z",
+        "updated_at": "2026-08-28T10:59:30Z",
+        "owner": "raystack"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-002",
+      "component_id": "COMP-001",
+      "name": "logto",
+      "source": "github",
+      "url": "https://github.com/api-evangelist/logto",
+      "description": "Open source identity infrastructure platform with authentication, authorization, user management, and multi-tenancy supporting OIDC, OAuth, and SAML.",
+      "relevance_reason": "Provides authentication, authorization, user management, and multi-tenancy features directly aligned with COMP-001's requirements for identity verification, access control, and session management.",
+      "metadata": {
+        "created_at": "2026-03-25T11:21:48Z",
+        "updated_at": "2026-08-27T20:41:50Z",
+        "owner": "api-evangelist"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 2 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-003",
+      "component_id": "COMP-001",
+      "name": "no-auth",
+      "source": "github",
+      "url": "https://github.com/sagarvariya4/no-auth",
+      "description": "Open-source authentication and authorization library designed for SSO, multi-tenancy, and centralized user management.",
+      "relevance_reason": "Directly provides authentication and authorization capabilities with user management and SSO support, matching core requirements of COMP-001.",
+      "metadata": {
+        "created_at": "2025-02-10T20:00:00Z",
+        "updated_at": "2026-05-07T16:58:46Z",
+        "owner": "sagarvariya4"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 3 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-004",
+      "component_id": "COMP-001",
+      "name": "UniSecure-IAM",
+      "source": "github",
+      "url": "https://github.com/ahmedmohamedbekhit1/UniSecure-IAM",
+      "description": "Open-source Identity & Access Management platform powered by Keycloak. Includes secure authentication, RBAC authorization, user provisioning, and admin automation.",
+      "relevance_reason": "Provides identity and access management with RBAC authorization and authentication, directly supporting COMP-001's access control policies and user identity verification.",
+      "metadata": {
+        "created_at": "2025-12-15T04:03:15Z",
+        "updated_at": "2026-05-16T03:25:46Z",
+        "owner": "ahmedmohamedbekhit1"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 4 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-005",
+      "component_id": "COMP-001",
+      "name": "EnkidoTS",
+      "source": "github",
+      "url": "https://github.com/joeolaoye/EnkidoTS",
+      "description": "Open source user management service built on FoalTS. Allows user registration, authentication, management, permissions, roles and authorization.",
+      "relevance_reason": "Provides user authentication, authorization, roles and permissions management, directly aligned with COMP-001's identity verification and access control requirements.",
+      "metadata": {
+        "created_at": "2022-05-09T21:11:08Z",
+        "updated_at": "2022-05-09T21:18:52Z",
+        "owner": "joeolaoye"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 5 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-006",
+      "component_id": "COMP-003",
+      "name": "smartdoc",
+      "source": "github",
+      "url": "https://github.com/sivasaireddykk/smartdoc",
+      "description": "Web-based application for text extraction from PDFs and images using Tesseract OCR engine, with Django backend and HTML/CSS frontend.",
+      "relevance_reason": "Directly addresses PDF and image text extraction using Tesseract OCR. Explicitly handles both PDFs and images, aligning with the component's requirement to extract text from PDF documents using OCR.",
+      "metadata": {
+        "created_at": "2024-09-16T14:33:37Z",
+        "updated_at": "2024-09-16T17:59:51Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-007",
+      "component_id": "COMP-003",
+      "name": "AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout",
+      "source": "github",
+      "url": "https://github.com/Alamaara/AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout",
+      "description": "Assistive system combining real-time image capture with open-source OCR and text-to-speech using Python on Raspberry Pi for reading printed content aloud.",
+      "relevance_reason": "Demonstrates OCR-based text extraction from images with Python implementation. While focused on assistive technology rather than PDFs specifically, it shows practical OCR engine integration for text extraction from visual content.",
+      "metadata": {
+        "created_at": "2025-09-18T06:04:29Z",
+        "updated_at": "2025-09-18T06:29:07Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 2 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-008",
+      "component_id": "COMP-004",
+      "name": "offline_file_translation",
+      "source": "github",
+      "url": "https://github.com/thefilesareinthecomputer/offline_file_translation",
+      "description": "Text file language translation app that translates .txt, .csv, and .xlsx files using batch processing and token chunking to handle large file sizes while preserving context.",
+      "relevance_reason": "Directly implements text chunking and batch processing for handling large text files. The description explicitly mentions 'token chunking' and 'batch processing' which align with the component's requirement to segment text into optimal chunks for processing.",
+      "metadata": {
+        "created_at": "2024-01-29T00:58:41Z",
+        "updated_at": "2026-06-02T18:30:08Z",
+        "pushed_at": "2026-04-17T14:07:56Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-009",
+      "component_id": "COMP-004",
+      "name": "ChatPDF",
+      "source": "github",
+      "url": "https://github.com/AnkushRathour/ChatPDF",
+      "description": "Enables uploading PDF files and asking questions about content using LLM. The app processes PDF files and breaks text into manageable chunks for question-answering.",
+      "relevance_reason": "Implements text chunking for document processing. The description explicitly states it 'breaks the text into manageable chunks' which directly addresses the component's segmentation requirement for retrieval and embedding workflows.",
+      "metadata": {
+        "created_at": "2024-09-18T17:05:27Z",
+        "updated_at": "2026-05-07T12:57:05Z",
+        "pushed_at": "2026-05-07T12:57:01Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 2 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-010",
+      "component_id": "COMP-004",
+      "name": "Overtype",
+      "source": "github",
+      "url": "https://github.com/gppsys/Overtype",
+      "description": "macOS app that corrects and improves selected text across applications using a global keyboard shortcut. Includes a token-efficient chunking system to process long inputs safely.",
+      "relevance_reason": "Implements text normalization and chunking with a 'token-efficient chunking system' to process long text inputs. Aligns with the component's goal of segmenting text into optimal chunks for processing.",
+      "metadata": {
+        "created_at": "2026-04-13T12:38:26Z",
+        "updated_at": "2026-05-18T13:59:26Z",
+        "pushed_at": "2026-05-18T13:58:22Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 3 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-011",
+      "component_id": "COMP-004",
+      "name": "textwolf",
+      "source": "github",
+      "url": "https://github.com/patrickfrey/textwolf",
+      "description": "C++ template library for processing XML in various character set encodings. Provides interfaces for iterating on unicode characters and XML elements, supports chunk-wise processing of input.",
+      "relevance_reason": "Provides chunk-wise text processing with support for multiple character encodings. While focused on XML, the chunk-wise processing capability and character normalization directly relate to the component's text processing and chunking requirements.",
+      "metadata": {
+        "created_at": "2010-04-06T22:25:57Z",
+        "updated_at": "2021-07-04T09:22:46Z",
+        "pushed_at": "2021-07-04T09:22:43Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 4 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-012",
+      "component_id": "COMP-005",
+      "name": "haystack",
+      "source": "github",
+      "url": "https://github.com/deepset-ai/haystack",
+      "description": "Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Supports retrieval, routing, memory, generation, scalable agents, RAG, multimodal applications, and semantic search.",
+      "relevance_reason": "Directly matches the component description. Provides modular pipeline orchestration for RAG, semantic search, and LLM-based question answering with explicit control over retrieval and generation.",
+      "metadata": {
+        "created_at": "2019-11-14T09:05:28Z",
+        "updated_at": "2026-08-28T10:41:06Z",
+        "pushed_at": "2026-08-28T08:33:27Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-013",
+      "component_id": "COMP-005",
+      "name": "LlamaIndex_Qdrant_Open_source_Rerank_model",
+      "source": "github",
+      "url": "https://github.com/shivaniharane/LlamaIndex_Qdrant_Open_source_Rerank_model",
+      "description": "Semantic search and RAG pipeline using LlamaIndex, Qdrant vector database, and open-source reranking models for improved retrieval accuracy.",
+      "relevance_reason": "Directly implements the core components of the semantic search and RAG pipeline: embeddings, vector indexing (Qdrant), retrieval with reranking, and LLM-based question answering.",
+      "metadata": {
+        "created_at": "2026-05-13T16:36:39Z",
+        "updated_at": "2026-05-13T16:38:18Z",
+        "pushed_at": "2026-05-13T16:38:13Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 2 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-014",
+      "component_id": "COMP-005",
+      "name": "RAG-open-source",
+      "source": "github",
+      "url": "https://github.com/anupamlab/RAG-open-source",
+      "description": "RAG pipeline that performs semantic vector search over multi-format documents and generates context-aware answers using LLMs, with built-in evaluation using RAGAS.",
+      "relevance_reason": "Implements the complete RAG pipeline: semantic vector search, document retrieval, and LLM-based context-aware answer generation, matching all core component requirements.",
+      "metadata": {
+        "created_at": "2026-04-08T13:16:15Z",
+        "updated_at": "2026-04-09T20:52:17Z",
+        "pushed_at": "2026-04-09T20:52:12Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 3 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-015",
+      "component_id": "COMP-005",
+      "name": "faq-rag-pipeline",
+      "source": "github",
+      "url": "https://github.com/garg-kunal/faq-rag-pipeline",
+      "description": "Fully local, open-source RAG pipeline built from scratch demonstrating document ingestion, vector embeddings generation, semantic search with HNSW indexing, reranking, and AI response generation locally with zero external API costs.",
+      "relevance_reason": "Directly implements all component requirements: text chunk embedding, vector indexing (HNSW), semantic search retrieval, reranking, and LLM-based question answering orchestration.",
+      "metadata": {
+        "created_at": "2026-07-06T13:59:42Z",
+        "updated_at": "2026-07-21T04:44:11Z",
+        "pushed_at": "2026-07-06T14:11:36Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 4 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-016",
+      "component_id": "COMP-005",
+      "name": "Local-RAG-Pipeline",
+      "source": "github",
+      "url": "https://github.com/Ahanaaaaaaa/Local-RAG-Pipeline",
+      "description": "End-to-end RAG pipeline for querying local PDF documents using LangChain, ChromaDB, and SentenceTransformers for semantic search, powered by a 4-bit quantized Mistral-7B-Instruct model.",
+      "relevance_reason": "Implements the full semantic search and RAG pipeline: embedding generation (SentenceTransformers), vector storage (ChromaDB), semantic search retrieval, and LLM-based question answering.",
+      "metadata": {
+        "created_at": "2026-08-13T15:23:17Z",
+        "updated_at": "2026-08-13T15:33:08Z",
+        "pushed_at": "2026-08-13T15:31:02Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 5 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-017",
+      "component_id": "COMP-006",
+      "name": "formkiq-core",
+      "source": "github",
+      "url": "https://github.com/formkiq/formkiq-core",
+      "description": "Open-source document management platform leveraging AWS managed services. RESTful API for document storage, processing, full-text search, and metadata management. Multi-tenant serverless architecture with auto-scaling deployed entirely in your AWS account.",
+      "relevance_reason": "Directly addresses document storage, metadata management, and provides RESTful API for document persistence. Mentions document storage, full-text search, and metadata management capabilities aligned with the component's core requirements.",
+      "metadata": {
+        "created_at": "2020-11-10T15:01:42Z",
+        "updated_at": "2026-08-15T15:20:09Z",
+        "pushed_at": "2026-08-26T01:32:08Z",
+        "default_branch": "master"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-018",
+      "component_id": "COMP-006",
+      "name": "Mayan-EDMS",
+      "source": "github",
+      "url": "https://github.com/ILWijewardhana/Mayan-EDMS-master",
+      "description": "Open-source electronic document management system designed for secure document storage, indexing, retrieval, and workflow automation. Offers OCR, metadata handling, version control, permissions, and robust search tools for efficient document management.",
+      "relevance_reason": "Provides secure document storage, metadata handling, version control, and permissions management. Directly relevant to persisting documents with metadata and access isolation as required by the component.",
+      "metadata": {
+        "created_at": "2026-01-07T18:21:26Z",
+        "updated_at": "2026-01-20T11:23:34Z",
+        "pushed_at": "2026-01-19T07:41:42Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 2 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-019",
+      "component_id": "COMP-006",
+      "name": "nuxeo",
+      "source": "github",
+      "url": "https://github.com/api-evangelist/nuxeo",
+      "description": "Open-source, cloud-native enterprise content management platform. Provides comprehensive REST API for managing documents, digital assets, workflows, metadata, search, batch uploads, and cloud file storage in large-scale enterprise environments.",
+      "relevance_reason": "Enterprise content management platform with REST API for document and metadata management, search capabilities, and cloud storage integration. Relevant for persisting documents and metadata with enterprise-grade features.",
+      "metadata": {
+        "created_at": "2026-06-13T15:18:28Z",
+        "updated_at": "2026-08-27T20:48:09Z",
+        "pushed_at": "2026-08-27T20:47:23Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 3 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-020",
+      "component_id": "COMP-007",
+      "name": "ai-gateway-lite",
+      "source": "github",
+      "url": "https://github.com/Gujjarshailesh/ai-gateway-lite",
+      "description": "Enterprise-grade, open-source, self-hosted AI Gateway providing one unified REST API across multiple AI providers.",
+      "relevance_reason": "Directly relevant as an enterprise REST API gateway that exposes unified REST endpoints. Matches the core function of exposing documented REST endpoints and platform integration capabilities required by COMP-007.",
+      "metadata": {
+        "created_at": "2026-07-29T05:21:43Z",
+        "updated_at": "2026-07-29T05:28:19Z",
+        "pushed_at": "2026-07-29T05:42:12Z",
+        "default_branch": "main",
+        "private": false,
+        "fork": false
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-021",
+      "component_id": "COMP-008",
+      "name": "mcp-firewall",
+      "source": "github",
+      "url": "https://github.com/ressl/mcp-firewall",
+      "description": "Open-source security gateway for AI agents with policy enforcement, threat detection, and compliance-ready audit logging for MCP and AI agent frameworks.",
+      "relevance_reason": "Directly addresses audit logging and compliance reporting. The description explicitly mentions 'compliance-ready audit logging' and is designed for security audits of AI agent actions.",
+      "metadata": {
+        "created_at": "2026-02-19T16:15:14Z",
+        "updated_at": "2026-08-27T10:04:09Z",
+        "pushed_at": "2026-08-07T11:36:50Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-022",
+      "component_id": "COMP-008",
+      "name": "mcpguard",
+      "source": "github",
+      "url": "https://github.com/GT-Projects256/mcpguard",
+      "description": "Open-source security firewall for MCP servers that scans for vulnerabilities, enforces runtime policies on AI agent tool calls, and generates compliance audit logs.",
+      "relevance_reason": "Directly records system events and agent actions with explicit mention of 'compliance audit logs' generation. Aligns with forensic analysis and compliance reporting requirements.",
+      "metadata": {
+        "created_at": "2026-05-27T05:41:04Z",
+        "updated_at": "2026-08-10T14:58:51Z",
+        "pushed_at": "2026-06-11T03:37:10Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 2 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-023",
+      "component_id": "COMP-008",
+      "name": "Aegis",
+      "source": "github",
+      "url": "https://github.com/agentlifylabs/Aegis",
+      "description": "Open-source control plane for AI agent frameworks that enforces capability policies, builds a cryptographically-linked audit log of every agent action, and enables deterministically replayable runs for debugging and compliance.",
+      "relevance_reason": "Builds cryptographically-linked audit logs of agent actions for compliance purposes. Directly addresses forensic analysis and deterministic replay for security audits.",
+      "metadata": {
+        "created_at": "2026-03-03T20:24:26Z",
+        "updated_at": "2026-05-18T05:33:30Z",
+        "pushed_at": "2026-03-03T21:05:06Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 3 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-024",
+      "component_id": "COMP-008",
+      "name": "traceprompt-node",
+      "source": "github",
+      "url": "https://github.com/traceprompt/traceprompt-node",
+      "description": "Open-source SDK that seals every LLM call and exports write-once, read-many (WORM) logs designed for auditors.",
+      "relevance_reason": "Records LLM calls and user interactions with audit-ready, tamper-proof logging (WORM format). Directly supports security audits and forensic analysis of system events.",
+      "metadata": {
+        "created_at": "2025-05-18T21:20:03Z",
+        "updated_at": "2025-11-20T03:06:12Z",
+        "pushed_at": "2025-08-31T19:37:59Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 4 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-025",
+      "component_id": "COMP-008",
+      "name": "agentic-compliance-kit",
+      "source": "github",
+      "url": "https://github.com/tarunag10/agentic-compliance-kit",
+      "description": "Open-source toolkit for compliance-oriented AI agents, audit logs, and human review flows.",
+      "relevance_reason": "Explicitly provides audit logs and compliance infrastructure for AI agents. Directly supports compliance reporting and user action recording.",
+      "metadata": {
+        "created_at": "2026-05-31T20:50:52Z",
+        "updated_at": "2026-07-04T08:22:05Z",
+        "pushed_at": "2026-07-04T08:12:03Z"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 5 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-026",
+      "component_id": "COMP-010",
+      "name": "grafana",
+      "source": "github",
+      "url": "https://github.com/grafana/grafana",
+      "description": "The open and composable observability and data visualization platform. Visualize metrics, logs, and traces from multiple sources like Prometheus, Loki, Elasticsearch, InfluxDB, Postgres and many more.",
+      "relevance_reason": "Directly relevant as a comprehensive observability and visualization platform that provides real-time dashboards for metrics, logs, and traces\u2014core capabilities for monitoring and observability dashboards. Supports system health visibility and error tracking.",
+      "metadata": {
+        "created_at": "2013-12-11T15:59:56Z",
+        "updated_at": "2026-08-28T12:05:57Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 1 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-027",
+      "component_id": "COMP-010",
+      "name": "coroot",
+      "source": "github",
+      "url": "https://github.com/coroot/coroot",
+      "description": "Coroot is an open-source observability and APM tool with AI-powered Root Cause Analysis. It combines metrics, logs, traces, continuous profiling, and SLO-based alerting with predefined dashboards and inspections.",
+      "relevance_reason": "Highly relevant as a comprehensive observability platform with predefined dashboards, metrics, logs, traces, and error alerting\u2014directly addressing document processing metrics, query performance, system health, and error tracking requirements.",
+      "metadata": {
+        "created_at": "2022-08-22T14:59:07Z",
+        "updated_at": "2026-08-27T20:39:40Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 2 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-028",
+      "component_id": "COMP-010",
+      "name": "hyperdx",
+      "source": "github",
+      "url": "https://github.com/hyperdxio/hyperdx",
+      "description": "Resolve production issues, fast. An open source observability platform unifying session replays, logs, metrics, traces and errors powered by ClickHouse and OpenTelemetry.",
+      "relevance_reason": "Relevant as an open-source observability platform that unifies logs, metrics, traces, and error tracking with real-time visibility\u2014addressing the core requirements for system health monitoring, error tracking, and performance visibility.",
+      "metadata": {
+        "created_at": "2023-09-13T00:46:19Z",
+        "updated_at": "2026-08-28T11:52:18Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 3 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-029",
+      "component_id": "COMP-010",
+      "name": "linsight",
+      "source": "github",
+      "url": "https://github.com/lindb/linsight",
+      "description": "Linsight is an open-source, comprehensive observability platform for monitoring your applications and troubleshooting issues, similar to DataDog, New Relic, Grafana and others.",
+      "relevance_reason": "Relevant as a comprehensive observability platform designed for application monitoring and troubleshooting, providing real-time visibility into metrics and system health\u2014matching requirements for performance and error tracking.",
+      "metadata": {
+        "created_at": "2023-03-14T01:09:18Z",
+        "updated_at": "2026-07-31T13:43:23Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 4 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    },
+    {
+      "id": "CAND-030",
+      "component_id": "COMP-010",
+      "name": "TelyX",
+      "source": "github",
+      "url": "https://github.com/sulthonzh/TelyX",
+      "description": "A lightweight open-source observability suite combining logs, metrics, and traces into a unified dashboard.",
+      "relevance_reason": "Relevant as a lightweight observability dashboard that unifies logs, metrics, and traces\u2014directly providing real-time visibility into system performance and error states in a single dashboard interface.",
+      "metadata": {
+        "created_at": "2024-12-13T03:30:21Z",
+        "updated_at": "2026-08-22T01:15:08Z",
+        "default_branch": "main"
+      },
+      "status": "shortlisted",
+      "shortlist_reason": "Ranked 5 (Score: 25). Signals: valid url, relevance mapped, recent activity"
+    }
+  ],
+  "evaluations": [],
+  "decisions": [],
+  "execution_plan": [
+    {
+      "step": 1,
+      "agent": "DecompositionAgent",
+      "objective": "Break down the AI document intelligence platform into discrete technical components: PDF upload/handling, OCR text extraction, secure document storage, semantic search indexing, RAG-based QA, user authentication, and REST API layer, identifying dependencies and data flows between them."
+    },
+    {
+      "step": 2,
+      "agent": "ResearchAgent",
+      "objective": "Identify open-source and public ecosystem candidates for each component (OCR engines, vector databases, embedding models, authentication frameworks, document processors, RAG orchestration tools) suitable for AWS deployment, documenting repositories, versions, licenses, and maturity indicators."
+    },
+    {
+      "step": 3,
+      "agent": "EvaluationAgent",
+      "objective": "Assess each candidate's license compatibility (permissive vs. copyleft), security posture (CVE history, maintenance status), production readiness, AWS integration, scalability constraints, and alignment with enterprise security requirements for document handling."
+    },
+    {
+      "step": 4,
+      "agent": "DecisionAgent",
+      "objective": "Determine for each component whether to REUSE an existing open-source solution as-is, ADAPT an existing solution for AWS integration, or BUILD a custom wrapper, providing rationale based on evaluation results and project constraints."
+    },
+    {
+      "step": 5,
+      "agent": "BlueprintAgent",
+      "objective": "Generate a detailed architecture blueprint specifying selected components, AWS services (S3, Lambda, RDS/DynamoDB, Cognito, API Gateway, etc.), deployment topology, data flow diagrams, integration points, security controls, and implementation sequence."
+    },
+    {
+      "step": 6,
+      "agent": "ValidationAgent",
+      "objective": "Validate that the blueprint satisfies all original requirements (PDF upload, OCR, secure storage, semantic search, RAG QA, authentication, APIs), identifies potential gaps, confirms license and security compliance, and highlights assumptions requiring stakeholder approval."
+    }
+  ],
+  "blueprint": {},
+  "validation_result": {},
+  "current_agent": "ResearchAgent",
+  "agent_history": [
+    "SupervisorAgent",
+    "DecompositionAgent",
+    "ResearchAgent"
+  ],
+  "traces": [
+    {
+      "agent_name": "ResearchAgent",
+      "status": "SUCCESS",
+      "execution_order": 1,
+      "tool_calls": [
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 2647,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "user authentication and authorization open source",
+            "limit": 10,
+            "repository": "user authentication and authorization open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 26,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 342477494,\n      \"node_id\": \"MDEwOlJlcG9zaXRvcnkzNDI0Nzc0OTQ=\",\n      \"name\": \"frontier\",\n      \"full_name\": \"raystack/frontier\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"raystack\",\n        \"id\": 4037263,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjQwMzcyNjM=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/4037263?v=4\",\n        \"url\": \"https://api.github.com/users/raystack\",\n        \"html_url\": \"https://github.com/raystack\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/raystack/frontier\",\n      \"description\": \"Frontier is an all-in-one user management platform that provides identity, access and billing management to help organizations secure their systems and data. (Open source alternative to Clerk, WorkOS)\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/raystack/frontier\",\n      \"created_at\": \"2021-02-26T05:52:53Z\",\n      \"updated_at\": \"2026-08-28T10:59:30Z\",\n      \"pushed_at\": \"2026-08-28T10:57:56Z\",\n      \"git_url\": \"git://github.com/raystack/frontier.git\",\n      \"ssh_url\": \"git@github.com:raystack/frontier.git\",\n      \"clone_url\": \"https://github.com/raystack/frontier.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 930543394,\n      \"node_id\": \"R_kgDON3b3Ig\",\n      \"name\": \"no-auth\",\n      \"full_name\": \"sagarvariya4/no-auth\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"sagarvariya4\",\n        \"id\": 77156364,\n        \"node_id\": \"MDQ6VXNlcjc3MTU2MzY0\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/77156364?v=4\",\n        \"url\": \"https://api.github.com/users/sagarvariya4\",\n        \"html_url\": \"https://github.com/sagarvariya4\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/sagarvariya4/no-auth\",\n      \"description\": \"Open-source authentication and authorization library designed to streamline SSO (Single Sign On), multi-tenancy, and centralized user management.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/sagarvariya4/no-auth\",\n      \"created_at\": \"2025-02-10T20:00:00Z\",\n      \"updated_at\": \"2026-05-07T16:58:46Z\",\n      \"pushed_at\": \"2026-05-07T16:58:39Z\",\n      \"git_url\": \"git://github.com/sagarvariya4/no-auth.git\",\n      \"ssh_url\": \"git@github.com:sagarvariya4/no-auth.git\",\n      \"clone_url\": \"https://github.com/sagarvariya4/no-auth.git\",\n      \"default_branch\": \"master\"\n    },\n    {\n      \"id\": 1047607268,\n      \"node_id\": \"R_kgDOPnE35A\",\n      \"name\": \"hello-world\",\n      \"full_name\": \"BathinaBhanukowshik/hello-world\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"BathinaBhanukowshik\",\n        \"id\": 70278761,\n        \"node_id\": \"MDQ6VXNlcjcwMjc4NzYx\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/70278761?v=4\",\n        \"url\": \"https://api.github.com/users/BathinaBhanukowshik\",\n        \"html_url\": \"https://github.com/BathinaBhanukowshik\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/BathinaBhanukowshik/hello-world\",\n      \"description\": \"An open-source API for handling user authentication and authorization.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/BathinaBhanukowshik/hello-world\",\n      \"created_at\": \"2025-08-30T19:51:12Z\",\n      \"updated_at\": \"2025-09-07T11:54:53Z\",\n      \"pushed_at\": \"2025-09-07T11:54:50Z\",\n      \"git_url\": \"git://github.com/BathinaBhanukowshik/hello-world.git\",\n      \"ssh_url\": \"git@github.com:BathinaBhanukowshik/hello-world.git\",\n      \"clone_url\": \"https://github.com/BathinaBhanukowshik/hello-world.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 921877429,\n      \"node_id\": \"R_kgDONvK7tQ\",\n      \"name\": \"userbase\",\n      \"full_name\": \"ASHISH7865/userbase\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"ASHISH7865\",\n        \"id\": 61015479,\n        \"node_id\": \"MDQ6VXNlcjYxMDE1NDc5\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/61015479?v=4\",\n        \"url\": \"https://api.github.com/users/ASHISH7865\",\n        \"html_url\": \"https://github.com/ASHISH7865\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/ASHISH7865/userbase\",\n      \"description\": \"Enterprise-grade, open-source user management system designed to simplify authentication, authorization, and user administration for modern applications\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/ASHISH7865/userbase\",\n      \"created_at\": \"2025-01-24T19:36:27Z\",\n      \"updated_at\": \"2025-01-24T19:36:37Z\",\n      \"pushed_at\": \"2025-01-24T19:36:31Z\",\n      \"git_url\": \"git://github.com/ASHISH7865/userbase.git\",\n      \"ssh_url\": \"git@github.com:ASHISH7865/userbase.git\",\n      \"clone_url\": \"https://github.com/ASHISH7865/userbase.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 490445873,\n      \"node_id\": \"R_kgDOHTucMQ\",\n      \"name\": \"EnkidoTS\",\n      \"full_name\": \"joeolaoye/EnkidoTS\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"joeolaoye\",\n        \"id\": 3473037,\n        \"node_id\": \"MDQ6VXNlcjM0NzMwMzc=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/3473037?v=4\",\n        \"url\": \"https://api.github.com/users/joeolaoye\",\n        \"html_url\": \"https://github.com/joeolaoye\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/joeolaoye/EnkidoTS\",\n      \"description\": \"An open source user management service built on FoalTS. Allows user registration, authentication, management, permissions, roles and authorization. \",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/joeolaoye/EnkidoTS\",\n      \"created_at\": \"2022-05-09T21:11:08Z\",\n      \"updated_at\": \"2022-05-09T21:18:52Z\",\n      \"pushed_at\": \"2022-05-15T11:49:55Z\",\n      \"git_url\": \"git://github.com/joeolaoye/EnkidoTS.git\",\n      \"ssh_url\": \"git@github.com:joeolaoye/EnkidoTS.git\",\n      \"clone_url\": \"https://github.com/joeolaoye/EnkidoTS.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 491649581,\n      \"node_id\": \"R_kgDOHU36LQ\",\n      \"name\": \"olympus\",\n      \"full_name\": \"lovetodream/olympus\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"lovetodream\",\n        \"id\": 38291523,\n        \"node_id\": \"MDQ6VXNlcjM4MjkxNTIz\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/38291523?v=4\",\n        \"url\": \"https://api.github.com/users/lovetodream\",\n        \"html_url\": \"https://github.com/lovetodream\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/lovetodream/olympus\",\n      \"description\": \"A open source solution for User Authentication and Authorization based on OAuth 2 and OpenID Connect with a great developer experience.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/lovetodream/olympus\",\n      \"created_at\": \"2022-05-12T19:54:14Z\",\n      \"updated_at\": \"2022-08-09T18:02:09Z\",\n      \"pushed_at\": \"2023-08-18T16:56:25Z\",\n      \"git_url\": \"git://github.com/lovetodream/olympus.git\",\n      \"ssh_url\": \"git@github.com:lovetodream/olympus.git\",\n      \"clone_url\": \"https://github.com/lovetodream/olympus.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1191565857,\n      \"node_id\": \"R_kgDORwXaIQ\",\n      \"name\": \"logto\",\n      \"full_name\": \"api-evangelist/logto\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"api-evangelist\",\n        \"id\": 3026872,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjMwMjY4NzI=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/3026872?v=4\",\n        \"url\": \"https://api.github.com/users/api-evangelist\",\n        \"html_url\": \"https://github.com/api-evangelist\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/api-evangelist/logto\",\n      \"description\": \"Logto is an open source identity infrastructure platform with authentication, authorization, user management, and multi-tenancy supporting OIDC, OAuth, and SAML.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/api-evangelist/logto\",\n      \"created_at\": \"2026-03-25T11:21:48Z\",\n      \"updated_at\": \"2026-08-27T20:41:50Z\",\n      \"pushed_at\": \"2026-08-27T20:34:24Z\",\n      \"git_url\": \"git://github.com/api-evangelist/logto.git\",\n      \"ssh_url\": \"git@github.com:api-evangelist/logto.git\",\n      \"clone_url\": \"https://github.com/api-evangelist/logto.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 838249424,\n      \"node_id\": \"R_kgDOMfar0A\",\n      \"name\": \"docker-openam\",\n      \"full_name\": \"natthasath/docker-openam\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"natthasath\",\n        \"id\": 12993625,\n        \"node_id\": \"MDQ6VXNlcjEyOTkzNjI1\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/12993625?v=4\",\n        \"url\": \"https://api.github.com/users/natthasath\",\n        \"html_url\": \"https://github.com/natthasath\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/natthasath/docker-openam\",\n      \"description\": \"OpenAM is an open-source access management solution that provides authentication, authorization, entitlement, and federation services. It enables secure access to applications and services by managing user identities and policies across diverse platforms and environments.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/natthasath/docker-openam\",\n      \"created_at\": \"2024-08-05T08:58:00Z\",\n      \"updated_at\": \"2024-08-14T03:07:18Z\",\n      \"pushed_at\": \"2024-08-14T03:07:14Z\",\n      \"git_url\": \"git://github.com/natthasath/docker-openam.git\",\n      \"ssh_url\": \"git@github.com:natthasath/docker-openam.git\",\n      \"clone_url\": \"https://github.com/natthasath/docker-openam.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1116561395,\n      \"node_id\": \"R_kgDOQo1f8w\",\n      \"name\": \"UniSecure-IAM\",\n      \"full_name\": \"ahmedmohamedbekhit1/UniSecure-IAM\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"ahmedmohamedbekhit1\",\n        \"id\": 151550843,\n        \"node_id\": \"U_kgDOCQh7ew\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/151550843?v=4\",\n        \"url\": \"https://api.github.com/users/ahmedmohamedbekhit1\",\n        \"html_url\": \"https://github.com/ahmedmohamedbekhit1\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/ahmedmohamedbekhit1/UniSecure-IAM\",\n      \"description\": \"Open-source UMS - Identity & Access Management platform powered by Keycloak. Includes secure authentication, RBAC authorization, user provisioning, and admin automation for enterprise-scale applications.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/ahmedmohamedbekhit1/UniSecure-IAM\",\n      \"created_at\": \"2025-12-15T04:03:15Z\",\n      \"updated_at\": \"2026-05-16T03:25:46Z\",\n      \"pushed_at\": \"2025-12-20T08:26:20Z\",\n      \"git_url\": \"git://github.com/ahmedmohamedbekhit1/UniSecure-IAM.git\",\n      \"ssh_url\": \"git@github.com:ahmedmohamedbekhit1/UniSecure-IAM.git\",\n      \"clone_url\": \"https://github.com/ahmedmohamedbekhit1/UniSecure-IAM.git\",\n      \"default_branch\": \"master\"\n    },\n    {\n      \"id\": 402957355,\n      \"node_id\": \"MDEwOlJlcG9zaXRvcnk0MDI5NTczNTU=\",\n      \"name\": \"blast-ON\",\n      \"full_name\": \"BabyJ723/blast-ON\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"BabyJ723\",\n        \"id\": 75758586,\n        \"node_id\": \"MDQ6VXNlcjc1NzU4NTg2\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/75758586?v=4\",\n        \"url\": \"https://api.github.com/users/BabyJ723\",\n        \"html_url\": \"https://github.com/BabyJ723\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/BabyJ723/blast-ON\",\n      \"description\": \"# Awesome Keycloak [![Awesome](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/sindresorhus/awesome)  # [<img src=\\\"https://www.keycloak.org/resources/images/keycloak_logo_480x108.png\\\">](https://github.com/thomasdarimont/awesome-keycloak)  > Carefully curated list of awesome Keycloak resources.  A curated list of resources for learning about the Open Source Identity and Access Management solution Keycloak.  Contains books, websites, blog posts, links to github Repositories.    # Contributing Contributions welcome. Add links through pull requests or create an issue to start a discussion. [Please refer to the contributing guide for details](CONTRIBUTING.md).  # Contents  * [General](#general)   * [Documentation](#docs)     * [Keycloak Website](http://www.keycloak.org)     * [Current Documentation](http://www.keycloak.org/documentation.html)     * [Archived Documentation](http://www.keycloak.org/documentation-archive.html)   * [Mailing Lists](#mailing-lists)     * [User Mailing List](#user-mailing-list)     * [Developer Mailing List](#dev-mailing-list)     * [Mailing List Search](#mailing-list-search) * [Books](#books) * [Articles](#articles) * [Talks](#talks) * [Presentations](#presentations) * [Video Playlists](#video-playlists) * [Community Extensions](#community-extensions) * [Integrations](#integrations) * [Themes](#themes) * [Docker](#docker) * [Deployment Examples](#deployment-examples) * [Example Projects](#example-projects) * [Benchmarks](#benchmarks) * [Help](#help) * [Commercial Offerings](#commercial-offerings) * [Miscellaneous](#miscellaneous)  # General  ## Documentation  *  [Keycloak Website](http://www.keycloak.org/) *  [Current Documentation](http://www.keycloak.org/documentation.html) *  [Archived Documentation](http://www.keycloak.org/documentation-archive.html) *  [Product Documentation for Red Hat Single Sign-On](https://access.redhat.com/documentation/en/red-hat-single-sign-on/)  ## Discussion Groups and Mailing Lists *  [Keycloak Users Google Group](https://groups.google.com/forum/#!forum/keycloak-user) *  [Keycloak Developers Google Group](https://groups.google.com/forum/#!forum/keycloak-dev) *  [Keycloak Discourse Group](https://keycloak.discourse.group/) *  [Keycloak Developer Chat](https://keycloak.zulipchat.com) *  [Inactive - User Mailing List](https://lists.jboss.org/mailman/listinfo/keycloak-user) *  [Inactive - Developer Mailing List](https://lists.jboss.org/mailman/listinfo/keycloak-dev) *  [Mailing List Search](http://www.keycloak.org/search) *  [Keycloak Subreddit](https://www.reddit.com/r/keycloak)  ## Books * [Keycloak - Identity and Access Management for Modern Applications](https://www.packtpub.com/product/keycloak-identity-and-access-management-for-modern-applications/9781800562493)  ## Articles *  [How to get Keycloak working with Docker](https://www.ivonet.nl/2015/05/23/Keycloak-Docker/) *  [Single-Sign-On for Microservices and/or Java EE applications with Keycloak SSO](http://www.n-k.de/2016/06/keycloak-sso-for-microservices.html) *  [Keycloak Admin Client(s) - multiple ways to manage your SSO system](http://www.n-k.de/2016/08/keycloak-admin-client.html) *  [How to get the AccessToken of Keycloak in Spring Boot and/or Java EE](http://www.n-k.de/2016/05/how-to-get-accesstoken-from-keycloak-springboot-javaee.html) *  [JWT authentication with Vert.x, Keycloak and Angular 2](http://paulbakker.io/java/jwt-keycloak-angular2/) *  [Authenticating via Kerberos with Keycloak and Windows 2008 Active Directory](http://matthewcasperson.blogspot.de/2015/07/authenticating-via-kerberos-with.html) *  [Deploying Keycloak with Ansible](https://adam.younglogic.com/2016/01/deploying-keycloak-via-ansible/) *  [Easily secure your Spring Boot applications with Keycloak](https://developers.redhat.com/blog/2017/05/25/easily-secure-your-spring-boot-applications-with-keycloak/) *  [How Red Hat re-designed its Single Sign On (SSO) architecture, and why](https://developers.redhat.com/blog/2016/10/04/how-red-hat-re-designed-its-single-sign-on-sso-architecture-and-why/) *  [OAuth2, JWT, Open-ID Connect and other confusing things](http://giallone.blogspot.de/2017/06/oath2.html) *  [X509 Authentication with Keycloak and JBoss Fuse](https://sjhiggs.github.io/fuse/sso/x509/smartcard/2017/03/29/fuse-hawtio-keycloak.html) *  [Running Keycloak on OpenShift 3](https://medium.com/@sbose78/running-keycloak-on-openshift-3-8d195c0daaf6) *  [Introducing Keycloak for Identity and Access Management](https://www.thomasvitale.com/introducing-keycloak-identity-access-management/) *  [Keycloak Basic Configuration for Authentication and Authorisation](https://www.thomasvitale.com/keycloak-configuration-authentication-authorisation/) *  [Keycloak on OpenShift Origin](https://medium.com/@james_devcomb/keycloak-on-openshift-origin-ee81d01dac97) *  [Identity Management, One-Time-Passwords and Two-Factor-Auth with Spring Boot and Keycloak](http://www.hascode.com/2017/11/identity-management-one-time-passwords-and-two-factor-auth-with-spring-boot-and-keycloak/) *  [Keycloak Identity Brokering with Openshift](https://developers.redhat.com/blog/2017/12/06/keycloak-identity-brokering-openshift/) *  [OpenID Connect Identity Brokering with Red Hat Single Sign-On](https://developers.redhat.com/blog/2017/10/18/openid-connect-identity-brokering-red-hat-single-sign/) *  [Authentication & user management is hard](https://eclipsesource.com/blogs/2018/01/11/authenticating-reverse-proxy-with-keycloak/) *  [Securing Nginx with Keycloak](https://edhull.co.uk/blog/2018-06-06/keycloak-nginx) *  [Secure kibana dashboards using keycloak](https://aboullaite.me/secure-kibana-keycloak/) *  [Configuring NGINX for OAuth/OpenID Connect SSO with Keycloak/Red Hat SSO](https://developers.redhat.com/blog/2018/10/08/configuring-nginx-keycloak-oauth-oidc/) *  [Keycloak Clustering Setup and Configuration Examples](https://github.com/fit2anything/keycloak-cluster-setup-and-configuration) *  [MicroProfile JWT with Keycloak](https://kodnito.com/posts/microprofile-jwt-with-keycloak/) *  [Keycloak Essentials](https://medium.com/keycloak/keycloak-essentials-86254b2f1872) *  [SSO-session failover with Keycloak and AWS S3](https://medium.com/@georgijsr/sso-session-failover-with-keycloak-and-aws-s3-e0b1db985e12) *  [KTOR and Keycloak: authentication with OpenId](https://medium.com/slickteam/ktor-and-keycloak-authentication-with-openid-ecd415d7a62e) * [Keycloak: Core concepts of open source identity and access management](https://developers.redhat.com/blog/2019/12/11/keycloak-core-concepts-of-open-source-identity-and-access-management) * [Who am I? Keycloak Impersonation API](https://blog.softwaremill.com/who-am-i-keycloak-impersonation-api-bfe7acaf051a) * [Setup Keycloak Server on Ubuntu 18.04](https://medium.com/@hasnat.saeed/setup-keycloak-server-on-ubuntu-18-04-ed8c7c79a2d9) * [Getting started with Keycloak](https://robferguson.org/blog/2019/12/24/getting-started-with-keycloak/) * [Angular, OpenID Connect and Keycloak](https://robferguson.org/blog/2019/12/29/angular-openid-connect-keycloak/) * [Angular, OAuth 2.0 Scopes and Keycloak](https://robferguson.org/blog/2019/12/31/angular-oauth2-keycloak/) * [Keycloak, Flowable and OpenLDAP](https://robferguson.org/blog/2020/01/03/keycloak-flowable-and-openldap/) * [How to exchange token from an external provider to a keycloak token](https://www.mathieupassenaud.fr/token-exchange-keycloak/) * [Building an Event Listener SPI (Plugin) for Keycloak](https://dev.to/adwaitthattey/building-an-event-listener-spi-plugin-for-keycloak-2044) * [Keycloak user migration \u2013 connect your legacy authentication system to Keycloak](https://codesoapbox.dev/keycloak-user-migration/) * [Keycloak Authentication and Authorization in GraphQL](https://medium.com/@darahayes/keycloak-authentication-and-authorization-in-graphql-ad0a1685f7da) * [Kong / Konga / Keycloak: securing API through OIDC](https://github.com/d4rkstar/kong-konga-keycloak) * [KeyCloak: Custom Login theme](https://codehumsafar.wordpress.com/2018/09/11/keycloak-custom-login-theme/) * [Keycloak: Use background color instead of background image in Custom Login theme](https://codehumsafar.wordpress.com/2018/09/21/keycloak-use-background-color-instead-of-background-image-in-custom-login-theme/) * [How to turn off the Keycloak theme cache](https://keycloakthemes.com/blog/how-to-turn-off-the-keycloak-theme-cache) * [How to add a custom field to the Keycloak registration page](https://keycloakthemes.com/blog/how-to-add-custom-field-keycloak-registration-page) * [How to setup Sign in with Google using Keycloak](https://keycloakthemes.com/blog/how-to-setup-sign-in-with-google-using-keycloak) * [How to sign in users on Keycloak using Github](https://keycloakthemes.com/blog/how-to-sign-in-users-on-keycloak-using-github) * [Extending Keycloak SSO Capabilities with IBM Security Verify](https://community.ibm.com/community/user/security/blogs/jason-choi1/2020/06/10/extending-keycloak-sso-capabilities-with-ibm-secur) * [AWS SAML based User Federation using Keycloak](https://medium.com/@karanbir.tech/aws-connect-saml-based-identity-provider-using-keycloak-9b3e6d0111e6) * [AWS user account OpenID federation using Keycloak](https://medium.com/@karanbir.tech/aws-account-openid-federation-using-keycloak-40d22b952a43) * [How to Run Keycloak in HA on Kubernetes](https://blog.sighup.io/keycloak-ha-on-kubernetes/) * [How to create a Keycloak authenticator as a microservice?](https://medium.com/application-security/how-to-create-a-keycloak-authenticator-as-a-microservice-ad332e287b58) * [keycloak.ch | Installing & Running Keycloak](https://keycloak.ch/keycloak-tutorials/tutorial-1-installing-and-running-keycloak/) * [keycloak.ch | Configuring Token Exchange using the CLI](https://keycloak.ch/keycloak-tutorials/tutorial-token-exchange/) * [keycloak.ch | Configuring WebAuthn](https://keycloak.ch/keycloak-tutorials/tutorial-webauthn/) * [keycloak.ch | Configuring a SwissID integration](https://keycloak.ch/keycloak-tutorials/tutorial-swissid/) * [Getting Started with Service Accounts in Keycloak](https://medium.com/@mihirrajdixit/getting-started-with-service-accounts-in-keycloak-c8f6798a0675) * [Building cloud native apps: Identity and Access Management](https://dev.to/lukaszbudnik/building-cloud-native-apps-identity-and-access-management-1e5m) * [X.509 user certificate authentication with Red Hat\u2019s single sign-on technology](https://developers.redhat.com/blog/2021/02/19/x-509-user-certificate-authentication-with-red-hats-single-sign-on-technology) * [Grafana OAuth with Keycloak and how to validate a JWT token](https://janikvonrotz.ch/2020/08/27/grafana-oauth-with-keycloak-and-how-to-validate-a-jwt-token/) * [How to setup a Keycloak server with external MySQL database on AWS ECS Fargate in clustered mode](https://jbjerksetmyr.medium.com/how-to-setup-a-keycloak-server-with-external-mysql-database-on-aws-ecs-fargate-in-clustered-mode-9775d01cd317) * [Extending Keycloak: adding API key authentication](http://www.zakariaamine.com/2019-06-14/extending-keycloak) * [Extending Keycloak: using a custom email sender](http://www.zakariaamine.com/2019-07-14/extending-keycloak2) * [Integrating Keycloak and OPA with Confluent](https://goraft.tech/2021/03/17/integrating-keycloak-and-opa-with-confluent.html) * [UMA 2.0 : User Managed Access - how to use it with bash](https://blog.please-open.it/uma/)  ## Talks *  [JDD2015 - Keycloak Open Source Identity and Access Management Solution](https://www.youtube.com/watch?v=TuEkj25lbd0) *  [2015 Using Tomcat and Keycloak in an iFrame](https://www.youtube.com/watch?v=nF_lw7uIxao) *  [2016 You've Got Microservices Now Secure Them](https://www.youtube.com/watch?v=SfVhqf-rMQY) *  [2016 Keycloak: Open Source Single Sign On - Sebastian Rose - AOE conf (german)](https://www.youtube.com/watch?v=wbKw0Bwyne4) *  [2016 S\u00e9curiser ses applications back et front facilement avec Keycloak (french)](https://www.youtube.com/watch?v=bVidgluUcg0) *  [2016 Keycloak and Red Hat Mobile Application Platform](https://www.youtube.com/watch?v=4NBgiHM5aOA) *  [2016 Easily secure your Front and back applications with KeyCloak](https://www.youtube.com/watch?v=RGp4HUKikts) *  [2017 Easily secure your Spring Boot applications with Keycloak - Part 1](https://developers.redhat.com/video/youtube/vpgRTPFDHAw/) *  [2017 Easily secure your Spring Boot applications with Keycloak - Part 2](https://developers.redhat.com/video/youtube/O5ePCWON08Y/) *  [2018 How to secure your Spring Apps with Keycloak by Thomas Darimont @ Spring I/O 2018](https://www.youtube.com/watch?v=haHFoeWUj0w) *  [2018 DevNation Live | A Deep Dive into Keycloak](https://www.youtube.com/watch?v=ZxpY_zZ52kU) *  [2018 IDM Europe: WSO2 Identity Server vs. Keycloak (Dmitry Kann)](https://www.youtube.com/watch?v=hnjBiGsEDoU) *  [2018 JPrime|Building an effective identity and access management architecture with Keycloak (Sebastien Blanc)](https://www.youtube.com/watch?v=bMqcGkCvUVQ) *  [2018 WJAX| Sichere Spring-Anwendungen mit Keycloak](https://www.youtube.com/watch?v=6Z490EMcafs) *  [2019 Spring I/O | Secure your Spring Apps with Keycloak](https://www.youtube.com/watch?v=KrOd5wIkqls) *  [2019 DevoxxFR | Maitriser sa gestion de l'identit\u00e9 avec Keycloak (L. Benoit, T. Recloux, S. Blanc)](https://www.youtube.com/watch?v=0cziL__0-K8) *  [2019 DevConf | Fine - Grained Authorization with Keycloak SSO (Marek Posolda)](https://www.youtube.com/watch?v=yosg4St0iUw) *  [2019 VoxxedDays Minsk | Bilding an effective identity and access management architecture with Keycloak (Sebastien Blanc)](https://www.youtube.com/watch?v=RupQWmYhrLA) *  [2019 Single-Sign-On Authentifizierung mit dem Keycloak Identity Provider | jambit CoffeeTalk](https://www.youtube.com/watch?v=dnY6ORaFNY8) *  [2020 Keycloak Team | Keycloak Pitch](https://www.youtube.com/watch?v=GZTN_VXjoQw) *  [2020 Keycloak Team | Keycloak Overview](https://www.youtube.com/watch?v=duawSV69LDI) *  [2020 Please-open.it : oauth2 dans le monde des ops (french)](https://www.youtube.com/watch?v=S-9X50QajmY)  ## Presentations *  [Keycloak 101](https://stevenolen.github.io/kc101-talk/#1)  ## Video Playlists *  [Keycloak Identity and Access Management by \u0141ukasz Budnik](https://www.youtube.com/playlist?list=PLPZal7ksxNs0mgScrJxrggEayV-TPZ9sA) *  [Keycloak by Niko K\u00f6bler](https://www.youtube.com/playlist?list=PLNn3plN7ZiaowUvKzKiJjYfWpp86u98iY) *  [Keycloak Playlist by hexaDefence](https://youtu.be/35bflT_zxXA) *  [Keycloak Tutorial Series by CodeLens](https://www.youtube.com/watch?v=Lr9WeIMtFow&list=PLeGNmkzI56BTjRxNGxUhh4k30FD_gy0pC)  ## Clients *  [Official Keycloak Node.js Admin Client](https://github.com/keycloak/keycloak-admin-client/) (\\\"Extremely Experimental\\\") *  [Keycloak Node.js TypeScript Admin Client by Canner](https://github.com/Canner/keycloak-admin/) *  [Keycloak Go Client by Cloudtrust](https://github.com/cloudtrust/keycloak-client) *  [Keycloak Nest.js Admin Client by Relevant Fruit](https://github.com/relevantfruit/nestjs-keycloak-admin)  ## Community Extensions *  [Keycloak Extensions List](https://www.keycloak.org/extensions.html) *  [Keycloak Benchmark Project](https://github.com/keycloak/keycloak-benchmark) *  [Keycloak: Link IdP Login with User Provider](https://github.com/ohioit/keycloak-link-idp-with-user) *  [Client Owner Manager: Control who can edit a client](https://github.com/cyclone-project/cyclone-client-registration) *  [Keyloak Proxy written in Go](https://github.com/gambol99/keycloak-proxy) *  [Script based ProtocolMapper extension for SAML](https://github.com/cloudtrust/keycloak-client-mappers) *  [Realm export REST resource by Cloudtrust](https://github.com/cloudtrust/keycloak-export) *  [Keycloak JDBC Ping Setup by moremagic](https://github.com/moremagic/keycloak-jdbc-ping) *  [SMS 2 Factor Authentication for Keycloak via AWS SNS](https://github.com/nickpack/keycloak-sms-authenticator-sns) *  [SMS 2 Factor Authentiation for Keycloak via SMS by Alliander](https://github.com/Alliander/keycloak-sms-authenticator) *  [Identity Provider for vk.com](https://github.com/mrk08/keycloak-vk) *  [CAS Protocol Support](https://github.com/Doccrazy/keycloak-protocol-cas) *  [WS-FED Support](https://github.com/cloudtrust/keycloak-wsfed) *  [Keycloak Discord Support](https://github.com/wadahiro/keycloak-discord) *  [Keycloak Login with User Attribute](https://github.com/cnieg/keycloak-login-attribute) *  [zonaut/keycloak-extensions](https://github.com/zonaut/keycloak-extensions) *  [leroyguillaume/keycloak-bcrypt](https://github.com/leroyguillaume/keycloak-bcrypt) *  [SPI Authenticator in Nodejs](https://www.npmjs.com/package/keycloak-rest-authenticator) *  [Have I Been Pwned? Keycloak Password Policy](https://github.com/alexashley/keycloak-password-policy-have-i-been-pwned) *  [Keycloak Eventlistener for Google Cloud Pub Sub](https://github.com/acesso-io/keycloak-event-listener-gcpubsub) *  [Enforcing Password policy based on attributes of User Groups](https://github.com/sayedcsekuet/keycloak-user-group-based-password-policy) *  [Verify Email with Link or Code by hokumski](https://github.com/hokumski/keycloak-verifyemailwithcode) *  [Role-based Docker registry authentication](https://github.com/lifs-tools/keycloak-docker-role-mapper) *  [SCIM for keycloak](https://github.com/Captain-P-Goldfish/scim-for-keycloak) *  [Keycloak Kafka Module](https://github.com/SnuK87/keycloak-kafka)   ## Integrations *  [Official Keycloak Node.js Connect Adapter](https://github.com/keycloak/keycloak-nodejs-connect) *  [Keycloak support for Aurelia](https://github.com/waynepennington/aurelia-keycloak) *  [Keycloak OAuth2 Auth for PHP](https://github.com/stevenmaguire/oauth2-keycloak) *  [Jenkins Keycloak Authentication Plugin](https://github.com/jenkinsci/keycloak-plugin) *  [Meteor Keycloak Accounts](https://github.com/mxab/meteor-keycloak) *  [HapiJS Keycloak Auth](https://github.com/felixheck/hapi-auth-keycloak) *  [zmartzone mod_auth_openidc for Apache 2.x](https://github.com/zmartzone/mod_auth_openidc) *  [Duo Security MFA Authentication for Keycloak](https://github.com/mulesoft-labs/keycloak-duo-spi) *  [Extension Keycloak facilitant l'utilisation de FranceConnect](https://github.com/InseeFr/Keycloak-FranceConnect) *  [Ambassador Keycloak Support](https://www.getambassador.io/reference/idp-support/keycloak/) *  [Keycloak Python Client](https://github.com/akhilputhiry/keycloak-client) *  [Keycloak Terraform Provider](https://github.com/mrparkers/terraform-provider-keycloak) *  [Keycloak ADFS OpenID Connect](https://www.michaelboeynaems.com/keycloak-ADFS-OIDC.html) *  [React/NextJS Keycloak Bindings](https://github.com/panz3r/react-keycloak) *  [Keycloak Open-Shift integration](https://github.com/keycloak/openshift-integration) *  [Keycloak, Kong and Konga setup scripts (local development)](https://github.com/JaouherK/Kong-konga-Keycloak) *  [SSO for Keycloak and Nextcloud with SAML](https://stackoverflow.com/questions/48400812/sso-with-saml-keycloak-and-nextcloud) *  [Keycloak Connect GraphQL Adapter for Node.js](https://github.com/aerogear/keycloak-connect-graphql) *  [python-keycloak](https://github.com/marcospereirampj/python-keycloak) *  [Keycloak and PrivacyId3a docker-compose (local development)](https://github.com/JaouherK/keycloak-privacyIdea) *  [Nerzal/gocloak Golang Keycloak API Package](https://github.com/Nerzal/gocloak) *  [Apple Social Identity Provider for Keycloak](https://github.com/BenjaminFavre/keycloak-apple-social-identity-provider)  ## Quick demo Videos * [Keycloak with istio envoy jwt-auth proxy](https://www.youtube.com/watch?v=wscX7JMfuBI)  ## Themes *  [Community Keycloak Ionic Theme](https://github.com/lfryc/keycloak-ionic-theme) *  [A Keycloak theme based on the AdminLTE UI library](https://github.com/MAXIMUS-DeltaWare/adminlte-keycloak-theme) *  [GOV.UK Theme](https://github.com/UKHomeOffice/keycloak-theme-govuk) *  [Carbon Design](https://github.com/httpsOmkar/carbon-keycloak-theme) *  [Modern](https://keycloakthemes.com/themes/modern) *  [Adminlte](https://git.uptic.nl/uptic-public-projects/uptic-keyclock-theme-adminlte) *  [keycloakify: Create Keycloak themes using React](https://github.com/InseeFrLab/keycloakify)  ## Docker *  [Official Keycloak Docker Images](https://github.com/jboss-dockerfiles/keycloak) *  [Keycloak Examples as Docker Image](https://hub.docker.com/r/jboss/keycloak-examples) *  [Keycloak Maven SDK for managing the entire lifecycle of your extensions with Docker](https://github.com/OpenPj/keycloak-docker-quickstart)  ## Kubernetes *  [Deprecated Keycloak Helm Chart](https://github.com/codecentric/helm-charts/tree/master/charts/keycloak) *  [codecentric Keycloak Helm Chart](https://github.com/codecentric/helm-charts/tree/master/charts/keycloak) *  [Import / Export Keycloak Config](https://gist.github.com/unguiculus/19618ef57b1863145262191944565c9d) *  [keycloak-operator](https://github.com/keycloak/keycloak-operator)  ## Tools *  [keycloakmigration: Manage your Keycloak configuration with code](https://github.com/klg71/keycloakmigration) *  [tool to autogenerate an OpenAPI Specification for Keycloak's Admin API](https://github.com/ccouzens/keycloak-openapi) *  [oidc-bash-client](https://github.com/please-openit/oidc-bash-client) *  [louketo-proxy (FKA Gatekeeper)](https://github.com/louketo/louketo-proxy) *  [keycloak-config-cli: Configuration as Code for Keycloak](https://github.com/adorsys/keycloak-config-cli) *  [Keycloak Pulumi](https://github.com/pulumi/pulumi-keycloak) *  [Keycloak on AWS](https://github.com/aws-samples/keycloak-on-aws) *  [aws-cdk construct library that allows you to create KeyCloak on AWS in TypeScript or Python](https://github.com/aws-samples/cdk-keycloak) *  [keycloak-scanner Python CLI](https://github.com/NeuronAddict/keycloak-scanner)  ## Deployment Examples * [Keycloak deployment with CDK on AWS with Fargate](https://github.com/aws-samples/cdk-keycloak)  ## Example Projects *  [Examples from Keycloak Book: Keycloak - Identity and Access Management for Modern Applications](https://github.com/PacktPublishing/Keycloak-Identity-and-Access-Management-for-Modern-Applications) *  [Official Examples](https://github.com/keycloak/keycloak/tree/master/examples) *  [Keycloak Quickstarts](https://github.com/keycloak/keycloak-quickstarts) *  [Drupal 7.0 with Keycloak](https://gist.github.com/thomasdarimont/17fa146c4fb5440d7fc2ee6322ec392d) *  [Securing Realm Resources With Custom Roles](https://github.com/dteleguin/custom-admin-roles) *  [BeerCloak: a comprehensive KeyCloak extension example](https://github.com/dteleguin/beercloak) *  [KeyCloak Extensions: Securing Realm Resources With Custom Roles](https://github.com/dteleguin/custom-admin-roles) *  [Red Hat Single Sign-On Labs](https://github.com/RedHatWorkshops/red-hat-sso) *  [Spring Boot Keycloak Tutorial](https://github.com/sebastienblanc/spring-boot-keycloak-tutorial) *  [Custom Keycloak Docker Image of Computer Science House of RIT](https://github.com/ComputerScienceHouse/keycloak-docker) *  [Example of custom password hash SPI for Keycloak](https://github.com/pavelbogomolenko/keycloak-custom-password-hash) *  [Example for a custom http-client-provider with Proxy support](https://github.com/xiaoyvr/custom-http-client-provider) *  [Monitor your keycloak with prometheus](https://github.com/larscheid-schmitzhermes/keycloak-monitoring-prometheus) *  [Custom User Storage Provider .ear with jboss-cli setup](https://github.com/thomasdarimont/keycloak-user-storage-provider-demo) *  [Keycloak - Experimental extensions by Stian Thorgersen/Keycloak](https://github.com/stianst/keycloak-experimental) *  [Securing Spring Boot Admin & Actuator Endpoints with Keycloak](https://github.com/thomasdarimont/spring-boot-admin-keycloak-example) *  [A Keycloak Mobile Implementation using Angular v4 and Ionic v3](https://github.com/tomjackman/keyonic-v2) *  [Example for Securing Apps with Keycloak on Kubernetes](https://github.com/stianst/demo-kubernetes) *  [Example for Securing AspDotNet Core Apps with Keycloak](https://github.com/thomasdarimont/kc-dnc-demo) *  [Example for passing custom URL parameters to a Keycloak theme for dynamic branding](https://github.com/dteleguin/keycloak-dynamic-branding) *  [Angular Webapp secured with Keycloak](https://github.com/CodepediaOrg/bookmarks.dev) *  [Keycloak Theme Development Kit](https://github.com/anthonny/kit-keycloak-theme) *  [Keycloak Clustering examples](https://github.com/ivangfr/keycloak-clustered) *  [Keycloak Last Login Date Event Listener](https://github.com/ThoreKr/keycloak-last-login-event-listener) *  [Keycloak Project Example (Customizations, Extensions, Configuration)](https://github.com/thomasdarimont/keycloak-project-example) *  [Example of adding API Key authentication to Keycloak](https://github.com/zak905/keycloak-api-key-demo)  ## Benchmarks *  [Gatling based Benchmark by @rvansa](https://github.com/rvansa/keycloak-benchmark)  ## Help * [Keycloak on Stackoverflow](https://stackoverflow.com/questions/tagged/keycloak)  ## Commercial Offerings *  [Red Hat Single Sign-On](https://access.redhat.com/products/red-hat-single-sign-on) *  [INTEGSOFT UNIFIED USER CREDENTIALS WITH KEYCLOAK SSO](https://www.integsoft.cz/en/sso.html#what-is-sso) *  [JIRA SSO Plugin by codecentric](https://marketplace.atlassian.com/plugins/de.codecentric.atlassian.oidc.jira-oidc-plugin/server/overview) *  [Keycloak Competence Center by Inventage AG](https://keycloak.ch/) *  [Keycloak as a Service](https://www.cloud-iam.com)  ## Miscellaneous *  [Find sites using Keycloak with google](https://www.google.de/search?q=inurl%3Aauth+inurl%3Arealms+inurl%3Aprotocol&oq=inurl%3A&client=ubuntu&sourceid=chrome&ie=UTF-8) *  [Keycloak Dev Bookmarks](http://bookmarks.dev/search?q=keycloak) - Use the tag [keycloak](https://www.bookmarks.dev/tagged/keycloak) *  [Use fail2ban to block brute-force attacks to keycloak server](https://gist.github.com/drmalex07/3eba8b98d0ac4a1e821e8e721b3e1816) *  [Pentest-Report Keycloak 8.0 Audit & Pentest 11.2019 by Cure53](https://cure53.de/pentest-report_keycloak.pdf) *  [Keycloak - CNCF Security SIG - Self Assesment](https://docs.google.com/document/d/14IIGliP3BWjdS-0wfOk3l_1AU8kyoSiLUzpPImsz4R0/edit#)  # License  [![CC0](http://mirrors.creativecommons.org/presskit/buttons/88x31/svg/cc-zero.svg)](https://creativecommons.org/publicdomain/zero/1.0/)  To the extent possible under law, [Thomas Darimont](https://github.com/thomasdarimont) has waived all copyright and related or neighboring rights to this work.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/BabyJ723/blast-ON\",\n      \"created_at\": \"2021-09-04T03:48:54Z\",\n      \"updated_at\": \"2026-08-27T10:28:37Z\",\n      \"pushed_at\": \"2021-09-04T03:48:54Z\",\n      \"git_url\": \"git://github.com/BabyJ723/blast-ON.git\",\n      \"ssh_url\": \"git@github.com:BabyJ723/blast-ON.git\",\n      \"clone_url\": \"https://github.com/BabyJ723/blast-ON.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 4073,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source user authentication and authorization alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 11,
+            "selected": 5
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 2380,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "pdf upload and ingestion service open source",
+            "limit": 10,
+            "repository": "pdf upload and ingestion service open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 0,\n  \"incomplete_results\": false,\n  \"items\": []\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 4131,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source pdf upload and ingestion service alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 1,
+            "selected": 0
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 2400,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "ocr and text extraction engine open source",
+            "limit": 10,
+            "repository": "ocr and text extraction engine open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 2,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 1059196596,\n      \"node_id\": \"R_kgDOPyIOtA\",\n      \"name\": \"AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout\",\n      \"full_name\": \"Alamaara/AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"Alamaara\",\n        \"id\": 78211323,\n        \"node_id\": \"MDQ6VXNlcjc4MjExMzIz\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/78211323?v=4\",\n        \"url\": \"https://api.github.com/users/Alamaara\",\n        \"html_url\": \"https://github.com/Alamaara\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/Alamaara/AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout\",\n      \"description\": \"Designed and built a portable assistive system for people with visual impairments using a Raspberry Pi, camera, and speaker. Combined real-time image capture with open-source Optical Character Recognition (OCR) and text-to-speech tools in Python to read printed content aloud instantly. \",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/Alamaara/AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout\",\n      \"created_at\": \"2025-09-18T06:04:29Z\",\n      \"updated_at\": \"2025-09-18T06:29:07Z\",\n      \"pushed_at\": \"2025-09-18T06:29:04Z\",\n      \"git_url\": \"git://github.com/Alamaara/AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout.git\",\n      \"ssh_url\": \"git@github.com:Alamaara/AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout.git\",\n      \"clone_url\": \"https://github.com/Alamaara/AI-Based-Text-Extraction-Engine-by-Using-Computer-vision-system-and-voice-Readout.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 858229229,\n      \"node_id\": \"R_kgDOMyeJ7Q\",\n      \"name\": \"smartdoc\",\n      \"full_name\": \"sivasaireddykk/smartdoc\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"sivasaireddykk\",\n        \"id\": 42756235,\n        \"node_id\": \"MDQ6VXNlcjQyNzU2MjM1\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/42756235?v=4\",\n        \"url\": \"https://api.github.com/users/sivasaireddykk\",\n        \"html_url\": \"https://github.com/sivasaireddykk\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/sivasaireddykk/smartdoc\",\n      \"description\": \" I have created a web-based application for text extraction using basic HTML and CSS for the frontend and Django for the backend. This project uses Tesseract, an open-source OCR engine, to extract text data from PDFs and images.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/sivasaireddykk/smartdoc\",\n      \"created_at\": \"2024-09-16T14:33:37Z\",\n      \"updated_at\": \"2024-09-16T17:59:51Z\",\n      \"pushed_at\": \"2024-09-16T17:59:48Z\",\n      \"git_url\": \"git://github.com/sivasaireddykk/smartdoc.git\",\n      \"ssh_url\": \"git@github.com:sivasaireddykk/smartdoc.git\",\n      \"clone_url\": \"https://github.com/sivasaireddykk/smartdoc.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 4179,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source ocr and text extraction engine alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 3,
+            "selected": 2
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 2647,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "text processing and chunking open source",
+            "limit": 10,
+            "repository": "text processing and chunking open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 8,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 597947,\n      \"node_id\": \"MDEwOlJlcG9zaXRvcnk1OTc5NDc=\",\n      \"name\": \"textwolf\",\n      \"full_name\": \"patrickfrey/textwolf\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"patrickfrey\",\n        \"id\": 212641,\n        \"node_id\": \"MDQ6VXNlcjIxMjY0MQ==\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/212641?v=4\",\n        \"url\": \"https://api.github.com/users/patrickfrey\",\n        \"html_url\": \"https://github.com/patrickfrey\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/patrickfrey/textwolf\",\n      \"description\": \"textwolf is a C++ template library for processing XML in various character set encodings. It has interfaces for iterating on unicode characters, XML elements and elements typed by xml path selection expression matches. It supports chunk-wise processing of input and has a peformance competitive among the fastest open source XML processors.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/patrickfrey/textwolf\",\n      \"created_at\": \"2010-04-06T22:25:57Z\",\n      \"updated_at\": \"2021-07-04T09:22:46Z\",\n      \"pushed_at\": \"2021-07-04T09:22:43Z\",\n      \"git_url\": \"git://github.com/patrickfrey/textwolf.git\",\n      \"ssh_url\": \"git@github.com:patrickfrey/textwolf.git\",\n      \"clone_url\": \"https://github.com/patrickfrey/textwolf.git\",\n      \"default_branch\": \"master\"\n    },\n    {\n      \"id\": 749582659,\n      \"node_id\": \"R_kgDOLK25Qw\",\n      \"name\": \"offline_file_translation\",\n      \"full_name\": \"thefilesareinthecomputer/offline_file_translation\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"thefilesareinthecomputer\",\n        \"id\": 123275057,\n        \"node_id\": \"U_kgDOB1kHMQ\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/123275057?v=4\",\n        \"url\": \"https://api.github.com/users/thefilesareinthecomputer\",\n        \"html_url\": \"https://github.com/thefilesareinthecomputer\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/thefilesareinthecomputer/offline_file_translation\",\n      \"description\": \"Text file language translation app that translates .txt, .csv, and .xlsx files on the local device using lightweight, open-source LLMs from Hugging Face (no internet connection needed). Uses batch processing and token chunking which provides the ability to translate large file sizes while preserving semantic meaning across paragraphs / sections.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/thefilesareinthecomputer/offline_file_translation\",\n      \"created_at\": \"2024-01-29T00:58:41Z\",\n      \"updated_at\": \"2026-06-02T18:30:08Z\",\n      \"pushed_at\": \"2026-04-17T14:07:56Z\",\n      \"git_url\": \"git://github.com/thefilesareinthecomputer/offline_file_translation.git\",\n      \"ssh_url\": \"git@github.com:thefilesareinthecomputer/offline_file_translation.git\",\n      \"clone_url\": \"https://github.com/thefilesareinthecomputer/offline_file_translation.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1209442300,\n      \"node_id\": \"R_kgDOSBaf_A\",\n      \"name\": \"Overtype\",\n      \"full_name\": \"gppsys/Overtype\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"gppsys\",\n        \"id\": 120614197,\n        \"node_id\": \"U_kgDOBzBtNQ\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/120614197?v=4\",\n        \"url\": \"https://api.github.com/users/gppsys\",\n        \"html_url\": \"https://github.com/gppsys\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/gppsys/Overtype\",\n      \"description\": \"WriteLayer is an open-source macOS app that uses a global keyboard shortcut to correct and improve selected text across applications. It supports multiple tones and includes a token-efficient chunking system to process long inputs safely and accurately.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/gppsys/Overtype\",\n      \"created_at\": \"2026-04-13T12:38:26Z\",\n      \"updated_at\": \"2026-05-18T13:59:26Z\",\n      \"pushed_at\": \"2026-05-18T13:58:22Z\",\n      \"git_url\": \"git://github.com/gppsys/Overtype.git\",\n      \"ssh_url\": \"git@github.com:gppsys/Overtype.git\",\n      \"clone_url\": \"https://github.com/gppsys/Overtype.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1061646973,\n      \"node_id\": \"R_kgDOP0dyfQ\",\n      \"name\": \"File_QA_Langchain\",\n      \"full_name\": \"Swathi-016/File_QA_Langchain\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"Swathi-016\",\n        \"id\": 218630254,\n        \"node_id\": \"U_kgDODQgIbg\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/218630254?v=4\",\n        \"url\": \"https://api.github.com/users/Swathi-016\",\n        \"html_url\": \"https://github.com/Swathi-016\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/Swathi-016/File_QA_Langchain\",\n      \"description\": \"This notebook demonstrates how to implement a file-based question-answering system using LangChain and open-source large language models (LLMs). The system allows users to query documents and receive context-aware answers. The workflow includes: - Uploading and processing documents (PDF, text, CSV, etc.) - Splitting text into chunks - Creating embe\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/Swathi-016/File_QA_Langchain\",\n      \"created_at\": \"2025-09-22T07:45:53Z\",\n      \"updated_at\": \"2025-09-22T07:47:16Z\",\n      \"pushed_at\": \"2025-09-22T07:46:43Z\",\n      \"git_url\": \"git://github.com/Swathi-016/File_QA_Langchain.git\",\n      \"ssh_url\": \"git@github.com:Swathi-016/File_QA_Langchain.git\",\n      \"clone_url\": \"https://github.com/Swathi-016/File_QA_Langchain.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1061655420,\n      \"node_id\": \"R_kgDOP0eTfA\",\n      \"name\": \"File_QA_Langchain\",\n      \"full_name\": \"abhishek-2602/File_QA_Langchain\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"abhishek-2602\",\n        \"id\": 174859874,\n        \"node_id\": \"U_kgDOCmwmYg\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/174859874?v=4\",\n        \"url\": \"https://api.github.com/users/abhishek-2602\",\n        \"html_url\": \"https://github.com/abhishek-2602\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/abhishek-2602/File_QA_Langchain\",\n      \"description\": \"This notebook demonstrates how to implement a file-based question-answering system using LangChain and open-source large language models (LLMs). The system allows users to query documents and receive context-aware answers. The workflow includes:  Uploading and processing documents (PDF, text, CSV, etc.) Splitting text into chunks Creating embedding\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/abhishek-2602/File_QA_Langchain\",\n      \"created_at\": \"2025-09-22T08:00:30Z\",\n      \"updated_at\": \"2025-09-22T08:01:40Z\",\n      \"pushed_at\": \"2025-09-22T08:01:37Z\",\n      \"git_url\": \"git://github.com/abhishek-2602/File_QA_Langchain.git\",\n      \"ssh_url\": \"git@github.com:abhishek-2602/File_QA_Langchain.git\",\n      \"clone_url\": \"https://github.com/abhishek-2602/File_QA_Langchain.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1063060243,\n      \"node_id\": \"R_kgDOP10DEw\",\n      \"name\": \"File_QA_Langchain\",\n      \"full_name\": \"Akash-201102/File_QA_Langchain\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"Akash-201102\",\n        \"id\": 175287441,\n        \"node_id\": \"U_kgDOCnKskQ\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/175287441?v=4\",\n        \"url\": \"https://api.github.com/users/Akash-201102\",\n        \"html_url\": \"https://github.com/Akash-201102\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/Akash-201102/File_QA_Langchain\",\n      \"description\": \"This notebook demonstrates how to implement a file-based question-answering system using LangChain and open-source large language models (LLMs). The system allows users to query documents and receive context-aware answers. The workflow includes: - Uploading and processing documents (PDF, text, CSV, etc.) - Splitting text into chunks - Creating embe\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/Akash-201102/File_QA_Langchain\",\n      \"created_at\": \"2025-09-24T05:45:07Z\",\n      \"updated_at\": \"2025-09-24T05:45:55Z\",\n      \"pushed_at\": \"2025-09-24T05:45:42Z\",\n      \"git_url\": \"git://github.com/Akash-201102/File_QA_Langchain.git\",\n      \"ssh_url\": \"git@github.com:Akash-201102/File_QA_Langchain.git\",\n      \"clone_url\": \"https://github.com/Akash-201102/File_QA_Langchain.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 859442292,\n      \"node_id\": \"R_kgDOMzoMdA\",\n      \"name\": \"ChatPDF\",\n      \"full_name\": \"AnkushRathour/ChatPDF\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"AnkushRathour\",\n        \"id\": 61593036,\n        \"node_id\": \"MDQ6VXNlcjYxNTkzMDM2\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/61593036?v=4\",\n        \"url\": \"https://api.github.com/users/AnkushRathour\",\n        \"html_url\": \"https://github.com/AnkushRathour\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/AnkushRathour/ChatPDF\",\n      \"description\": \"ChatPDF enables you to upload PDF files and ask questions about the content of those files using LLM, an open-source language model. The app processes PDF files, breaks the text into manageable chunks for question-answering based on the contents of the PDF.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/AnkushRathour/ChatPDF\",\n      \"created_at\": \"2024-09-18T17:05:27Z\",\n      \"updated_at\": \"2026-05-07T12:57:05Z\",\n      \"pushed_at\": \"2026-05-07T12:57:01Z\",\n      \"git_url\": \"git://github.com/AnkushRathour/ChatPDF.git\",\n      \"ssh_url\": \"git@github.com:AnkushRathour/ChatPDF.git\",\n      \"clone_url\": \"https://github.com/AnkushRathour/ChatPDF.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 408121107,\n      \"node_id\": \"MDEwOlJlcG9zaXRvcnk0MDgxMjExMDc=\",\n      \"name\": \"Sentiment_Analysis_with_Insights\",\n      \"full_name\": \"Jai-Agarwal-04/Sentiment_Analysis_with_Insights\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"Jai-Agarwal-04\",\n        \"id\": 68909767,\n        \"node_id\": \"MDQ6VXNlcjY4OTA5NzY3\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/68909767?v=4\",\n        \"url\": \"https://api.github.com/users/Jai-Agarwal-04\",\n        \"html_url\": \"https://github.com/Jai-Agarwal-04\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/Jai-Agarwal-04/Sentiment_Analysis_with_Insights\",\n      \"description\": \"Sentiment Analysis with Insights using NLP and Dash This project show the sentiment analysis of text data using NLP and Dash. I used Amazon reviews dataset to train the model and further scrap the reviews from Etsy.com in order to test my model.  Prerequisites: Python3 Amazon Dataset (3.6GB) Anaconda How this project was made? This project has been built using Python3 to help predict the sentiments with the help of Machine Learning and an interactive dashboard to test reviews. To start, I downloaded the dataset and extracted the JSON file. Next, I took out a portion of 7,92,000 reviews equally distributed into chunks of 24000 reviews using pandas. The chunks were then combined into a single CSV file called balanced_reviews.csv. This balanced_reviews.csv served as the base for training my model which was filtered on the basis of review greater than 3 and less than 3. Further, this filtered data was vectorized using TF_IDF vectorizer. After training the model to a 90% accuracy, the reviews were scrapped from Etsy.com in order to test our model. Finally, I built a dashboard in which we can check the sentiments based on input given by the user or can check the sentiments of reviews scrapped from the website. What is CountVectorizer? CountVectorizer is a great tool provided by the scikit-learn library in Python. It is used to transform a given text into a vector on the basis of the frequency (count) of each word that occurs in the entire text. This is helpful when we have multiple such texts, and we wish to convert each word in each text into vectors (for using in further text analysis).  CountVectorizer creates a matrix in which each unique word is represented by a column of the matrix, and each text sample from the document is a row in the matrix. The value of each cell is nothing but the count of the word in that particular text sample.  What is TF-IDF Vectorizer? TF-IDF stands for Term Frequency - Inverse Document Frequency and is a statistic that aims to better define how important a word is for a document, while also taking into account the relation to other documents from the same corpus.  This is performed by looking at how many times a word appears into a document while also paying attention to how many times the same word appears in other documents in the corpus.  The rationale behind this is the following:  a word that frequently appears in a document has more relevancy for that document, meaning that there is higher probability that the document is about or in relation to that specific word a word that frequently appears in more documents may prevent us from finding the right document in a collection; the word is relevant either for all documents or for none. Either way, it will not help us filter out a single document or a small subset of documents from the whole set. So then TF-IDF is a score which is applied to every word in every document in our dataset. And for every word, the TF-IDF value increases with every appearance of the word in a document, but is gradually decreased with every appearance in other documents.  What is Plotly Dash? Dash is a productive Python framework for building web analytic applications.  Written on top of Flask, Plotly.js, and React.js, Dash is ideal for building data visualization apps with highly custom user interfaces in pure Python. It's particularly suited for anyone who works with data in Python.  Dash apps are rendered in the web browser. You can deploy your apps to servers and then share them through URLs. Since Dash apps are viewed in the web browser, Dash is inherently cross-platform and mobile ready.  Dash is an open source library, released under the permissive MIT license. Plotly develops Dash and offers a platform for managing Dash apps in an enterprise environment.  What is Web Scrapping? Web scraping is a term used to describe the use of a program or algorithm to extract and process large amounts of data from the web.  Running the project Step 1:  Download the dataset and extract the JSON data in your project folder. Make a folder filtered_chunks and run the data_extraction.py file. This will extract data from the JSON file into equal sized chunks and then combine them into a single CSV file called balanced_reviews.csv. Step 2:  Run the data_cleaning_preprocessing_and_vectorizing.py file. This will clean and filter out the data. Next the filtered data will be fed to the TF-IDF Vectorizer and then the model will be pickled in a trained_model.pkl file and the Vocabulary of the trained model will be stored as vocab.pkl. Keep these two files in a folder named model_files. Step 3:  Now run the etsy_review_scrapper.py file. Adjust the range of pages and product to be scrapped as it might take a long long time to process. A small sized data is sufficient to check the accuracy of our model. The scrapped data will be stored in csv as well as db file. Step 4:  Finally, run the app.py file that will start up the Dash server and we can check the working of our model either by typing or either by selecting the preloaded scrapped reviews.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/Jai-Agarwal-04/Sentiment_Analysis_with_Insights\",\n      \"created_at\": \"2021-09-19T12:27:15Z\",\n      \"updated_at\": \"2025-10-04T16:39:53Z\",\n      \"pushed_at\": \"2021-11-14T19:35:12Z\",\n      \"git_url\": \"git://github.com/Jai-Agarwal-04/Sentiment_Analysis_with_Insights.git\",\n      \"ssh_url\": \"git@github.com:Jai-Agarwal-04/Sentiment_Analysis_with_Insights.git\",\n      \"clone_url\": \"https://github.com/Jai-Agarwal-04/Sentiment_Analysis_with_Insights.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 4136,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source text processing and chunking alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 9,
+            "selected": 4
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 1621,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "semantic search and rag pipeline open source",
+            "limit": 10,
+            "repository": "semantic search and rag pipeline open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 17,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 221654678,\n      \"node_id\": \"MDEwOlJlcG9zaXRvcnkyMjE2NTQ2Nzg=\",\n      \"name\": \"haystack\",\n      \"full_name\": \"deepset-ai/haystack\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"deepset-ai\",\n        \"id\": 51827949,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjUxODI3OTQ5\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/51827949?v=4\",\n        \"url\": \"https://api.github.com/users/deepset-ai\",\n        \"html_url\": \"https://github.com/deepset-ai\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/deepset-ai/haystack\",\n      \"description\": \"Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, memory, and generation. Built for scalable agents, RAG, multimodal applications, semantic search, and conversational systems.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/deepset-ai/haystack\",\n      \"created_at\": \"2019-11-14T09:05:28Z\",\n      \"updated_at\": \"2026-08-28T10:41:06Z\",\n      \"pushed_at\": \"2026-08-28T08:33:27Z\",\n      \"git_url\": \"git://github.com/deepset-ai/haystack.git\",\n      \"ssh_url\": \"git@github.com:deepset-ai/haystack.git\",\n      \"clone_url\": \"https://github.com/deepset-ai/haystack.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1204923732,\n      \"node_id\": \"R_kgDOR9GtVA\",\n      \"name\": \"RAG-open-source\",\n      \"full_name\": \"anupamlab/RAG-open-source\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"anupamlab\",\n        \"id\": 266246928,\n        \"node_id\": \"U_kgDOD96bEA\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/266246928?v=4\",\n        \"url\": \"https://api.github.com/users/anupamlab\",\n        \"html_url\": \"https://github.com/anupamlab\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/anupamlab/RAG-open-source\",\n      \"description\": \"\ud83d\udcc3\ud83d\udd0d RAG (Retrieval-Augmented Generation) pipeline that performs semantic vector search over multi-format documents and generates context-aware answers using LLMs, with built-in evaluation using RAGAS.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/anupamlab/RAG-open-source\",\n      \"created_at\": \"2026-04-08T13:16:15Z\",\n      \"updated_at\": \"2026-04-09T20:52:17Z\",\n      \"pushed_at\": \"2026-04-09T20:52:12Z\",\n      \"git_url\": \"git://github.com/anupamlab/RAG-open-source.git\",\n      \"ssh_url\": \"git@github.com:anupamlab/RAG-open-source.git\",\n      \"clone_url\": \"https://github.com/anupamlab/RAG-open-source.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1237927888,\n      \"node_id\": \"R_kgDOSclH0A\",\n      \"name\": \"LlamaIndex_Qdrant_Open_source_Rerank_model\",\n      \"full_name\": \"shivaniharane/LlamaIndex_Qdrant_Open_source_Rerank_model\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"shivaniharane\",\n        \"id\": 155101904,\n        \"node_id\": \"U_kgDOCT6q0A\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/155101904?v=4\",\n        \"url\": \"https://api.github.com/users/shivaniharane\",\n        \"html_url\": \"https://github.com/shivaniharane\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/shivaniharane/LlamaIndex_Qdrant_Open_source_Rerank_model\",\n      \"description\": \"Semantic search and RAG pipeline using LlamaIndex, Qdrant vector database, and open-source reranking models for improved retrieval accuracy.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/shivaniharane/LlamaIndex_Qdrant_Open_source_Rerank_model\",\n      \"created_at\": \"2026-05-13T16:36:39Z\",\n      \"updated_at\": \"2026-05-13T16:38:18Z\",\n      \"pushed_at\": \"2026-05-13T16:38:13Z\",\n      \"git_url\": \"git://github.com/shivaniharane/LlamaIndex_Qdrant_Open_source_Rerank_model.git\",\n      \"ssh_url\": \"git@github.com:shivaniharane/LlamaIndex_Qdrant_Open_source_Rerank_model.git\",\n      \"clone_url\": \"https://github.com/shivaniharane/LlamaIndex_Qdrant_Open_source_Rerank_model.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1129238180,\n      \"node_id\": \"R_kgDOQ07OpA\",\n      \"name\": \"semantic-manga-search\",\n      \"full_name\": \"MrCarri/semantic-manga-search\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"MrCarri\",\n        \"id\": 10801016,\n        \"node_id\": \"MDQ6VXNlcjEwODAxMDE2\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/10801016?v=4\",\n        \"url\": \"https://api.github.com/users/MrCarri\",\n        \"html_url\": \"https://github.com/MrCarri\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/MrCarri/semantic-manga-search\",\n      \"description\": \"A fully\u2011local, open\u2011source RAG pipeline that crawls Mangadex, embeds manga metadata with MiniLM\u2011L6\u2011v2, stores vectors in ChromaDB, and uses Ollama (llama3\u202f8B / mistral\u202f7B) to filter and generate five ranked manga recommendations\u2014all runnable on an RTX\u202f2060 (\u2264\u202f6\u202fGB VRAM).\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/MrCarri/semantic-manga-search\",\n      \"created_at\": \"2026-01-06T20:03:51Z\",\n      \"updated_at\": \"2026-01-06T22:04:58Z\",\n      \"pushed_at\": \"2026-01-06T22:04:54Z\",\n      \"git_url\": \"git://github.com/MrCarri/semantic-manga-search.git\",\n      \"ssh_url\": \"git@github.com:MrCarri/semantic-manga-search.git\",\n      \"clone_url\": \"https://github.com/MrCarri/semantic-manga-search.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1099678814,\n      \"node_id\": \"R_kgDOQYvEXg\",\n      \"name\": \"bom_rag_pipeline\",\n      \"full_name\": \"navneetdh/bom_rag_pipeline\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"navneetdh\",\n        \"id\": 87060742,\n        \"node_id\": \"MDQ6VXNlcjg3MDYwNzQy\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/87060742?v=4\",\n        \"url\": \"https://api.github.com/users/navneetdh\",\n        \"html_url\": \"https://github.com/navneetdh\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/navneetdh/bom_rag_pipeline\",\n      \"description\": \"Intelligent RAG pipeline for Bank of Maharashtra loans. Scrapes & processes official data, performs semantic search with FAISS, and answers user queries using Google Gemini AI. Fully open-source, production-ready, easy setup, and ideal for financial FAQ automation.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/navneetdh/bom_rag_pipeline\",\n      \"created_at\": \"2025-11-19T09:57:28Z\",\n      \"updated_at\": \"2025-11-19T10:00:42Z\",\n      \"pushed_at\": \"2025-11-19T10:00:39Z\",\n      \"git_url\": \"git://github.com/navneetdh/bom_rag_pipeline.git\",\n      \"ssh_url\": \"git@github.com:navneetdh/bom_rag_pipeline.git\",\n      \"clone_url\": \"https://github.com/navneetdh/bom_rag_pipeline.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1275828995,\n      \"node_id\": \"R_kgDOTAubAw\",\n      \"name\": \"quant-rag-pipeline\",\n      \"full_name\": \"HavishManthena/quant-rag-pipeline\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"HavishManthena\",\n        \"id\": 256011824,\n        \"node_id\": \"U_kgDOD0JuMA\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/256011824?v=4\",\n        \"url\": \"https://api.github.com/users/HavishManthena\",\n        \"html_url\": \"https://github.com/HavishManthena\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/HavishManthena/quant-rag-pipeline\",\n      \"description\": \"An enterprise-grade Retrieval-Augmented Generation (RAG) engine built for massive scale. Features real-time data ingestion, high-fidelity semantic search, and an advanced vector pipeline. Designed to process and synthesize complex datasets with unprecedented speed and accuracy. The ultimate open-source data intelligence and analytics hu\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/HavishManthena/quant-rag-pipeline\",\n      \"created_at\": \"2026-06-21T07:24:37Z\",\n      \"updated_at\": \"2026-06-21T07:24:42Z\",\n      \"pushed_at\": \"2026-06-21T07:24:38Z\",\n      \"git_url\": \"git://github.com/HavishManthena/quant-rag-pipeline.git\",\n      \"ssh_url\": \"git@github.com:HavishManthena/quant-rag-pipeline.git\",\n      \"clone_url\": \"https://github.com/HavishManthena/quant-rag-pipeline.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1034196858,\n      \"node_id\": \"R_kgDOPaSXeg\",\n      \"name\": \"RAG_Project_using_Langchain_OpenAI\",\n      \"full_name\": \"Kimpu77/RAG_Project_using_Langchain_OpenAI\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"Kimpu77\",\n        \"id\": 55889421,\n        \"node_id\": \"MDQ6VXNlcjU1ODg5NDIx\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/55889421?v=4\",\n        \"url\": \"https://api.github.com/users/Kimpu77\",\n        \"html_url\": \"https://github.com/Kimpu77\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/Kimpu77/RAG_Project_using_Langchain_OpenAI\",\n      \"description\": \"Built a Retrieval-Augmented Generation (RAG) chatbot using Python, LangChain, OpenAI API, and ChromaDB. Implements semantic search with OpenAI embeddings, dynamic prompts, and modular pipeline. Runs on Google Colab, handles embedding/token issues, and supports open-source fallbacks for cost efficiency.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/Kimpu77/RAG_Project_using_Langchain_OpenAI\",\n      \"created_at\": \"2025-08-08T02:30:20Z\",\n      \"updated_at\": \"2025-08-08T03:40:34Z\",\n      \"pushed_at\": \"2025-08-08T03:40:31Z\",\n      \"git_url\": \"git://github.com/Kimpu77/RAG_Project_using_Langchain_OpenAI.git\",\n      \"ssh_url\": \"git@github.com:Kimpu77/RAG_Project_using_Langchain_OpenAI.git\",\n      \"clone_url\": \"https://github.com/Kimpu77/RAG_Project_using_Langchain_OpenAI.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1333259756,\n      \"node_id\": \"R_kgDOT3ft7A\",\n      \"name\": \"Local-RAG-Pipeline\",\n      \"full_name\": \"Ahanaaaaaaa/Local-RAG-Pipeline\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"Ahanaaaaaaa\",\n        \"id\": 227196017,\n        \"node_id\": \"U_kgDODYq8cQ\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/227196017?v=4\",\n        \"url\": \"https://api.github.com/users/Ahanaaaaaaa\",\n        \"html_url\": \"https://github.com/Ahanaaaaaaa\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/Ahanaaaaaaa/Local-RAG-Pipeline\",\n      \"description\": \"An end-to-end Retrieval-Augmented Generation (RAG) pipeline built to query local PDF documents securely using open-source tools. Implements LangChain, ChromaDB, and SentenceTransformers for semantic search, powered by a 4-bit quantized Mistral-7B-Instruct model running natively on PyTorch.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/Ahanaaaaaaa/Local-RAG-Pipeline\",\n      \"created_at\": \"2026-08-13T15:23:17Z\",\n      \"updated_at\": \"2026-08-13T15:33:08Z\",\n      \"pushed_at\": \"2026-08-13T15:31:02Z\",\n      \"git_url\": \"git://github.com/Ahanaaaaaaa/Local-RAG-Pipeline.git\",\n      \"ssh_url\": \"git@github.com:Ahanaaaaaaa/Local-RAG-Pipeline.git\",\n      \"clone_url\": \"https://github.com/Ahanaaaaaaa/Local-RAG-Pipeline.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1291099082,\n      \"node_id\": \"R_kgDOTPSbyg\",\n      \"name\": \"faq-rag-pipeline\",\n      \"full_name\": \"garg-kunal/faq-rag-pipeline\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"garg-kunal\",\n        \"id\": 58477515,\n        \"node_id\": \"MDQ6VXNlcjU4NDc3NTE1\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/58477515?v=4\",\n        \"url\": \"https://api.github.com/users/garg-kunal\",\n        \"html_url\": \"https://github.com/garg-kunal\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/garg-kunal/faq-rag-pipeline\",\n      \"description\": \"A fully local, open-source Retrieval-Augmented Generation (RAG) pipeline built from scratch. This project demonstrates how to ingest documents, generate vector embeddings, perform semantic search with HNSW indexing, rerank results, and generate AI responses\u2014100% locally with zero external API costs.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/garg-kunal/faq-rag-pipeline\",\n      \"created_at\": \"2026-07-06T13:59:42Z\",\n      \"updated_at\": \"2026-07-21T04:44:11Z\",\n      \"pushed_at\": \"2026-07-06T14:11:36Z\",\n      \"git_url\": \"git://github.com/garg-kunal/faq-rag-pipeline.git\",\n      \"ssh_url\": \"git@github.com:garg-kunal/faq-rag-pipeline.git\",\n      \"clone_url\": \"https://github.com/garg-kunal/faq-rag-pipeline.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1229006966,\n      \"node_id\": \"R_kgDOSUEodg\",\n      \"name\": \"ollama-rag-notes\",\n      \"full_name\": \"AhmedTanvir26j/ollama-rag-notes\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"AhmedTanvir26j\",\n        \"id\": 281637906,\n        \"node_id\": \"U_kgDOEMl0Eg\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/281637906?v=4\",\n        \"url\": \"https://api.github.com/users/AhmedTanvir26j\",\n        \"html_url\": \"https://github.com/AhmedTanvir26j\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/AhmedTanvir26j/ollama-rag-notes\",\n      \"description\": \"Ollama-based learning repo covering RAG, embeddings, and vector search. Includes hands-on code examples, experiments, and notes for building local LLM applications, semantic search, and retrieval pipelines using open-source tools like ChromaDB and Python.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/AhmedTanvir26j/ollama-rag-notes\",\n      \"created_at\": \"2026-05-04T15:51:09Z\",\n      \"updated_at\": \"2026-05-04T15:53:40Z\",\n      \"pushed_at\": \"2026-05-04T15:53:30Z\",\n      \"git_url\": \"git://github.com/AhmedTanvir26j/ollama-rag-notes.git\",\n      \"ssh_url\": \"git@github.com:AhmedTanvir26j/ollama-rag-notes.git\",\n      \"clone_url\": \"https://github.com/AhmedTanvir26j/ollama-rag-notes.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 3011,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source semantic search and rag pipeline alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 11,
+            "selected": 5
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 1352,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "document and metadata storage open source",
+            "limit": 10,
+            "repository": "document and metadata storage open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 3,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 311693426,\n      \"node_id\": \"MDEwOlJlcG9zaXRvcnkzMTE2OTM0MjY=\",\n      \"name\": \"formkiq-core\",\n      \"full_name\": \"formkiq/formkiq-core\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"formkiq\",\n        \"id\": 17554523,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjE3NTU0NTIz\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/17554523?v=4\",\n        \"url\": \"https://api.github.com/users/formkiq\",\n        \"html_url\": \"https://github.com/formkiq\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/formkiq/formkiq-core\",\n      \"description\": \"Open-source document management platform leveraging AWS managed services. RESTful API for document storage, processing, full-text search, and metadata management. Multi-tenant serverless architecture with auto-scaling... deployed entirely in your AWS account.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/formkiq/formkiq-core\",\n      \"created_at\": \"2020-11-10T15:01:42Z\",\n      \"updated_at\": \"2026-08-15T15:20:09Z\",\n      \"pushed_at\": \"2026-08-26T01:32:08Z\",\n      \"git_url\": \"git://github.com/formkiq/formkiq-core.git\",\n      \"ssh_url\": \"git@github.com:formkiq/formkiq-core.git\",\n      \"clone_url\": \"https://github.com/formkiq/formkiq-core.git\",\n      \"default_branch\": \"master\"\n    },\n    {\n      \"id\": 1129891475,\n      \"node_id\": \"R_kgDOQ1jGkw\",\n      \"name\": \"Mayan-EDMS-master\",\n      \"full_name\": \"ILWijewardhana/Mayan-EDMS-master\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"ILWijewardhana\",\n        \"id\": 174777142,\n        \"node_id\": \"U_kgDOCmrjNg\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/174777142?v=4\",\n        \"url\": \"https://api.github.com/users/ILWijewardhana\",\n        \"html_url\": \"https://github.com/ILWijewardhana\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/ILWijewardhana/Mayan-EDMS-master\",\n      \"description\": \"Mayan EDMS is an open-source electronic document management system designed for secure document storage, indexing, retrieval, and workflow automation. It offers OCR, metadata handling, version control, permissions, and robust search tools, helping organizations manage documents efficiently and reliably.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/ILWijewardhana/Mayan-EDMS-master\",\n      \"created_at\": \"2026-01-07T18:21:26Z\",\n      \"updated_at\": \"2026-01-20T11:23:34Z\",\n      \"pushed_at\": \"2026-01-19T07:41:42Z\",\n      \"git_url\": \"git://github.com/ILWijewardhana/Mayan-EDMS-master.git\",\n      \"ssh_url\": \"git@github.com:ILWijewardhana/Mayan-EDMS-master.git\",\n      \"clone_url\": \"https://github.com/ILWijewardhana/Mayan-EDMS-master.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1268602286,\n      \"node_id\": \"R_kgDOS51Vrg\",\n      \"name\": \"nuxeo\",\n      \"full_name\": \"api-evangelist/nuxeo\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"api-evangelist\",\n        \"id\": 3026872,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjMwMjY4NzI=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/3026872?v=4\",\n        \"url\": \"https://api.github.com/users/api-evangelist\",\n        \"html_url\": \"https://github.com/api-evangelist\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/api-evangelist/nuxeo\",\n      \"description\": \"Nuxeo is an open-source, cloud-native enterprise content management platform owned by Hyland Software. It provides a comprehensive REST API for managing documents, digital assets, workflows, metadata, search, batch uploads, and cloud file storage in large-scale enterprise environments.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/api-evangelist/nuxeo\",\n      \"created_at\": \"2026-06-13T18:15:28Z\",\n      \"updated_at\": \"2026-08-27T20:48:09Z\",\n      \"pushed_at\": \"2026-08-27T20:47:23Z\",\n      \"git_url\": \"git://github.com/api-evangelist/nuxeo.git\",\n      \"ssh_url\": \"git@github.com:api-evangelist/nuxeo.git\",\n      \"clone_url\": \"https://github.com/api-evangelist/nuxeo.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 2153,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source document and metadata storage alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 4,
+            "selected": 3
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 1519,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "enterprise rest api gateway open source",
+            "limit": 10,
+            "repository": "enterprise rest api gateway open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 1,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 1315723140,\n      \"node_id\": \"R_kgDOTmxXhA\",\n      \"name\": \"ai-gateway-lite\",\n      \"full_name\": \"Gujjarshailesh/ai-gateway-lite\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"Gujjarshailesh\",\n        \"id\": 23567293,\n        \"node_id\": \"MDQ6VXNlcjIzNTY3Mjkz\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/23567293?v=4\",\n        \"url\": \"https://api.github.com/users/Gujjarshailesh\",\n        \"html_url\": \"https://github.com/Gujjarshailesh\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/Gujjarshailesh/ai-gateway-lite\",\n      \"description\": \"Enterprise-grade, open-source, self-hosted AI Gateway providing one unified REST API across multiple AI providers.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/Gujjarshailesh/ai-gateway-lite\",\n      \"created_at\": \"2026-07-29T05:21:43Z\",\n      \"updated_at\": \"2026-07-29T05:28:19Z\",\n      \"pushed_at\": \"2026-07-29T05:42:12Z\",\n      \"git_url\": \"git://github.com/Gujjarshailesh/ai-gateway-lite.git\",\n      \"ssh_url\": \"git@github.com:Gujjarshailesh/ai-gateway-lite.git\",\n      \"clone_url\": \"https://github.com/Gujjarshailesh/ai-gateway-lite.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 2426,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source enterprise rest api gateway alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 2,
+            "selected": 1
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 1800,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "audit logging and compliance open source",
+            "limit": 10,
+            "repository": "audit logging and compliance open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 17,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 1161880021,\n      \"node_id\": \"R_kgDORUDh1Q\",\n      \"name\": \"mcp-firewall\",\n      \"full_name\": \"ressl/mcp-firewall\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"ressl\",\n        \"id\": 11209641,\n        \"node_id\": \"MDQ6VXNlcjExMjA5NjQx\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/11209641?v=4\",\n        \"url\": \"https://api.github.com/users/ressl\",\n        \"html_url\": \"https://github.com/ressl\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/ressl/mcp-firewall\",\n      \"description\": \"The open-source security gateway for AI agents. Policy enforcement, threat detection, and compliance-ready audit logging for MCP and any AI agent framework. \ud83d\udee1\ufe0f\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/ressl/mcp-firewall\",\n      \"created_at\": \"2026-02-19T16:15:14Z\",\n      \"updated_at\": \"2026-08-27T10:04:09Z\",\n      \"pushed_at\": \"2026-08-07T11:36:50Z\",\n      \"git_url\": \"git://github.com/ressl/mcp-firewall.git\",\n      \"ssh_url\": \"git@github.com:ressl/mcp-firewall.git\",\n      \"clone_url\": \"https://github.com/ressl/mcp-firewall.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1216132340,\n      \"node_id\": \"R_kgDOSHy09A\",\n      \"name\": \"Open-CMMC\",\n      \"full_name\": \"TroutSoftware/Open-CMMC\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"TroutSoftware\",\n        \"id\": 93284523,\n        \"node_id\": \"O_kgDOBY9oqw\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/93284523?v=4\",\n        \"url\": \"https://api.github.com/users/TroutSoftware\",\n        \"html_url\": \"https://github.com/TroutSoftware\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/TroutSoftware/Open-CMMC\",\n      \"description\": \"Open-source reference implementations and tooling for CMMC Level 2 compliance on on-premise IT/OT environments. Covers CUI handling, USB controls, and audit logging.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/TroutSoftware/Open-CMMC\",\n      \"created_at\": \"2026-04-20T15:46:21Z\",\n      \"updated_at\": \"2026-08-14T20:50:04Z\",\n      \"pushed_at\": \"2026-04-20T20:31:27Z\",\n      \"git_url\": \"git://github.com/TroutSoftware/Open-CMMC.git\",\n      \"ssh_url\": \"git@github.com:TroutSoftware/Open-CMMC.git\",\n      \"clone_url\": \"https://github.com/TroutSoftware/Open-CMMC.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1033294575,\n      \"node_id\": \"R_kgDOPZbS7w\",\n      \"name\": \"GdprApi-Open\",\n      \"full_name\": \"HeyBaldur/GdprApi-Open\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"HeyBaldur\",\n        \"id\": 58003585,\n        \"node_id\": \"MDQ6VXNlcjU4MDAzNTg1\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/58003585?v=4\",\n        \"url\": \"https://api.github.com/users/HeyBaldur\",\n        \"html_url\": \"https://github.com/HeyBaldur\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/HeyBaldur/GdprApi-Open\",\n      \"description\": \"A community developer-friendly, open-source GDPR compliance API built with .NET 8 and MongoDB. Handle DSRs, consent, and audit logs with ease.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/HeyBaldur/GdprApi-Open\",\n      \"created_at\": \"2025-08-06T15:35:39Z\",\n      \"updated_at\": \"2025-11-14T17:43:49Z\",\n      \"pushed_at\": \"2025-08-13T09:29:34Z\",\n      \"git_url\": \"git://github.com/HeyBaldur/GdprApi-Open.git\",\n      \"ssh_url\": \"git@github.com:HeyBaldur/GdprApi-Open.git\",\n      \"clone_url\": \"https://github.com/HeyBaldur/GdprApi-Open.git\",\n      \"default_branch\": \"master\"\n    },\n    {\n      \"id\": 1240333088,\n      \"node_id\": \"R_kgDOSe37IA\",\n      \"name\": \"ai-governance-dashboard\",\n      \"full_name\": \"amiraijaz/ai-governance-dashboard\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"amiraijaz\",\n        \"id\": 77732195,\n        \"node_id\": \"MDQ6VXNlcjc3NzMyMTk1\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/77732195?v=4\",\n        \"url\": \"https://api.github.com/users/amiraijaz\",\n        \"html_url\": \"https://github.com/amiraijaz\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/amiraijaz/ai-governance-dashboard\",\n      \"description\": \"Open-source AI governance dashboard \\\"Vigil\\\" for LLM applications: model registry, audit logging, safety flagging, cost analytics, and NIST AI RMF compliance reports.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/amiraijaz/ai-governance-dashboard\",\n      \"created_at\": \"2026-05-16T02:45:53Z\",\n      \"updated_at\": \"2026-06-09T05:37:11Z\",\n      \"pushed_at\": \"2026-06-07T04:44:07Z\",\n      \"git_url\": \"git://github.com/amiraijaz/ai-governance-dashboard.git\",\n      \"ssh_url\": \"git@github.com:amiraijaz/ai-governance-dashboard.git\",\n      \"clone_url\": \"https://github.com/amiraijaz/ai-governance-dashboard.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1250953914,\n      \"node_id\": \"R_kgDOSpAKug\",\n      \"name\": \"mcpguard\",\n      \"full_name\": \"GT-Projects256/mcpguard\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"GT-Projects256\",\n        \"id\": 113315825,\n        \"node_id\": \"U_kgDOBsEP8Q\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/113315825?v=4\",\n        \"url\": \"https://api.github.com/users/GT-Projects256\",\n        \"html_url\": \"https://github.com/GT-Projects256\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/GT-Projects256/mcpguard\",\n      \"description\": \"Open-source security firewall for MCP servers. Scan for OWASP MCP Top 10 vulnerabilities, enforce runtime policies on AI agent tool calls, and generate compliance audit logs.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/GT-Projects256/mcpguard\",\n      \"created_at\": \"2026-05-27T05:41:04Z\",\n      \"updated_at\": \"2026-08-10T14:58:51Z\",\n      \"pushed_at\": \"2026-06-11T03:37:10Z\",\n      \"git_url\": \"git://github.com/GT-Projects256/mcpguard.git\",\n      \"ssh_url\": \"git@github.com:GT-Projects256/mcpguard.git\",\n      \"clone_url\": \"https://github.com/GT-Projects256/mcpguard.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 985951190,\n      \"node_id\": \"R_kgDOOsRr1g\",\n      \"name\": \"traceprompt-node\",\n      \"full_name\": \"traceprompt/traceprompt-node\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"traceprompt\",\n        \"id\": 211206896,\n        \"node_id\": \"O_kgDODJbC8A\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/211206896?v=4\",\n        \"url\": \"https://api.github.com/users/traceprompt\",\n        \"html_url\": \"https://github.com/traceprompt\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/traceprompt/traceprompt-node\",\n      \"description\": \"Traceprompt is an open-source SDK that seals every LLM call and exports write-once, read-many (WORM) logs auditors trust.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/traceprompt/traceprompt-node\",\n      \"created_at\": \"2025-05-18T21:20:03Z\",\n      \"updated_at\": \"2025-11-20T03:06:12Z\",\n      \"pushed_at\": \"2025-08-31T19:37:59Z\",\n      \"git_url\": \"git://github.com/traceprompt/traceprompt-node.git\",\n      \"ssh_url\": \"git@github.com:traceprompt/traceprompt-node.git\",\n      \"clone_url\": \"https://github.com/traceprompt/traceprompt-node.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1255446435,\n      \"node_id\": \"R_kgDOStSXow\",\n      \"name\": \"agentic-compliance-kit\",\n      \"full_name\": \"tarunag10/agentic-compliance-kit\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"tarunag10\",\n        \"id\": 13286052,\n        \"node_id\": \"MDQ6VXNlcjEzMjg2MDUy\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/13286052?v=4\",\n        \"url\": \"https://api.github.com/users/tarunag10\",\n        \"html_url\": \"https://github.com/tarunag10\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/tarunag10/agentic-compliance-kit\",\n      \"description\": \"Open-source toolkit for compliance-oriented AI agents, audit logs, and human review flows.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/tarunag10/agentic-compliance-kit\",\n      \"created_at\": \"2026-05-31T20:50:52Z\",\n      \"updated_at\": \"2026-07-04T08:22:05Z\",\n      \"pushed_at\": \"2026-07-04T08:12:03Z\",\n      \"git_url\": \"git://github.com/tarunag10/agentic-compliance-kit.git\",\n      \"ssh_url\": \"git@github.com:tarunag10/agentic-compliance-kit.git\",\n      \"clone_url\": \"https://github.com/tarunag10/agentic-compliance-kit.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1131925760,\n      \"node_id\": \"R_kgDOQ3fRAA\",\n      \"name\": \"SerpentSecurityToolkit\",\n      \"full_name\": \"BlackOussema/SerpentSecurityToolkit\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"BlackOussema\",\n        \"id\": 219826483,\n        \"node_id\": \"U_kgDODRpJMw\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/219826483?v=4\",\n        \"url\": \"https://api.github.com/users/BlackOussema\",\n        \"html_url\": \"https://github.com/BlackOussema\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/BlackOussema/SerpentSecurityToolkit\",\n      \"description\": \"A lightweight, open-source security auditing dashboard for internal network and system analysis. Features system reconnaissance, network discovery, log analysis, and encrypted LAN messaging\u2014all designed for legal compliance audits and internal security assessments.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/BlackOussema/SerpentSecurityToolkit\",\n      \"created_at\": \"2026-01-11T00:47:26Z\",\n      \"updated_at\": \"2026-05-09T12:17:07Z\",\n      \"pushed_at\": \"2026-01-12T01:56:13Z\",\n      \"git_url\": \"git://github.com/BlackOussema/SerpentSecurityToolkit.git\",\n      \"ssh_url\": \"git@github.com:BlackOussema/SerpentSecurityToolkit.git\",\n      \"clone_url\": \"https://github.com/BlackOussema/SerpentSecurityToolkit.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1099425695,\n      \"node_id\": \"R_kgDOQYfnnw\",\n      \"name\": \"COS-Blockchain-Compliance-Tracker\",\n      \"full_name\": \"cmacademyconsulting/COS-Blockchain-Compliance-Tracker\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"cmacademyconsulting\",\n        \"id\": 235180487,\n        \"node_id\": \"U_kgDODgSRxw\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/235180487?v=4\",\n        \"url\": \"https://api.github.com/users/cmacademyconsulting\",\n        \"html_url\": \"https://github.com/cmacademyconsulting\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/cmacademyconsulting/COS-Blockchain-Compliance-Tracker\",\n      \"description\": \"Ethics-first blockchain compliance tracker that logs verifiable events (Tx IDs, audit tables, DOI) to scale trust in AI governance. Open-source, audit-ready, and designed for transparency in hackathon and academic contexts.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/cmacademyconsulting/COS-Blockchain-Compliance-Tracker\",\n      \"created_at\": \"2025-11-19T01:21:16Z\",\n      \"updated_at\": \"2025-11-22T12:48:06Z\",\n      \"pushed_at\": \"2025-11-22T12:48:02Z\",\n      \"git_url\": \"git://github.com/cmacademyconsulting/COS-Blockchain-Compliance-Tracker.git\",\n      \"ssh_url\": \"git@github.com:cmacademyconsulting/COS-Blockchain-Compliance-Tracker.git\",\n      \"clone_url\": \"https://github.com/cmacademyconsulting/COS-Blockchain-Compliance-Tracker.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1171980388,\n      \"node_id\": \"R_kgDORdsAZA\",\n      \"name\": \"Aegis\",\n      \"full_name\": \"agentlifylabs/Aegis\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"agentlifylabs\",\n        \"id\": 257714367,\n        \"node_id\": \"O_kgDOD1xovw\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/257714367?v=4\",\n        \"url\": \"https://api.github.com/users/agentlifylabs\",\n        \"html_url\": \"https://github.com/agentlifylabs\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/agentlifylabs/Aegis\",\n      \"description\": \"Aegis is an open-source control plane that sits between your AI agent framework and the outside world. It enforces least-privilege capability policies, builds a cryptographically-linked audit log of every agent action, and makes every run deterministically replayable for debugging and compliance.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/agentlifylabs/Aegis\",\n      \"created_at\": \"2026-03-03T20:24:26Z\",\n      \"updated_at\": \"2026-05-18T05:33:30Z\",\n      \"pushed_at\": \"2026-03-03T21:05:06Z\",\n      \"git_url\": \"git://github.com/agentlifylabs/Aegis.git\",\n      \"ssh_url\": \"git@github.com:agentlifylabs/Aegis.git\",\n      \"clone_url\": \"https://github.com/agentlifylabs/Aegis.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 2021,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source audit logging and compliance alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 11,
+            "selected": 5
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 1604,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "workflow orchestration and async processing open source",
+            "limit": 10,
+            "repository": "workflow orchestration and async processing open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 0,\n  \"incomplete_results\": false,\n  \"items\": []\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 2418,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source workflow orchestration and async processing alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 1,
+            "selected": 0
+          }
+        },
+        {
+          "tool_name": "github.search",
+          "status": "SUCCESS",
+          "latency_ms": 1540,
+          "provider": "MCP",
+          "source": "github",
+          "arguments": {
+            "query": "monitoring and observability dashboard open source",
+            "limit": 10,
+            "repository": "monitoring and observability dashboard open source"
+          },
+          "results": [
+            "{\n  \"total_count\": 44,\n  \"incomplete_results\": false,\n  \"items\": [\n    {\n      \"id\": 15111821,\n      \"node_id\": \"MDEwOlJlcG9zaXRvcnkxNTExMTgyMQ==\",\n      \"name\": \"grafana\",\n      \"full_name\": \"grafana/grafana\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"grafana\",\n        \"id\": 7195757,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjcxOTU3NTc=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/7195757?v=4\",\n        \"url\": \"https://api.github.com/users/grafana\",\n        \"html_url\": \"https://github.com/grafana\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/grafana/grafana\",\n      \"description\": \"The open and composable observability and data visualization platform. Visualize metrics, logs, and traces from multiple sources like Prometheus, Loki, Elasticsearch, InfluxDB, Postgres and many more. \",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/grafana/grafana\",\n      \"created_at\": \"2013-12-11T15:59:56Z\",\n      \"updated_at\": \"2026-08-28T12:05:57Z\",\n      \"pushed_at\": \"2026-08-28T12:11:15Z\",\n      \"git_url\": \"git://github.com/grafana/grafana.git\",\n      \"ssh_url\": \"git@github.com:grafana/grafana.git\",\n      \"clone_url\": \"https://github.com/grafana/grafana.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 690825026,\n      \"node_id\": \"R_kgDOKS0nQg\",\n      \"name\": \"hyperdx\",\n      \"full_name\": \"hyperdxio/hyperdx\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"hyperdxio\",\n        \"id\": 130113031,\n        \"node_id\": \"O_kgDOB8FeBw\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/130113031?v=4\",\n        \"url\": \"https://api.github.com/users/hyperdxio\",\n        \"html_url\": \"https://github.com/hyperdxio\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/hyperdxio/hyperdx\",\n      \"description\": \"Resolve production issues, fast. An open source observability platform unifying session replays, logs, metrics, traces and errors powered by ClickHouse and OpenTelemetry.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/hyperdxio/hyperdx\",\n      \"created_at\": \"2023-09-13T00:46:19Z\",\n      \"updated_at\": \"2026-08-28T11:52:18Z\",\n      \"pushed_at\": \"2026-08-28T11:56:15Z\",\n      \"git_url\": \"git://github.com/hyperdxio/hyperdx.git\",\n      \"ssh_url\": \"git@github.com:hyperdxio/hyperdx.git\",\n      \"clone_url\": \"https://github.com/hyperdxio/hyperdx.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 527612250,\n      \"node_id\": \"R_kgDOH3K5Wg\",\n      \"name\": \"coroot\",\n      \"full_name\": \"coroot/coroot\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"coroot\",\n        \"id\": 66906464,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjY2OTA2NDY0\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/66906464?v=4\",\n        \"url\": \"https://api.github.com/users/coroot\",\n        \"html_url\": \"https://github.com/coroot\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/coroot/coroot\",\n      \"description\": \"Coroot is an open-source observability and APM tool with AI-powered Root Cause Analysis. It combines metrics, logs, traces, continuous profiling, and SLO-based alerting with predefined dashboards and inspections.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/coroot/coroot\",\n      \"created_at\": \"2022-08-22T14:59:07Z\",\n      \"updated_at\": \"2026-08-27T20:39:40Z\",\n      \"pushed_at\": \"2026-08-27T21:50:45Z\",\n      \"git_url\": \"git://github.com/coroot/coroot.git\",\n      \"ssh_url\": \"git@github.com:coroot/coroot.git\",\n      \"clone_url\": \"https://github.com/coroot/coroot.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1204580170,\n      \"node_id\": \"R_kgDOR8xvSg\",\n      \"name\": \"claw-lens\",\n      \"full_name\": \"msfirebird/claw-lens\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"msfirebird\",\n        \"id\": 5525046,\n        \"node_id\": \"MDQ6VXNlcjU1MjUwNDY=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/5525046?v=4\",\n        \"url\": \"https://api.github.com/users/msfirebird\",\n        \"html_url\": \"https://github.com/msfirebird\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/msfirebird/claw-lens\",\n      \"description\": \"Open-source observability dashboard for OpenClaw daemons \u2014 cost analyti cs, live monitor ing, and de bugging tools, all running on your own machine.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/msfirebird/claw-lens\",\n      \"created_at\": \"2026-04-08T06:18:49Z\",\n      \"updated_at\": \"2026-08-27T09:38:39Z\",\n      \"pushed_at\": \"2026-04-15T07:30:20Z\",\n      \"git_url\": \"git://github.com/msfirebird/claw-lens.git\",\n      \"ssh_url\": \"git@github.com:msfirebird/claw-lens.git\",\n      \"clone_url\": \"https://github.com/msfirebird/claw-lens.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1004360244,\n      \"node_id\": \"R_kgDOO91SNA\",\n      \"name\": \"OpenLLM-Monitor\",\n      \"full_name\": \"prajeesh-chavan/OpenLLM-Monitor\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"prajeesh-chavan\",\n        \"id\": 151425532,\n        \"node_id\": \"U_kgDOCQaR_A\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/151425532?v=4\",\n        \"url\": \"https://api.github.com/users/prajeesh-chavan\",\n        \"html_url\": \"https://github.com/prajeesh-chavan\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/prajeesh-chavan/OpenLLM-Monitor\",\n      \"description\": \"OpenLLM Monitor is a plug-and-play, real-time observability dashboard for monitoring and debugging LLM API calls across OpenAI, Ollama, OpenRouter, and more. Tracks tokens, latency, cost, retries, and lets you replay prompts \u2014 fully open-source and self-hostable.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/prajeesh-chavan/OpenLLM-Monitor\",\n      \"created_at\": \"2025-06-18T14:00:29Z\",\n      \"updated_at\": \"2026-07-27T06:59:43Z\",\n      \"pushed_at\": \"2026-07-07T13:02:09Z\",\n      \"git_url\": \"git://github.com/prajeesh-chavan/OpenLLM-Monitor.git\",\n      \"ssh_url\": \"git@github.com:prajeesh-chavan/OpenLLM-Monitor.git\",\n      \"clone_url\": \"https://github.com/prajeesh-chavan/OpenLLM-Monitor.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 613639981,\n      \"node_id\": \"R_kgDOJJNnLQ\",\n      \"name\": \"linsight\",\n      \"full_name\": \"lindb/linsight\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"lindb\",\n        \"id\": 11026183,\n        \"node_id\": \"MDEyOk9yZ2FuaXphdGlvbjExMDI2MTgz\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/11026183?v=4\",\n        \"url\": \"https://api.github.com/users/lindb\",\n        \"html_url\": \"https://github.com/lindb\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/lindb/linsight\",\n      \"description\": \"Linsight is an open-source, comprehensive observability platform for monitoring your applications and troubleshooting issues, similar to DataDog, New Relic, Grafana and others.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/lindb/linsight\",\n      \"created_at\": \"2023-03-14T01:09:18Z\",\n      \"updated_at\": \"2026-07-31T13:43:23Z\",\n      \"pushed_at\": \"2026-07-27T08:53:06Z\",\n      \"git_url\": \"git://github.com/lindb/linsight.git\",\n      \"ssh_url\": \"git@github.com:lindb/linsight.git\",\n      \"clone_url\": \"https://github.com/lindb/linsight.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1178052211,\n      \"node_id\": \"R_kgDORjemcw\",\n      \"name\": \"claw-insights\",\n      \"full_name\": \"LucaL6/claw-insights\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"LucaL6\",\n        \"id\": 258060157,\n        \"node_id\": \"U_kgDOD2GvfQ\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/258060157?v=4\",\n        \"url\": \"https://api.github.com/users/LucaL6\",\n        \"html_url\": \"https://github.com/LucaL6\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/LucaL6/claw-insights\",\n      \"description\": \"Open-source agent observability \u2014 session replay, metrics, and shareable snapshots for AI agent workflows\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/LucaL6/claw-insights\",\n      \"created_at\": \"2026-03-10T16:31:28Z\",\n      \"updated_at\": \"2026-05-31T17:59:42Z\",\n      \"pushed_at\": \"2026-03-24T17:48:07Z\",\n      \"git_url\": \"git://github.com/LucaL6/claw-insights.git\",\n      \"ssh_url\": \"git@github.com:LucaL6/claw-insights.git\",\n      \"clone_url\": \"https://github.com/LucaL6/claw-insights.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1089345206,\n      \"node_id\": \"R_kgDOQO4Wtg\",\n      \"name\": \"openqoe-dev\",\n      \"full_name\": \"openqoe/openqoe-dev\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"openqoe\",\n        \"id\": 221331016,\n        \"node_id\": \"O_kgDODTE-SA\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/221331016?v=4\",\n        \"url\": \"https://api.github.com/users/openqoe\",\n        \"html_url\": \"https://github.com/openqoe\",\n        \"type\": \"Organization\"\n      },\n      \"html_url\": \"https://github.com/openqoe/openqoe-dev\",\n      \"description\": \"Open-source video Quality of Experience (QoE) monitoring platform. JavaScript SDK for 5 players,   Cloudflare Worker ingestion, and production-ready Grafana dashboards. Monitor VST, rebuffering, errors, and engagement metrics at scale.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/openqoe/openqoe-dev\",\n      \"created_at\": \"2025-11-04T08:08:28Z\",\n      \"updated_at\": \"2026-04-01T23:03:48Z\",\n      \"pushed_at\": \"2026-01-31T06:54:43Z\",\n      \"git_url\": \"git://github.com/openqoe/openqoe-dev.git\",\n      \"ssh_url\": \"git@github.com:openqoe/openqoe-dev.git\",\n      \"clone_url\": \"https://github.com/openqoe/openqoe-dev.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 902675358,\n      \"node_id\": \"R_kgDONc27ng\",\n      \"name\": \"TelyX\",\n      \"full_name\": \"sulthonzh/TelyX\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"sulthonzh\",\n        \"id\": 4921059,\n        \"node_id\": \"MDQ6VXNlcjQ5MjEwNTk=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/4921059?v=4\",\n        \"url\": \"https://api.github.com/users/sulthonzh\",\n        \"html_url\": \"https://github.com/sulthonzh\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/sulthonzh/TelyX\",\n      \"description\": \"A lightweight open-source observability suite combining logs, metrics, and traces into a unified dashboard.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/sulthonzh/TelyX\",\n      \"created_at\": \"2024-12-13T03:30:21Z\",\n      \"updated_at\": \"2026-08-22T01:15:08Z\",\n      \"pushed_at\": \"2026-08-22T01:16:21Z\",\n      \"git_url\": \"git://github.com/sulthonzh/TelyX.git\",\n      \"ssh_url\": \"git@github.com:sulthonzh/TelyX.git\",\n      \"clone_url\": \"https://github.com/sulthonzh/TelyX.git\",\n      \"default_branch\": \"main\"\n    },\n    {\n      \"id\": 1209111098,\n      \"node_id\": \"R_kgDOSBGSOg\",\n      \"name\": \"clawsprawl\",\n      \"full_name\": \"johndotpub/clawsprawl\",\n      \"private\": false,\n      \"owner\": {\n        \"login\": \"johndotpub\",\n        \"id\": 3927041,\n        \"node_id\": \"MDQ6VXNlcjM5MjcwNDE=\",\n        \"avatar_url\": \"https://avatars.githubusercontent.com/u/3927041?v=4\",\n        \"url\": \"https://api.github.com/users/johndotpub\",\n        \"html_url\": \"https://github.com/johndotpub\",\n        \"type\": \"User\"\n      },\n      \"html_url\": \"https://github.com/johndotpub/clawsprawl\",\n      \"description\": \"Open\u2011source observability dashboard for OpenClaw agents and their real\u2011time signals.\",\n      \"fork\": false,\n      \"url\": \"https://api.github.com/repos/johndotpub/clawsprawl\",\n      \"created_at\": \"2026-04-13T05:25:19Z\",\n      \"updated_at\": \"2026-08-03T21:23:52Z\",\n      \"pushed_at\": \"2026-08-24T14:39:23Z\",\n      \"git_url\": \"git://github.com/johndotpub/clawsprawl.git\",\n      \"ssh_url\": \"git@github.com:johndotpub/clawsprawl.git\",\n      \"clone_url\": \"https://github.com/johndotpub/clawsprawl.git\",\n      \"default_branch\": \"main\"\n    }\n  ]\n}"
+          ]
+        },
+        {
+          "tool_name": "web.search",
+          "status": "SUCCESS",
+          "latency_ms": 2448,
+          "provider": "MCP",
+          "source": "tavily",
+          "arguments": {
+            "query": "open source monitoring and observability dashboard alternatives  for document intelligence enterprise",
+            "limit": 10
+          },
+          "results": [
+            "Tavily API error: Request failed with status code 432"
+          ]
+        },
+        {
+          "tool_name": "ResearchAgent",
+          "provider": "LLM",
+          "status": "SUCCESS",
+          "results": [],
+          "metadata": {
+            "raw_candidates": 2,
+            "deduplicated": 11,
+            "selected": 5
+          }
+        }
+      ]
+    }
+  ],
+  "retry_count": 0
+}

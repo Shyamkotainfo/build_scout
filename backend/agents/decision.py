@@ -1,0 +1,154 @@
+import json
+from utils.json_helpers import extract_json
+from typing import Any, Dict, List, Literal, Optional
+from pydantic import BaseModel, Field, model_validator
+
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from agents.state import BuildSmartState
+from config.settings import get_settings
+from llm.client import get_llm
+from llm.prompts import DECISION_SYSTEM_PROMPT
+from llm.retry import invoke_with_retry
+from agents.context import build_decision_context
+
+
+class RawDecisionResult(BaseModel):
+    """Pydantic model for the raw LLM output of a decision."""
+    component_id: str
+    decision: Literal["REUSE", "ADAPT", "BUILD"]
+    selected_candidate_id: Optional[str] = None
+    selected_candidate_name: Optional[str] = None
+    confidence: int = Field(ge=0, le=100)
+    reason: str
+    alternatives_considered: List[str] = Field(default_factory=list)
+    risks: List[str] = Field(default_factory=list)
+    implementation_notes: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_selection(self) -> "RawDecisionResult":
+        if self.decision in ("REUSE", "ADAPT"):
+            if not self.selected_candidate_id:
+                raise ValueError(f"selected_candidate_id is required for decision {self.decision}")
+        elif self.decision == "BUILD":
+            if self.selected_candidate_id is not None:
+                raise ValueError("selected_candidate_id must be null for BUILD decision")
+            if self.selected_candidate_name is not None:
+                raise ValueError("selected_candidate_name must be null for BUILD decision")
+        return self
+
+
+class RawDecisionsResponse(BaseModel):
+    """Container for multiple decisions."""
+    decisions: List[RawDecisionResult]
+
+
+class DecisionAgent:
+    """Agent responsible for deciding whether to REUSE, ADAPT, or BUILD components."""
+
+    def __init__(self):
+        self.settings = get_settings()
+        self.llm = get_llm()
+        self.llm_json = self.llm
+
+    def run(self, state: BuildSmartState) -> BuildSmartState:
+        """Process evaluations and make REUSE/ADAPT/BUILD decisions."""
+        # 1. Update status
+        state["status"] = "DECIDING"
+        state["current_agent"] = "DecisionAgent"
+        if "decisions" not in state:
+            state["decisions"] = []
+
+        components = state.get("components", [])
+        evaluations = state.get("evaluations", [])
+        evaluated_cand_ids = {ev["candidate_id"] for ev in evaluations}
+        all_candidates = state.get("candidates", [])
+        candidates = [c for c in all_candidates if c.get("id") in evaluated_cand_ids]
+        
+        # We process components individually or collectively.
+        # It's better to isolate components that have no evaluations to decide deterministically.
+        components_with_evals = []
+        final_decisions = []
+        
+        evals_by_comp = {}
+        for ev in evaluations:
+            comp_id = ev["component_id"]
+            if comp_id not in evals_by_comp:
+                evals_by_comp[comp_id] = []
+            evals_by_comp[comp_id].append(ev)
+
+        for comp in components:
+            comp_id = comp["id"]
+            if comp_id not in evals_by_comp or not evals_by_comp[comp_id]:
+                # Deterministic BUILD decision
+                final_decisions.append({
+                    "component_id": comp_id,
+                    "decision": "BUILD",
+                    "selected_candidate_id": None,
+                    "selected_candidate_name": None,
+                    "confidence": 100,
+                    "reason": "No evaluated reusable candidate is available for this component.",
+                    "alternatives_considered": [],
+                    "risks": ["Building from scratch will increase development time."],
+                    "implementation_notes": [f"Implement the {comp['name']} capability internally."]
+                })
+            else:
+                components_with_evals.append(comp)
+
+        if components_with_evals:
+            # 2. Prepare payload for the LLM for remaining components
+            payload = build_decision_context(
+                requirements=state.get("requirements", []),
+                components=components_with_evals,
+                candidates=candidates,
+                evaluations=[ev for comp in components_with_evals for ev in evals_by_comp.get(comp["id"], [])]
+            )
+
+            messages = [
+                SystemMessage(content=DECISION_SYSTEM_PROMPT),
+                HumanMessage(content=json.dumps(payload, indent=2))
+            ]
+
+            # 3. Call LLM
+            def compactor(msgs: list[Any], limit_chars: int) -> list[Any]:
+                import copy
+                new_msgs = copy.deepcopy(msgs)
+                for msg in new_msgs:
+                    if isinstance(msg, HumanMessage) and isinstance(msg.content, str):
+                        try:
+                            data = extract_json(msg.content)
+                            if "candidates" in data:
+                                for c in data["candidates"]:
+                                    if "description" in c:
+                                        c["description"] = c["description"][:100] + "..."
+                            if "evaluations" in data:
+                                for ev in data["evaluations"]:
+                                    if "missing_evidence" in ev:
+                                        ev["missing_evidence"] = []
+                            msg.content = json.dumps(data, indent=2)
+                        except Exception:
+                            pass
+                return new_msgs
+
+            response = invoke_with_retry(
+                llm_callable=self.llm_json.invoke,
+                messages=messages,
+                agent_name="DecisionAgent",
+                analysis_id=state.get("analysis_id", "unknown"),
+                context_compactor=compactor,
+                response_model=RawDecisionsResponse
+            )
+            
+            parsed_response = getattr(response, "parsed_object", None)
+            if parsed_response:
+                for raw_dec in parsed_response.decisions:
+                    final_decisions.append(raw_dec.model_dump())
+            else:
+                print("Error parsing DecisionAgent response: Empty parsed object")
+
+        # 5. Update state
+        state["decisions"] = final_decisions
+        state["status"] = "DECIDED"
+        state["agent_history"].append("DecisionAgent")
+
+        return state
