@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, AsyncMock, patch
 
 from agents.state import BuildSmartState
 from agents.blueprint import BlueprintAgent
@@ -58,7 +58,11 @@ def mock_blueprint_agent():
         "assumptions": ["Assumption 1"]
     }
     '''
+    from unittest.mock import AsyncMock
+    mock_llm.invoke = MagicMock(return_value=mock_response)
     mock_llm_json.invoke = MagicMock(return_value=mock_response)
+    mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+    mock_llm_json.ainvoke = AsyncMock(return_value=mock_response)
     mock_llm.bind.return_value = mock_llm_json
     
     with patch("agents.blueprint.get_llm", return_value=mock_llm):
@@ -117,7 +121,7 @@ def test_blueprint_agent_run_updates_state(mock_blueprint_agent):
     assert len(blueprint["technology_stack"]) == 1
     assert blueprint["technology_stack"][0]["decision"] == "REUSE"
     assert len(blueprint["components"]) == 1
-    assert blueprint["components"][0]["responsibility"] == "To test"
+    assert blueprint["components"][0]["responsibility"] == "Test description"
     assert len(blueprint["data_flow"]) == 1
     assert len(blueprint["integration_points"]) == 1
     assert len(blueprint["implementation_phases"]) == 1
@@ -156,7 +160,8 @@ def test_blueprint_agent_validation_failure(mock_blueprint_agent):
     # Provide completely invalid JSON
     mock_response = MagicMock()
     mock_response.content = 'INVALID JSON'
-    mock_blueprint_agent.llm_json.invoke = MagicMock(return_value=mock_response)
+    mock_blueprint_agent.llm.ainvoke = AsyncMock(return_value=mock_response)
+    mock_blueprint_agent.llm_json.ainvoke = AsyncMock(return_value=mock_response)
     
     initial_state = {"user_request": "test", "agent_history": []}
     final_state = mock_blueprint_agent.run(initial_state)
@@ -241,7 +246,8 @@ def test_blueprint_agent_overwrites_incorrect_reuse_summary(mock_blueprint_agent
         "assumptions": []
     }
     '''
-    mock_blueprint_agent.llm_json.invoke = MagicMock(return_value=mock_response)
+    mock_blueprint_agent.llm.ainvoke = AsyncMock(return_value=mock_response)
+    mock_blueprint_agent.llm_json.ainvoke = AsyncMock(return_value=mock_response)
     
     initial_state = {
         "user_request": "test", 

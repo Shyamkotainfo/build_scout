@@ -1,96 +1,103 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { PlusCircle, ArrowRight } from 'lucide-react';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
-import PlatformOverview from '../components/dashboard/PlatformOverview';
 import LatestAnalysisCard from '../components/dashboard/LatestAnalysisCard';
 import AgentWorkflowVisualizer from '../components/dashboard/AgentWorkflowVisualizer';
-import DecisionSummary from '../components/dashboard/DecisionSummary';
-import CandidatePreview from '../components/dashboard/CandidatePreview';
-import SystemStatusPanel from '../components/dashboard/SystemStatusPanel';
+import DecisionHighlights from '../components/dashboard/DecisionHighlights';
 import HistorySection from '../components/dashboard/HistorySection';
-import { getAnalysis, getHealth } from '../services/analysis_service';
-import { RefreshCw } from 'lucide-react';
+import { useData } from '../contexts/DataContext';
+import LoadingState from '../components/ui/LoadingState';
+import ErrorState from '../components/ui/ErrorState';
+import Button from '../components/ui/Button';
 
 const Dashboard = () => {
-  const [analysis, setAnalysis] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [healthStatus, setHealthStatus] = useState('checking');
+  const { history, currentAnalysis: analysis, isRefreshing, refreshError, lastRefreshed, refreshData } = useData();
 
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      // 1. Check health
-      await getHealth();
-      setHealthStatus('connected');
-
-      // 2. Load latest analysis from local storage
-      const latestId = localStorage.getItem('latest_analysis_id');
-      if (latestId) {
-        try {
-          const data = await getAnalysis(latestId);
-          setAnalysis(data);
-        } catch (analysisErr) {
-          console.warn('Could not load latest analysis, it may have been deleted or backend restarted', analysisErr);
-          setAnalysis(null);
-        }
-      } else {
-        setAnalysis(null);
-      }
-    } catch (err) {
-      console.error(err);
-      setHealthStatus('unavailable');
-      setError('BuildSmart backend is currently unavailable.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  if (error) {
+  if (refreshError && history.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-300">
-        <div className="bg-slate-800 border border-red-900/50 p-8 rounded-lg text-center max-w-md">
-          <h2 className="text-xl font-semibold mb-2">Connection Error</h2>
-          <p className="text-sm text-slate-400 mb-6">{error}</p>
-          <button 
-            onClick={fetchDashboardData}
-            className="inline-flex items-center rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-600 transition-colors"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Retry
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center h-full py-24 px-4">
+        <ErrorState 
+          title="No analysis history available" 
+          message="Backend is currently unavailable and no previously synchronized history is stored on this browser." 
+          onRetry={refreshData} 
+        />
       </div>
     );
   }
 
+  // Determine States
+  // It is empty if we have no history and are not actively refreshing.
+  const isEmptyState = !analysis && history.length === 0 && lastRefreshed !== null;
+  // If we haven't refreshed yet, we show the static empty state as well instead of infinite spinner.
+  const isInitialLoad = lastRefreshed === null && !isRefreshing;
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full max-w-7xl mx-auto w-full">
       <DashboardHeader />
       
-      {isLoading ? (
+      {isRefreshing && !lastRefreshed ? (
         <div className="flex-1 flex items-center justify-center">
-          <RefreshCw className="h-8 w-8 text-blue-500 animate-spin" />
+          <LoadingState message="Initializing engineering intelligence..." />
         </div>
-      ) : (
-        <div className="flex-1 grid grid-cols-1 xl:grid-cols-4 gap-6">
-          <div className="xl:col-span-3">
-            <PlatformOverview analysis={analysis} />
-            <LatestAnalysisCard analysis={analysis} />
-            <AgentWorkflowVisualizer analysis={analysis} />
-            <DecisionSummary analysis={analysis} />
-            <CandidatePreview analysis={analysis} />
+      ) : (isEmptyState || isInitialLoad) ? (
+        // GETTING STARTED EMPTY STATE
+        <div className="flex flex-col items-center justify-center py-16 px-4 bg-[var(--bs-bg-primary)] rounded-lg border border-[var(--bs-border-light)] text-center shadow-sm">
+          <h2 className="text-2xl font-bold text-[var(--bs-text-primary)] mb-4">No analyses yet</h2>
+          <p className="text-[var(--bs-text-secondary)] max-w-lg mb-8 leading-relaxed">
+            {isInitialLoad 
+              ? "Click 'Refresh Data' in the top bar to load your workspace, or start a new analysis." 
+              : "Start with a system you are planning to build. BuildScout will:"}
+          </p>
+          <div className="flex flex-col items-start text-left bg-[var(--bs-bg-secondary)] p-6 rounded-lg mb-8 w-full max-w-md border border-[var(--bs-border-light)]">
+            <ol className="space-y-4 text-sm font-medium text-[var(--bs-text-primary)]">
+              <li className="flex items-center"><span className="text-[var(--bs-orange-500)] mr-3 font-bold text-lg">1.</span> Decompose the problem</li>
+              <li className="flex items-center"><span className="text-[var(--bs-orange-500)] mr-3 font-bold text-lg">2.</span> Search existing solutions</li>
+              <li className="flex items-center"><span className="text-[var(--bs-orange-500)] mr-3 font-bold text-lg">3.</span> Evaluate evidence</li>
+              <li className="flex items-center"><span className="text-[var(--bs-orange-500)] mr-3 font-bold text-lg">4.</span> Recommend REUSE / ADAPT / BUILD</li>
+              <li className="flex items-center"><span className="text-[var(--bs-orange-500)] mr-3 font-bold text-lg">5.</span> Generate and validate an architecture</li>
+            </ol>
           </div>
           
-          <div className="xl:col-span-1 flex flex-col h-[calc(100vh-80px)] overflow-hidden">
-            {/* Sidebar info area */}
-            <SystemStatusPanel healthStatus={healthStatus} />
-            <HistorySection />
+          <div className="w-full max-w-4xl mb-10">
+            <AgentWorkflowVisualizer />
           </div>
+
+          <Link to="/new-analysis">
+            <Button variant="primary" size="lg">
+              <PlusCircle className="mr-2 h-5 w-5" aria-hidden="true" />
+              Start New Analysis
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        // DASHBOARD WITH DATA
+        <div className="flex flex-col gap-6 pb-6">
+          
+          {/* Top Row: Hero */}
+          <div className="grid grid-cols-1 gap-6 animate-fade-in-up stagger-1">
+            <div className="col-span-1">
+              <LatestAnalysisCard analysis={analysis} />
+            </div>
+          </div>
+          
+          {/* Agent Workflow (Static Visual) */}
+          <div className="animate-fade-in-up stagger-2">
+            <AgentWorkflowVisualizer />
+          </div>
+          
+          {/* Decision Highlights & History */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in-up stagger-3">
+            <DecisionHighlights analysis={analysis} />
+            <div>
+              <HistorySection 
+                history={history.filter(h => h.analysis_id !== analysis?.analysis_id && h.id !== analysis?.id)} 
+                isLoading={isRefreshing} 
+                error={refreshError} 
+              />
+            </div>
+          </div>
+          
         </div>
       )}
     </div>

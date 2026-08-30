@@ -3,6 +3,8 @@ import os
 import json
 from unittest.mock import patch, MagicMock
 
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts", "test_harnesses"))
 from run_step import mask_secrets, get_step_index, main
 
 def test_mask_secrets():

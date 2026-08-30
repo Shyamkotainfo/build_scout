@@ -56,6 +56,8 @@ class AnalysisRepository:
         comp_id_map = {}
         cand_id_map = {}
 
+        val_result = state.get("validation_result", {})
+        
         # 1. Create Analysis
         analysis = Analysis(
             id=analysis_id,
@@ -63,7 +65,10 @@ class AnalysisRepository:
             normalized_request=state.get("normalized_request", ""),
             domain=state.get("domain", ""),
             status=state.get("status", ""),
-            reuse_confidence=state.get("validation_result", {}).get("confidence_score")
+            reuse_confidence=val_result.get("confidence_score"),
+            validation_score=val_result.get("overall_score"),
+            validation_status=val_result.get("overall_status"),
+            validation_result=val_result if val_result else None
         )
         session.add(analysis)
         session.flush()
@@ -164,13 +169,18 @@ class AnalysisRepository:
             blueprint = Blueprint(
                 id=uuid.uuid4(),
                 analysis_id=analysis_id,
-                architecture=bp_data.get("architecture"),
-                component_mapping=bp_data.get("component_mapping"),
-                integration_flow=bp_data.get("integration_flow"),
-                data_flow=bp_data.get("data_flow"),
-                api_interfaces=bp_data.get("api_interfaces"),
-                technology_stack=bp_data.get("technology_stack"),
-                implementation_phases=bp_data.get("implementation_phases")
+                architecture={
+                    "solution_summary": bp_data.get("solution_summary", ""),
+                    "architecture_style": bp_data.get("architecture_style", "")
+                },
+                component_mapping={
+                    "components": bp_data.get("components", [])
+                },
+                integration_flow=bp_data.get("integration_points", []),
+                data_flow=bp_data.get("data_flow", []),
+                api_interfaces={},
+                technology_stack=bp_data.get("technology_stack", []),
+                implementation_phases=bp_data.get("implementation_phases", [])
             )
             session.add(blueprint)
 
@@ -400,9 +410,16 @@ class AnalysisRepository:
         evaluations_orm = self.get_evaluations(session, analysis_id)
         eval_list = [
             {
+                "candidate_id": str(e.candidate_id) if e.candidate_id else "",
                 "candidate_name": cand_map.get(str(e.candidate_id), "Unknown"),
                 "component_id": str(e.candidate.component_id) if e.candidate else "",
-                "score": int(e.overall_score or 0),
+                "relevance_score": None,
+                "compatibility_score": int(e.compatibility_score) if e.compatibility_score is not None else None,
+                "project_health_score": int(e.health_score) if e.health_score is not None else None,
+                "license_score": int(e.license_score) if e.license_score is not None else None,
+                "security_score": int(e.security_score) if e.security_score is not None else None,
+                "maintainability_score": int(e.maintenance_score) if e.maintenance_score is not None else None,
+                "overall_score": int(e.overall_score or 0),
                 "reasoning": e.rationale or "",
                 "concerns": [],
                 "missing_evidence": [],
@@ -415,6 +432,7 @@ class AnalysisRepository:
             {
                 "component_id": str(d.component_id) if d.component_id else "",
                 "decision": d.decision or "",
+                "selected_candidate_id": str(d.candidate_id) if d.candidate_id else None,
                 "selected_candidate_name": cand_map.get(str(d.candidate_id)) if d.candidate_id else None,
                 "confidence": float(d.confidence or 0),
                 "reason": d.rationale or "",
@@ -431,13 +449,21 @@ class AnalysisRepository:
                 "solution_summary": (blueprint.architecture or {}).get("solution_summary", "") if blueprint.architecture else "",
                 "architecture_style": (blueprint.architecture or {}).get("architecture_style", "") if blueprint.architecture else "",
                 "components": (blueprint.component_mapping or {}).get("components", []) if blueprint.component_mapping else [],
-                "reuse_summary": {"REUSE": [], "ADAPT": [], "BUILD": []},
+                "reuse_summary": {"reuse": [], "adapt": [], "build": []},
                 "data_flow": blueprint.data_flow if isinstance(blueprint.data_flow, list) else [],
                 "integration_points": (blueprint.integration_flow or []) if isinstance(blueprint.integration_flow, list) else [],
                 "implementation_phases": blueprint.implementation_phases if isinstance(blueprint.implementation_phases, list) else [],
                 "assumptions": [],
                 "risks": [],
             }
+
+        # Fetch LLM Metrics to calculate per-agent metrics
+        llm_calls = self.get_llm_calls(session, analysis_id)
+        llm_calls_by_agent = {}
+        for c in llm_calls:
+            if c.agent_name not in llm_calls_by_agent:
+                llm_calls_by_agent[c.agent_name] = []
+            llm_calls_by_agent[c.agent_name].append(c)
 
         # Agent trace → agent_history string list and traces list
         agent_history = []
@@ -457,15 +483,35 @@ class AnalysisRepository:
                     "latency_ms": tc.latency_ms or 0
                 })
                 
+            # Compute agent-specific metrics
+            agent_llm_calls = llm_calls_by_agent.get(run.agent_name, [])
+            llm_calls_count = len(agent_llm_calls)
+            total_tokens = sum(c.total_tokens or 0 for c in agent_llm_calls)
+            input_tokens = sum(c.input_tokens or 0 for c in agent_llm_calls)
+            output_tokens = sum(c.output_tokens or 0 for c in agent_llm_calls)
+            retry_count = sum(1 for c in agent_llm_calls if (c.attempt or 1) > 1)
+            
+            agent_llm_latency = sum(c.latency_ms or 0 for c in agent_llm_calls)
+            agent_tool_latency = sum(tc.latency_ms or 0 for tc in run.tool_calls)
+            duration_ms = agent_llm_latency + agent_tool_latency
+                
             traces.append({
                 "agent_name": run.agent_name or "Unknown",
                 "status": run.status or "COMPLETED",
                 "execution_order": idx + 1,
+                "started_at": run.started_at.isoformat() if run.started_at else None,
+                "completed_at": run.completed_at.isoformat() if run.completed_at else None,
+                "duration_ms": duration_ms if duration_ms > 0 else None,
+                "llm_calls_count": llm_calls_count,
+                "total_tokens": total_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "retry_count": retry_count,
+                "error_message": str(run.output.get("error")) if isinstance(run.output, dict) and run.output.get("error") else None,
                 "tool_calls": tool_calls_list
             })
 
-        # LLM Metrics
-        llm_calls = self.get_llm_calls(session, analysis_id)
+        # LLM Metrics (already fetched above)
         llm_metrics = {
             "total_calls": len(llm_calls),
             "successful_calls": sum(1 for c in llm_calls if c.status == "SUCCESS"),
@@ -495,13 +541,15 @@ class AnalysisRepository:
             "normalized_request": analysis.normalized_request or "",
             "domain": analysis.domain or "",
             "status": analysis.status or "",
+            "created_at": analysis.created_at.isoformat() if analysis.created_at else None,
+            "updated_at": analysis.updated_at.isoformat() if analysis.updated_at else None,
             "requirements": req_list,
             "components": comp_list,
             "candidates": cand_list,
             "evaluations": eval_list,
             "decisions": dec_list,
             "blueprint": bp_dict,
-            "validation_result": None,
+            "validation_result": analysis.validation_result,
             "agent_history": agent_history,
             "traces": traces,
             "llm_metrics": llm_metrics if llm_calls else None

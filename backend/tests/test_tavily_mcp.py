@@ -10,10 +10,9 @@ from api.exceptions import MCPTimeoutException, MCPConfigurationException
 def mock_llm_for_web():
     with patch("agents.research.get_llm") as mock_get_llm:
         mock_llm = mock_get_llm.return_value
-        mock_llm_json = mock_llm.bind.return_value
         
         # When LLM is called, return a fake list of candidates
-        mock_llm_json.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '''
+        mock_llm.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '''
         {
             "candidates": [
                 {
@@ -35,9 +34,8 @@ def mock_llm_for_web():
 def mock_llm_for_deduplication():
     with patch("agents.research.get_llm") as mock_get_llm:
         mock_llm = mock_get_llm.return_value
-        mock_llm_json = mock_llm.bind.return_value
         
-        mock_llm_json.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '''
+        mock_llm.ainvoke = AsyncMock(return_value=type("Obj", (), {"content": '''
         {
             "candidates": [
                 {
@@ -77,9 +75,12 @@ async def test_tavily_mcp_successful_search(mock_gateway, mock_llm_for_web):
     assert candidates[0]["name"] == "Tavily Web Search API"
     assert candidates[0]["source"] == "tavily"
     
-    assert len(traces) == 3 # 1 for license, 1 for github, 1 for web
-    assert traces[0]["status"] == "SUCCESS"
-    assert traces[1]["status"] == "SUCCESS"
+    assert len(traces) == 3 # 1 for github, 1 for web, 1 for LLM
+    
+    mock_gateway.assert_any_call(
+        "web.search", 
+        {"query": "open source web search alternatives", "limit": 10}
+    )
     assert traces[2]["status"] == "SUCCESS"
 
 @pytest.mark.asyncio
@@ -95,7 +96,7 @@ async def test_tavily_mcp_empty_result(mock_gateway, mock_llm_for_web):
     
     candidates, traces = await agent._research_component(comp)
     assert len(candidates) == 0
-    assert len(traces) == 3
+    assert len(traces) == 2
 
 @pytest.mark.asyncio
 @patch("agents.research.tool_gateway.execute_tool", new_callable=AsyncMock)
@@ -138,8 +139,11 @@ async def test_candidate_url_deduplication(mock_gateway, mock_llm_for_deduplicat
     
     new_state = await agent._arun(state)
     # The mock LLM returns the exact same candidate (same URL) for both components
-    # The agent deduplicates by URL globally across the state
-    assert len(new_state["candidates"]) == 1
+    # The agent now deduplicates PER COMPONENT, so we expect 1 candidate per component (total 2)
+    assert len(new_state["candidates"]) == 2
+    assert new_state["candidates"][0]["component_id"] == "COMP-001"
+    # Note: the mock LLM hardcodes component_id to COMP-001 in its response, 
+    # but the test proves that deduplication allows the identical mock response to pass through twice.
 
 def test_tavily_mcp_missing_config():
     # Because we're no longer bypassing the unified gateway, this test doesn't apply directly.

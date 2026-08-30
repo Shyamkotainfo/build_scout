@@ -60,9 +60,9 @@ def test_candidate_serialization():
 
 def test_evaluation_serialization():
     eval_res = EvaluationResponse(
-        candidate_name="react", component_id="C1", score=90, reasoning="good", concerns=[], missing_evidence=[]
+        candidate_id="CAND-1", candidate_name="react", component_id="C1", overall_score=90, reasoning="good", concerns=[], missing_evidence=[]
     )
-    assert eval_res.model_dump()["score"] == 90
+    assert eval_res.model_dump()["overall_score"] == 90
 
 def test_decision_serialization():
     dec = DecisionResponse(

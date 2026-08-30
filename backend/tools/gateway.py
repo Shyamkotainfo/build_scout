@@ -1,6 +1,8 @@
 import abc
 import time
 import logging
+import hashlib
+import json
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 
@@ -297,7 +299,61 @@ class EvidenceGetTool(BuildSmartTool):
         return {"evidence": _EVIDENCE_STORE.get(cand_id, [])}
 
 
+
+# --- In-Memory Caching ---
+
+class ToolCacheEntry:
+    def __init__(self, data: dict, ttl_seconds: int):
+        self.data = data
+        now = datetime.now(timezone.utc)
+        self.timestamp = now.isoformat()
+        self.expires_at = now.timestamp() + ttl_seconds
+
+class ToolCache:
+    def __init__(self):
+        self._store = {}
+        # TTL Rules (in seconds)
+        self.ttl_rules = {
+            "security.get": 3600,             # 1 hour
+            "github.repository": 21600,       # 6 hours
+            "package.metadata": 21600,        # 6 hours
+            "github.search": 86400,           # 24 hours
+            "web.search": 86400,              # 24 hours
+            "license.get": 86400,             # 24 hours
+            "aws.documentation": 604800,      # 7 days
+            "cloud.architecture": 604800,     # 7 days
+        }
+        
+    def _get_ttl(self, tool_name: str) -> int:
+        return self.ttl_rules.get(tool_name, 3600)
+        
+    def get_cache_key(self, tool_name: str, arguments: dict) -> str:
+        try:
+            args_str = json.dumps(arguments, sort_keys=True)
+            hashed_args = hashlib.sha256(args_str.encode('utf-8')).hexdigest()
+            return f"{tool_name}:{hashed_args}"
+        except Exception:
+            return ""
+            
+    def get(self, key: str):
+        if not key:
+            return None
+        if key in self._store:
+            entry = self._store[key]
+            if time.time() < entry.expires_at:
+                return entry
+            else:
+                del self._store[key]
+        return None
+        
+    def set(self, key: str, data: dict, tool_name: str):
+        if not key:
+            return
+        ttl = self._get_ttl(tool_name)
+        self._store[key] = ToolCacheEntry(data, ttl)
+
 # --- Unified Tool Gateway ---
+
 
 class UnifiedToolGateway:
     """
@@ -307,6 +363,7 @@ class UnifiedToolGateway:
     """
     def __init__(self):
         self._tools: Dict[str, BuildSmartTool] = {}
+        self._cache = ToolCache()
         self._register_default_tools()
         
     def _register_default_tools(self):
@@ -333,6 +390,37 @@ class UnifiedToolGateway:
         ]
         
     async def execute_tool(self, tool_name: str, arguments: dict, retries: int = 2) -> dict:
+        """
+        Execute tool with caching layer.
+        """
+        # Uncacheable tools
+        if tool_name in ["evidence.save", "evidence.get", "candidate.rank"]:
+            return await self._execute_internal(tool_name, arguments, retries)
+            
+        cache_key = self._cache.get_cache_key(tool_name, arguments)
+        cached_entry = self._cache.get(cache_key)
+        if cached_entry:
+            logger.info(f"RESEARCH CACHE HIT for {tool_name} with key {cache_key}")
+            trace_copy = dict(cached_entry.data)
+            trace_copy["provider"] = "CACHE"
+            trace_copy["latency_ms"] = 0
+            trace_copy["metadata"] = {
+                "original_provider": cached_entry.data.get("provider", "UNKNOWN"),
+                "original_retrieval": cached_entry.timestamp,
+                "cache_key": cache_key,
+                "ttl_seconds": self._cache._get_ttl(tool_name)
+            }
+            return trace_copy
+            
+        # Cache Miss - Execute
+        result_trace = await self._execute_internal(tool_name, arguments, retries)
+        
+        if result_trace.get("status") == "SUCCESS":
+            self._cache.set(cache_key, result_trace, tool_name)
+            
+        return result_trace
+
+    async def _execute_internal(self, tool_name: str, arguments: dict, retries: int = 2) -> dict:
         """
         Execute tool by name. Routes to external MCPs or Local execution based on registry.
         Includes logging, metrics (latency), and retry handling for local tools.

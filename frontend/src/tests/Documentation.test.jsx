@@ -1,6 +1,8 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi } from 'vitest';
+import { DataProvider } from '../contexts/DataContext';
+import { HealthProvider } from '../contexts/HealthContext';
 import DocumentationExplorer from '../pages/DocumentationExplorer';
 
 // Mock registry for test predictability
@@ -48,14 +50,14 @@ describe('DocumentationExplorer', () => {
 
   const renderPage = (initialRoute = '/docs/overview') => {
     return render(
-      <MemoryRouter initialEntries={[initialRoute]}>
+      <MemoryRouter initialEntries={[initialRoute]}><HealthProvider><DataProvider>
         <Routes>
           <Route path="/docs/:documentId" element={<DocumentationExplorer />} />
           <Route path="/docs" element={<DocumentationExplorer />} />
           <Route path="/v2" element={<div data-testid="v2-page" />} />
           <Route path="/roadmap" element={<div data-testid="roadmap-page" />} />
         </Routes>
-      </MemoryRouter>
+      </DataProvider></HealthProvider></MemoryRouter>
     );
   };
 

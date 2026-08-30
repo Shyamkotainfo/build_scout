@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import { DataProvider } from "../contexts/DataContext";
+import { HealthProvider } from "../contexts/HealthContext";
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LlmMetricsConsole from '../pages/LlmMetricsConsole';
@@ -37,11 +39,11 @@ describe('LlmMetricsConsole Page', () => {
 
   const renderPage = (id = 'test-metrics-123') => {
     return render(
-      <MemoryRouter initialEntries={[`/metrics/${id}`]}>
+      <MemoryRouter initialEntries={[`/metrics/${id}`]}><HealthProvider><DataProvider>
         <Routes>
           <Route path="/metrics/:analysisId" element={<LlmMetricsConsole />} />
         </Routes>
-      </MemoryRouter>
+      </DataProvider></HealthProvider></MemoryRouter>
     );
   };
 

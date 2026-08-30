@@ -3,6 +3,11 @@ from unittest.mock import patch, AsyncMock
 from tools.gateway import tool_gateway
 from mcp_integration.registry import registry
 
+@pytest.fixture(autouse=True)
+def clear_cache():
+    tool_gateway._cache._store.clear()
+
+
 @pytest.mark.asyncio
 async def test_tool_gateway_security_local():
     # Should resolve to local security tool and normalize results
@@ -49,3 +54,23 @@ async def test_tool_gateway_mcp_fallback(mock_call_tool):
     assert result["status"] == "SUCCESS"
     assert result["provider"] == "FALLBACK"
     assert "results" in result
+
+
+@pytest.mark.asyncio
+async def test_tool_gateway_caching():
+    # Execute a tool once to cache it
+    args = {"query": "cache_test", "repository": "cache_test"}
+    result1 = await tool_gateway.execute_tool("security.get", args)
+    
+    assert result1["status"] == "SUCCESS"
+    assert result1["provider"] == "LOCAL"
+    
+    # Execute same tool with same args, should hit cache
+    result2 = await tool_gateway.execute_tool("security.get", args)
+    
+    assert result2["status"] == "SUCCESS"
+    assert result2["provider"] == "CACHE"
+    assert result2["latency_ms"] == 0
+    assert result2["metadata"]["original_provider"] == "LOCAL"
+    assert result2["metadata"]["ttl_seconds"] == 3600
+    assert "cache_key" in result2["metadata"]

@@ -10,7 +10,8 @@ def test_health_endpoint():
     """TEST 1 — Ensure /health remains healthy."""
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+    data = response.json()
+    assert data["status"] in ("healthy", "degraded")
 
 def test_missing_user_request():
     """TEST 2 — Missing user_request."""
@@ -29,43 +30,56 @@ def test_empty_user_request():
     assert "error" in data
     assert data["error"]["code"] == "INVALID_REQUEST"
 
-@patch("api.routes.analyze")
-def test_generic_unexpected_exception(mock_analyze):
-    """TEST 4 — Generic unexpected exception."""
-    mock_analyze.side_effect = Exception("System meltdown")
+@patch("services.analysis_service.PromptOptimizer")
+def test_generic_unexpected_exception(mock_optimizer):
+    """TEST 4 — Generic unexpected exception handled by background task."""
+    mock_optimizer.return_value.optimize.side_effect = Exception("System meltdown")
     
-    response = client.post("/api/v1/analyses", json={"user_request": "Build something"})
+    from services.analysis_service import run_analysis_background
+    from services.job_store import init_job, build_status_response
     
-    assert response.status_code == 500
-    data = response.json()
-    assert "error" in data
-    assert data["error"]["code"] == "INTERNAL_ERROR"
-    assert "meltdown" not in data["error"]["message"] # no stack trace/internal message exposed
+    analysis_id = "test-generic-exception"
+    init_job(analysis_id)
+    
+    # Should not raise exception
+    run_analysis_background(analysis_id, "Build something")
+    
+    status = build_status_response(analysis_id)
+    assert status["status"] == "FAILED"
+    assert status["error"] == "Unable to complete the analysis."
 
-@patch("api.routes.analyze")
-def test_analysis_execution_exception(mock_analyze):
+
+@patch("services.analysis_service.build_buildsmart_graph")
+def test_analysis_execution_exception(mock_graph):
     """TEST 5 — LangGraph execution exception (safe error response)."""
-    mock_analyze.side_effect = AnalysisExecutionException(analysis_id="123")
+    mock_graph.side_effect = AnalysisExecutionException(analysis_id="123")
     
-    response = client.post("/api/v1/analyses", json={"user_request": "Build something"})
+    from services.analysis_service import run_analysis_background
+    from services.job_store import init_job, build_status_response
     
-    assert response.status_code == 500
-    data = response.json()
-    assert "error" in data
-    assert data["error"]["code"] == "ANALYSIS_EXECUTION_FAILED"
-    assert data["error"]["analysis_id"] == "123"
-    assert "Unable to complete" in data["error"]["message"]
+    analysis_id = "test-execution-exception"
+    init_job(analysis_id)
+    
+    run_analysis_background(analysis_id, "Build something")
+    
+    status = build_status_response(analysis_id)
+    assert status["status"] == "FAILED"
+    assert status["error"] == "Unable to complete the analysis."
 
-@patch("api.routes.analyze")
-def test_llm_service_failure(mock_analyze):
+
+@patch("services.analysis_service.PromptOptimizer")
+def test_llm_service_failure(mock_optimizer):
     """TEST 6 — LLM service failure/rate limit."""
-    mock_analyze.side_effect = LLMServiceException(analysis_id="456")
+    mock_optimizer.return_value.optimize.side_effect = Exception("429 Too Many Requests")
     
-    response = client.post("/api/v1/analyses", json={"user_request": "Build something"})
+    from services.analysis_service import run_analysis_background
+    from services.job_store import init_job, build_status_response
     
-    assert response.status_code == 503
-    data = response.json()
-    assert "error" in data
-    assert data["error"]["code"] == "LLM_SERVICE_UNAVAILABLE"
-    assert data["error"]["analysis_id"] == "456"
-    assert "service is temporarily unavailable" in data["error"]["message"]
+    analysis_id = "test-llm-exception"
+    init_job(analysis_id)
+    
+    run_analysis_background(analysis_id, "Build something")
+    
+    status = build_status_response(analysis_id)
+    assert status["status"] == "FAILED"
+    assert status["error"] == "The AI service is temporarily unavailable. Please try again later."

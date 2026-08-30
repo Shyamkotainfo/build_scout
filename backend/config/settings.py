@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         description="Groq API key. Optional — only used when LLM_PROVIDER=groq.",
     )
     groq_model: str = Field(
-        default="llama-3.3-70b-versatile",
+        default="llama3-70b-8192",
         description="Groq model identifier (only used when LLM_PROVIDER=groq).",
     )
 
@@ -146,7 +146,7 @@ class Settings(BaseSettings):
     def database_url(self) -> str | None:
         """Returns the PostgreSQL connection URL for Lakebase, if configured."""
         if not self.lakebase_host:
-            return None
+            return "sqlite:///buildscout.db"
         return (
             f"postgresql://{self.lakebase_user}:{self.lakebase_password}"
             f"@{self.lakebase_host}:{self.lakebase_port}/{self.lakebase_database}"

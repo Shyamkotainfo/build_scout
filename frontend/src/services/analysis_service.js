@@ -18,6 +18,15 @@ export const createAnalysis = async (user_request) => {
   }
 };
 
+export const getAnalysisStatus = async (analysis_id) => {
+  try {
+    const response = await apiClient.get(`/api/v1/analyses/${analysis_id}/status`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getAnalysis = async (analysis_id) => {
   try {
     const response = await apiClient.get(`/api/v1/analyses/${analysis_id}`);

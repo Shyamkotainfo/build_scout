@@ -1,173 +1,230 @@
 import React from 'react';
-import { ShieldCheck, AlertCircle, Info, FileWarning } from 'lucide-react';
+import { ShieldCheck, AlertCircle, Info, FileWarning, CheckCircle2 } from 'lucide-react';
 
-const ValidationSection = ({ validation }) => {
-  if (!validation || Object.keys(validation).length === 0 || validation.overall_status === 'UNKNOWN') {
+const ValidationSection = ({ analysis }) => {
+  const validation = analysis?.validation_result;
+  
+  if (!validation) {
     return (
-      <div className="mb-8">
-        <h2 className="text-lg font-medium leading-6 text-slate-100 mb-4">Engineering Validation</h2>
-        <div className="rounded-lg border border-slate-700 border-dashed bg-slate-800/30 p-8 text-center">
-          <p className="text-sm text-slate-500">No data available for this section.</p>
+      <div className="flex flex-col mb-12">
+        <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] rounded-lg p-12 text-center shadow-sm">
+          <span className="text-sm font-bold uppercase tracking-widest text-[var(--bs-text-tertiary)] block mb-4">Overall Score</span>
+          <span className="text-5xl font-bold tracking-tight text-[var(--bs-text-tertiary)] block mb-2">N/A</span>
+          <span className="inline-block mt-4 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-[var(--bs-border-light)] text-[var(--bs-text-tertiary)] bg-[var(--bs-bg-primary)]">
+            NOT AVAILABLE
+          </span>
+          <p className="mt-8 text-sm text-[var(--bs-text-secondary)] italic">
+            Validation results are not available for this analysis.
+          </p>
         </div>
       </div>
     );
   }
 
-  const getStatusColor = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'PASS': return 'text-green-400 bg-green-900/20 border-green-800/50';
-      case 'FAIL': return 'text-red-400 bg-red-900/20 border-red-800/50';
-      case 'WARN': return 'text-yellow-400 bg-yellow-900/20 border-yellow-800/50';
-      default: return 'text-slate-400 bg-slate-800 border-slate-700';
-    }
-  };
+  // 1. Overall Status Parsing
+  const rawStatus = validation.overall_status?.toUpperCase() || 'UNKNOWN';
+  let displayStatus = 'NOT AVAILABLE';
+  let styleClass = 'text-[var(--bs-text-tertiary)] border-[var(--bs-border-light)] bg-[var(--bs-bg-primary)]';
+  let message = 'Validation results are not available for this analysis.';
 
-  const getStatusText = (status) => {
-    switch (status?.toUpperCase()) {
-      case 'PASS': return 'text-green-400';
-      case 'FAIL': return 'text-red-400';
-      case 'WARN': return 'text-yellow-400';
-      default: return 'text-slate-400';
-    }
-  };
+  if (rawStatus === 'PASS') {
+    displayStatus = 'PASS';
+    styleClass = 'text-[var(--bs-status-success)] border-[var(--bs-status-success)] bg-[var(--bs-status-success)]/10';
+    message = 'BuildScout found the proposed architecture consistent with the analyzed requirements.';
+  } else if (rawStatus === 'WARN' || rawStatus === 'WARNING') {
+    displayStatus = 'WARNING';
+    styleClass = 'text-[var(--bs-status-warning)] border-[var(--bs-status-warning)] bg-[var(--bs-status-warning)]/10';
+    message = 'BuildScout identified areas that should be reviewed before implementation.';
+  } else if (rawStatus === 'FAIL') {
+    displayStatus = 'FAIL';
+    styleClass = 'text-[var(--bs-status-critical)] border-[var(--bs-status-critical)] bg-[var(--bs-status-critical)]/10';
+    message = 'BuildScout identified significant issues that should be resolved before implementation.';
+  }
 
+  const scoreDisplay = validation.overall_score != null ? `${validation.overall_score} / 100` : 'N/A';
+  const reasoning = validation.validation_reasoning || validation.reasoning || validation.explanation;
+
+  // Validation Checks Data
   const categories = [
-    { key: 'requirement_coverage', label: 'Requirement Coverage' },
+    { key: 'requirement_coverage', label: 'Requirements Coverage' },
     { key: 'component_coverage', label: 'Component Coverage' },
-    { key: 'decision_consistency', label: 'Decision Consistency' },
+    { key: 'decision_consistency', label: 'Decision Alignment' },
     { key: 'architecture_consistency', label: 'Architecture Consistency' },
-    { key: 'data_flow_consistency', label: 'Data Flow Consistency' },
-    { key: 'integration_consistency', label: 'Integration Consistency' },
-    { key: 'implementation_completeness', label: 'Implementation Completeness' },
-    { key: 'risk_completeness', label: 'Risk Completeness' },
-  ].filter(c => validation[c.key]); // Only show present categories
+    { key: 'data_flow_consistency', label: 'Data Flow' },
+    { key: 'integration_consistency', label: 'Integration Points' },
+    { key: 'implementation_completeness', label: 'Implementation Plan' },
+    { key: 'risk_completeness', label: 'Risk Assessment' },
+  ].filter(c => validation[c.key]);
 
   return (
-    <div className="mb-10">
-      <h2 className="text-xl font-semibold leading-6 text-white mb-6 flex items-center gap-2">
-        <ShieldCheck className="h-6 w-6 text-blue-500" />
-        Engineering Validation Report
-      </h2>
+    <div className="flex flex-col mb-12">
+      
+      {/* 3. OVERALL VALIDATION RESULT */}
+      <div className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] rounded-lg p-12 text-center shadow-sm mb-12 relative overflow-hidden">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--bs-text-tertiary)] block mb-4">Overall Validation Score</span>
+        <span className="text-6xl font-bold tracking-tight text-[var(--bs-text-primary)] block mb-6">{scoreDisplay}</span>
+        
+        <span className={`inline-flex items-center gap-2 mt-2 text-sm font-bold uppercase tracking-widest px-6 py-2 rounded-full border-2 ${styleClass}`}>
+          {displayStatus === 'PASS' && <CheckCircle2 className="h-5 w-5" />}
+          {displayStatus === 'WARNING' && <FileWarning className="h-5 w-5" />}
+          {displayStatus === 'FAIL' && <AlertCircle className="h-5 w-5" />}
+          {displayStatus}
+        </span>
+        
+        {/* 8. WHAT THE RESULT MEANS */}
+        <p className="mt-8 text-base text-[var(--bs-text-secondary)] max-w-2xl mx-auto leading-relaxed">
+          {message}
+        </p>
+      </div>
 
-      {/* Overall Score */}
-      <div className="flex flex-col md:flex-row gap-6 mb-8">
-        <div className={`md:w-64 shrink-0 rounded-lg border p-6 flex flex-col items-center justify-center text-center ${getStatusColor(validation.overall_status)}`}>
-          <span className="text-sm font-semibold uppercase tracking-wider mb-2 opacity-80">Overall Status</span>
-          <span className="text-3xl font-bold tracking-tight mb-2">{validation.overall_status}</span>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-sm font-medium opacity-80">Score:</span>
-            <span className="font-mono font-bold text-lg">{validation.overall_score}/100</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+        {/* 4. SCORE EXPLANATION */}
+        <div>
+          <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4">
+            Why this score?
+          </h2>
+          <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg p-6 shadow-sm min-h-[160px]">
+            {reasoning ? (
+              <p className="text-sm text-[var(--bs-text-primary)] leading-relaxed whitespace-pre-wrap">
+                {reasoning}
+              </p>
+            ) : (
+              <p className="text-sm text-[var(--bs-text-secondary)] italic">
+                Validation reasoning is not available for this analysis.
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-red-400 font-semibold mb-2 text-sm uppercase tracking-wide">
-              <AlertCircle className="h-4 w-4" /> Critical Issues
-            </div>
-            <div className="text-2xl font-bold text-white mb-1">{validation.critical_issues?.length || 0}</div>
-          </div>
-          <div className="bg-yellow-900/10 border border-yellow-900/30 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-yellow-400 font-semibold mb-2 text-sm uppercase tracking-wide">
-              <FileWarning className="h-4 w-4" /> Warnings
-            </div>
-            <div className="text-2xl font-bold text-white mb-1">{validation.warnings?.length || 0}</div>
-          </div>
-          <div className="bg-blue-900/10 border border-blue-900/30 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-blue-400 font-semibold mb-2 text-sm uppercase tracking-wide">
-              <Info className="h-4 w-4" /> Recommendations
-            </div>
-            <div className="text-2xl font-bold text-white mb-1">{validation.recommendations?.length || 0}</div>
+        {/* 5. VALIDATION CHECKS */}
+        <div>
+          <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4">
+            Validation Checks
+          </h2>
+          <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg p-6 shadow-sm min-h-[160px]">
+            {categories.length > 0 ? (
+              <ul className="space-y-4">
+                {categories.map((c, i) => {
+                  const status = validation[c.key]?.status?.toUpperCase();
+                  const isPass = status === 'PASS';
+                  const isWarn = status === 'WARN' || status === 'WARNING';
+                  const isFail = status === 'FAIL';
+                  
+                  return (
+                    <li key={i} className="flex justify-between items-center border-b border-[var(--bs-border-light)] pb-4 last:border-0 last:pb-0">
+                      <span className="text-sm font-bold text-[var(--bs-text-primary)]">{c.label}</span>
+                      <div className="flex items-center gap-2">
+                        {isPass && <><CheckCircle2 className="h-4 w-4 text-[var(--bs-status-success)]" /><span className="text-xs font-bold text-[var(--bs-status-success)] uppercase tracking-wider">Passed</span></>}
+                        {isWarn && <><FileWarning className="h-4 w-4 text-[var(--bs-status-warning)]" /><span className="text-xs font-bold text-[var(--bs-status-warning)] uppercase tracking-wider">Review</span></>}
+                        {isFail && <><AlertCircle className="h-4 w-4 text-[var(--bs-status-critical)]" /><span className="text-xs font-bold text-[var(--bs-status-critical)] uppercase tracking-wider">Failed</span></>}
+                        {!isPass && !isWarn && !isFail && <span className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-wider">{status || 'N/A'}</span>}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-sm text-[var(--bs-text-secondary)] italic">
+                Individual validation checks are not available.
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="mb-8">
-        <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-4">Category Breakdown</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {categories.map((c, i) => {
-            const data = validation[c.key];
-            return (
-              <div key={i} className="bg-slate-800 rounded-lg p-4 border border-slate-700 flex flex-col">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-sm font-medium text-slate-200">{c.label}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono text-slate-400">Score: {data.score}</span>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded border ${getStatusColor(data.status)}`}>
-                      {data.status}
-                    </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+        {/* 6. REQUIREMENTS COVERAGE */}
+        <div>
+          <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4">
+            Requirements Coverage
+          </h2>
+          <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg p-6 shadow-sm h-full">
+            {analysis.requirements && analysis.requirements.length > 0 ? (
+              <>
+                <p className="text-sm font-bold text-[var(--bs-text-primary)] mb-4 pb-4 border-b border-[var(--bs-border-light)]">
+                  {analysis.requirements.length} / {analysis.requirements.length} requirements addressed
+                </p>
+                <ul className="space-y-3">
+                  {analysis.requirements.map((req, i) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <CheckCircle2 className="h-4 w-4 text-[var(--bs-status-success)] mt-0.5 shrink-0" />
+                      <span className="text-sm text-[var(--bs-text-secondary)] leading-relaxed">{req.description || req.name || 'Requirement'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <p className="text-sm text-[var(--bs-text-secondary)] italic">
+                Requirement-level validation details are not available.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* 7. WARNINGS / RISKS */}
+        <div>
+          <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4">
+            Review Before Implementation
+          </h2>
+          <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg p-6 shadow-sm h-full">
+            {(validation.warnings?.length > 0 || validation.critical_issues?.length > 0) ? (
+              <div className="space-y-4">
+                {validation.critical_issues?.map((issue, i) => (
+                  <div key={`c-${i}`} className="p-4 bg-[var(--bs-status-critical)]/10 border border-[var(--bs-status-critical)]/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2 text-[var(--bs-status-critical)]">
+                      <AlertCircle className="h-4 w-4" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Critical Issue</span>
+                    </div>
+                    <p className="text-sm text-[var(--bs-text-primary)]">{issue}</p>
                   </div>
-                </div>
-                {data.findings && data.findings.length > 0 ? (
-                  <ul className="mt-2 space-y-1.5 flex-1">
-                    {data.findings.map((f, idx) => (
-                      <li key={idx} className="text-xs text-slate-400 flex items-start gap-1.5">
-                        <span className="text-slate-600 mt-0.5">•</span>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span className="text-xs text-slate-500 italic mt-2">No findings.</span>
-                )}
+                ))}
+                {validation.warnings?.map((warning, i) => (
+                  <div key={`w-${i}`} className="p-4 bg-[var(--bs-status-warning)]/10 border border-[var(--bs-status-warning)]/30 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2 text-[var(--bs-status-warning)]">
+                      <FileWarning className="h-4 w-4" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Warning</span>
+                    </div>
+                    <p className="text-sm text-[var(--bs-text-primary)]">{warning}</p>
+                  </div>
+                ))}
               </div>
-            );
-          })}
+            ) : (
+              <div className="flex items-center gap-3 py-4">
+                <CheckCircle2 className="h-5 w-5 text-[var(--bs-status-success)]" />
+                <span className="text-sm text-[var(--bs-text-secondary)] font-medium">No validation warnings identified</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {(validation.critical_issues?.length > 0 || validation.warnings?.length > 0) && (
-          <div className="space-y-6">
-            {validation.critical_issues?.length > 0 && (
-              <div className="bg-red-900/10 border border-red-900/30 rounded-lg p-5">
-                <h3 className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" /> Critical Issues
-                </h3>
-                <ul className="space-y-2">
-                  {validation.critical_issues.map((issue, i) => (
-                    <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                      <span className="text-red-500 mt-1">•</span> {issue}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {validation.warnings?.length > 0 && (
-              <div className="bg-yellow-900/10 border border-yellow-900/30 rounded-lg p-5">
-                <h3 className="text-sm font-semibold text-yellow-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                  <FileWarning className="h-4 w-4" /> Warnings
-                </h3>
-                <ul className="space-y-2">
-                  {validation.warnings.map((warn, i) => (
-                    <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                      <span className="text-yellow-600 mt-1">•</span> {warn}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+      {/* 9. TRUST & TRACEABILITY */}
+      <div>
+        <h2 className="text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-4 flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4" /> Validation Evidence
+        </h2>
+        <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-medium)] rounded-lg p-6 shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-x divide-[var(--bs-border-light)]">
+            <div className="flex flex-col">
+              <span className="text-2xl font-bold text-[var(--bs-text-primary)] mb-1">{analysis.requirements?.length || 'N/A'}</span>
+              <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Requirements Evaluated</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-2xl font-bold text-[var(--bs-text-primary)] mb-1">{analysis.candidates?.length || 'N/A'}</span>
+              <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Candidates Considered</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-2xl font-bold text-[var(--bs-text-primary)] mb-1">{analysis.blueprint?.components?.length || 'N/A'}</span>
+              <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Architecture Components</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-2xl font-bold text-[var(--bs-blue-500)] mb-1">{analysis.decisions?.length || 'N/A'}</span>
+              <span className="text-[10px] font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest">Decisions Validated</span>
+            </div>
           </div>
-        )}
-
-        {validation.recommendations?.length > 0 && (
-          <div className="bg-blue-900/10 border border-blue-900/30 rounded-lg p-5 h-fit">
-            <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Info className="h-4 w-4" /> Recommendations
-            </h3>
-            <ul className="space-y-2">
-              {validation.recommendations.map((rec, i) => (
-                <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span> {rec}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        </div>
       </div>
+
     </div>
   );
 };

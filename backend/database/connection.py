@@ -1,7 +1,8 @@
 import logging
 from typing import Iterator
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
+import sqlalchemy
 from config.settings import get_settings
 
 logger = logging.getLogger(__name__)
@@ -43,6 +44,34 @@ def get_session() -> Iterator[Session]:
     finally:
         session.close()
 
+def migrate_existing_schema(engine):
+    """Safely adds missing columns to existing tables."""
+    logger.info("Checking for schema migrations...")
+    
+    columns_to_add = [
+        ("validation_score", "INTEGER"),
+        ("validation_status", "VARCHAR"),
+        ("validation_result", "JSON")
+    ]
+    
+    with engine.connect() as conn:
+        for col_name, col_type in columns_to_add:
+            try:
+                # This syntax works for both SQLite and Postgres
+                conn.execute(text(f"ALTER TABLE analysis ADD COLUMN {col_name} {col_type}"))
+                conn.commit()
+                logger.info(f"Successfully added column {col_name} to analysis table.")
+            except sqlalchemy.exc.OperationalError as e:
+                # SQLite returns OperationalError if column exists
+                conn.rollback()
+            except sqlalchemy.exc.ProgrammingError as e:
+                # Postgres returns ProgrammingError if column exists
+                conn.rollback()
+            except Exception as e:
+                # Log any other unexpected errors but do not crash
+                conn.rollback()
+                logger.warning(f"Unexpected error migrating {col_name}: {e}")
+
 def init_db():
     """Create database tables if they do not exist."""
     engine = _get_engine()
@@ -52,6 +81,10 @@ def init_db():
     try:
         models.Base.metadata.create_all(bind=engine)
         logger.info("Database schema initialized successfully.")
+        
+        # Safely migrate existing tables
+        migrate_existing_schema(engine)
+        
     except Exception as e:
         logger.error(f"Failed to initialize database schema: {e}")
         # Allow the application to start even if schema creation fails

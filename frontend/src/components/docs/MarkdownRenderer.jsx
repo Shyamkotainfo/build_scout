@@ -22,28 +22,31 @@ const CodeBlock = ({ inline, className, children, ...props }) => {
 
   if (inline) {
     return (
-      <code className="bg-slate-800 text-slate-200 px-1.5 py-0.5 rounded text-sm font-mono border border-slate-700" {...props}>
+      <code
+        className="bg-[var(--bs-bg-tertiary)] text-[var(--bs-navy-800)] px-1.5 py-0.5 rounded text-[0.85em] font-mono border border-[var(--bs-border-light)]"
+        {...props}
+      >
         {children}
       </code>
     );
   }
 
   return (
-    <div className="relative group rounded-lg overflow-hidden bg-slate-900 border border-slate-700 my-4 shadow-sm">
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-800/80 border-b border-slate-700">
-        <span className="text-xs font-mono text-slate-400">
+    <div className="relative group rounded-lg overflow-hidden bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] my-5 shadow-sm">
+      <div className="flex items-center justify-between px-4 py-2 bg-[var(--bs-bg-tertiary)] border-b border-[var(--bs-border-light)]">
+        <span className="text-xs font-mono text-[var(--bs-text-tertiary)]">
           {match ? match[1] : 'text'}
         </span>
         <button
           onClick={handleCopy}
-          className="text-slate-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 rounded p-1"
+          className="text-[var(--bs-text-tertiary)] hover:text-[var(--bs-text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--bs-orange-500)] rounded p-1"
           aria-label="Copy code"
         >
-          {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+          {copied ? <Check size={14} className="text-[var(--bs-status-success)]" /> : <Copy size={14} />}
         </button>
       </div>
       <div className="overflow-x-auto p-4">
-        <code className="text-sm font-mono text-slate-300 block min-w-max" {...props}>
+        <code className="text-sm font-mono text-[var(--bs-navy-800)] block min-w-max" {...props}>
           {children}
         </code>
       </div>
@@ -57,14 +60,14 @@ const HeadingRenderer = (level) => {
     const text = React.Children.toArray(children).reduce((acc, child) => {
       return acc + (typeof child === 'string' ? child : '');
     }, '');
-    
+
     const id = generateId(text);
     const Tag = `h${level}`;
 
     const sizes = {
-      1: 'text-3xl font-bold mt-10 mb-6 text-white tracking-tight',
-      2: 'text-2xl font-bold mt-8 mb-4 text-slate-100 border-b border-slate-700/50 pb-2',
-      3: 'text-xl font-semibold mt-6 mb-3 text-slate-200',
+      1: 'text-2xl font-bold mt-10 mb-5 text-[var(--bs-navy-900)] tracking-tight',
+      2: 'text-xl font-bold mt-8 mb-4 text-[var(--bs-navy-900)] border-b border-[var(--bs-border-light)] pb-2',
+      3: 'text-base font-semibold mt-6 mb-3 text-[var(--bs-navy-800)]',
     };
 
     return (
@@ -76,17 +79,20 @@ const HeadingRenderer = (level) => {
 };
 
 const MarkdownRenderer = ({ content }) => {
-  if (!content) return <div className="text-slate-500 italic">Document not available.</div>;
+  if (!content) return <div className="text-[var(--bs-text-tertiary)] italic text-sm">Document not available.</div>;
 
   return (
-    <div className="prose prose-invert prose-slate max-w-none 
-                    prose-headings:scroll-mt-24 
-                    prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
-                    prose-p:text-slate-300 prose-p:leading-relaxed
-                    prose-li:text-slate-300 prose-ul:my-2
-                    prose-strong:text-white prose-strong:font-semibold
-                    prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:bg-slate-800/30 prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:rounded-r prose-blockquote:text-slate-400 prose-blockquote:not-italic
-                    prose-hr:border-slate-700/50 prose-hr:my-8"
+    <div className="prose prose-slate max-w-none
+                    prose-headings:scroll-mt-24
+                    prose-a:text-[var(--bs-orange-500)] prose-a:no-underline hover:prose-a:underline
+                    prose-p:text-[var(--bs-text-secondary)] prose-p:leading-relaxed prose-p:text-[0.9375rem]
+                    prose-li:text-[var(--bs-text-secondary)] prose-ul:my-2
+                    prose-strong:text-[var(--bs-navy-900)] prose-strong:font-semibold
+                    prose-blockquote:border-l-4 prose-blockquote:border-[var(--bs-orange-400)]
+                      prose-blockquote:bg-[var(--bs-bg-secondary)] prose-blockquote:px-4 prose-blockquote:py-2
+                      prose-blockquote:rounded-r-md prose-blockquote:text-[var(--bs-text-secondary)]
+                      prose-blockquote:not-italic
+                    prose-hr:border-[var(--bs-border-light)] prose-hr:my-8"
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
@@ -96,28 +102,46 @@ const MarkdownRenderer = ({ content }) => {
           h2: HeadingRenderer(2),
           h3: HeadingRenderer(3),
           table: ({ children }) => (
-            <div className="overflow-x-auto my-6 rounded-lg border border-slate-700">
+            <div className="overflow-x-auto my-6 rounded-xl border border-[var(--bs-border-light)] shadow-sm">
               <table className="w-full text-left border-collapse text-sm whitespace-nowrap">
                 {children}
               </table>
             </div>
           ),
-          thead: ({ children }) => <thead className="bg-slate-800/50 border-b border-slate-700 text-slate-300">{children}</thead>,
-          th: ({ children }) => <th className="px-4 py-3 font-semibold">{children}</th>,
-          td: ({ children }) => <td className="px-4 py-3 border-b border-slate-800/50 text-slate-400">{children}</td>,
+          thead: ({ children }) => (
+            <thead className="bg-[var(--bs-bg-secondary)] border-b border-[var(--bs-border-light)] text-[var(--bs-navy-800)]">
+              {children}
+            </thead>
+          ),
+          th: ({ children }) => (
+            <th className="px-4 py-3 font-semibold text-[var(--bs-navy-900)] text-xs uppercase tracking-wide">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="px-4 py-3 border-b border-[var(--bs-border-light)] text-[var(--bs-text-secondary)] text-sm">
+              {children}
+            </td>
+          ),
           a: ({ href, children }) => {
             const isInternal = href?.startsWith('#') || href?.startsWith('/');
             return (
-              <a 
-                href={href} 
-                className="text-blue-400 hover:text-blue-300 transition-colors"
+              <a
+                href={href}
+                className="text-[var(--bs-orange-500)] hover:text-[var(--bs-orange-600)] transition-colors"
                 target={isInternal ? '_self' : '_blank'}
                 rel={isInternal ? '' : 'noopener noreferrer'}
               >
                 {children}
               </a>
             );
-          }
+          },
+          // Style blockquote-like callout boxes when used in docs
+          blockquote: ({ children }) => (
+            <div className="my-5 p-4 rounded-xl border border-[var(--bs-border-medium)] bg-[var(--bs-bg-secondary)] text-[var(--bs-text-secondary)] text-sm leading-relaxed">
+              {children}
+            </div>
+          ),
         }}
       >
         {content}

@@ -10,20 +10,11 @@ from config.settings import get_settings
 from llm.client import get_llm
 from llm.prompts import BLUEPRINT_SYSTEM_PROMPT
 from llm.retry import ainvoke_with_retry
+from agents.context import build_blueprint_context
 
-
-class TechStackItem(BaseModel):
-    component_id: str
-    component_name: str
-    decision: Literal["REUSE", "ADAPT", "BUILD"]
-    technology: str
-    reason: str
 
 class BlueprintComponent(BaseModel):
     component_id: str
-    component_name: str
-    decision: Literal["REUSE", "ADAPT", "BUILD"]
-    technology: str
     responsibility: str
     integration: str
 
@@ -46,12 +37,9 @@ class BlueprintResult(BaseModel):
     """Pydantic model for the generated Blueprint."""
     solution_summary: str
     architecture_style: str
-    technology_stack: List[TechStackItem] = Field(default_factory=list)
-    components: List[BlueprintComponent] = Field(default_factory=list)
     data_flow: List[str] = Field(default_factory=list)
     integration_points: List[IntegrationPoint] = Field(default_factory=list)
     implementation_phases: List[ImplementationPhase] = Field(default_factory=list)
-    reuse_summary: ReuseSummary = Field(default_factory=ReuseSummary)
     risks: List[str] = Field(default_factory=list)
     assumptions: List[str] = Field(default_factory=list)
 
@@ -102,75 +90,96 @@ class BlueprintAgent:
 
         decisions = state.get("decisions", [])
         analysis_id = state.get("analysis_id", "unknown")
-        
-        # Only pass candidates and evaluations that were actually selected
-        selected_candidate_ids = {
-            d["selected_candidate_id"] for d in decisions if d.get("selected_candidate_id")
-        }
-        filtered_candidates = [
-            c for c in state.get("candidates", []) if c["id"] in selected_candidate_ids
-        ]
-        
-        # Only pass evaluations for components that we decided to reuse/adapt
-        components_reused = {
-            d["component_id"] for d in decisions if d.get("decision") in ("REUSE", "ADAPT")
-        }
-        filtered_evaluations = [
-            e for e in state.get("evaluations", []) if e["component_id"] in components_reused and e["candidate_id"] in selected_candidate_ids
-        ]
+        # Filtering previously done here is no longer needed since build_blueprint_context 
+        # drops candidates and evaluations entirely.
 
         # 2. Prepare payload for the LLM
-        payload = {
-            "user_request": state.get("user_request", ""),
-            "normalized_request": state.get("normalized_request", ""),
-            "domain": state.get("domain", ""),
-            "requirements": state.get("requirements", []),
-            "components": state.get("components", []),
-            "candidates": filtered_candidates,
-            "evaluations": filtered_evaluations,
-            "decisions": decisions
-        }
+        payload = build_blueprint_context(
+            user_request=state.get("user_request", ""),
+            normalized_request=state.get("normalized_request", ""),
+            domain=state.get("domain", ""),
+            requirements=state.get("requirements", []),
+            components=state.get("components", []),
+            decisions=decisions
+        )
 
         messages = [
             SystemMessage(content=BLUEPRINT_SYSTEM_PROMPT),
             HumanMessage(content=json.dumps(payload, indent=2))
         ]
 
-        # 3. Call LLM
-        response = await ainvoke_with_retry(
-            llm_callable=self.llm_json.ainvoke,
-            messages=messages,
-            agent_name="BlueprintAgent",
-            analysis_id=analysis_id,
-            context_compactor=lambda msgs, limit: msgs,  # Blueprint payload shouldn't be huge after filtering
-            response_model=BlueprintResult
-        )
-        
-        parsed_blueprint = getattr(response, "parsed_object", None)
-        if parsed_blueprint:
-            # Enforce decision consistency programmatically
-            decisions = state.get("decisions", [])
-            decision_map = {d["component_id"]: d["decision"] for d in decisions}
-            name_map = {}
-            for comp in state.get("components", []):
-                name_map[comp["id"]] = comp["name"]
-
-            # Fix component mappings
-            for b_comp in parsed_blueprint.components:
-                if b_comp.component_id in decision_map:
-                    b_comp.decision = decision_map[b_comp.component_id]
-
-            # Rebuild reuse_summary to ensure 100% consistency with state
-            parsed_blueprint.reuse_summary = self._build_reuse_summary(
-                decisions=state.get("decisions", []),
-                components=state.get("components", [])
+        try:
+            # 3. Call LLM
+            response = await ainvoke_with_retry(
+                llm_callable=self.llm_json.ainvoke,
+                messages=messages,
+                agent_name="BlueprintAgent",
+                analysis_id=analysis_id,
+                context_compactor=lambda msgs, limit: msgs,  # Blueprint payload shouldn't be huge after filtering
+                response_model=BlueprintResult
             )
             
-            state["blueprint"] = parsed_blueprint.model_dump()
-            state["status"] = "BLUEPRINT_CREATED"
-            state["agent_history"].append("BlueprintAgent")
-        else:
-            print("Error parsing BlueprintAgent response: Empty parsed object")
+            parsed_blueprint = getattr(response, "parsed_object", None)
+            if parsed_blueprint:
+                # Enforce decision consistency programmatically
+                decisions = state.get("decisions", [])
+                decision_map = {d["component_id"]: d for d in decisions}
+                name_map = {}
+                for comp in state.get("components", []):
+                    name_map[comp["id"]] = comp["name"]
+
+                # We dump the model to a dict, then inject the missing deterministic fields
+                bp_dict = parsed_blueprint.model_dump()
+                
+                bp_dict["components"] = []
+                tech_stack = []
+                
+                for comp in state.get("components", []):
+                    cid = comp["id"]
+                    decision = decision_map.get(cid, {})
+                    
+                    decision_val = decision.get("decision", "BUILD")
+                    tech = decision.get("selected_candidate_name")
+                    if not tech or decision_val == "BUILD":
+                        tech = "Custom implementation"
+                        
+                    # Rehydrate BlueprintComponent for frontend
+                    b_comp = {
+                        "component_id": cid,
+                        "component_name": comp.get("name", cid),
+                        "decision": decision_val,
+                        "technology": tech,
+                        "responsibility": comp.get("description", ""),
+                        "integration": "Standard integration"
+                    }
+                    bp_dict["components"].append(b_comp)
+                    
+                    # Build tech stack item
+                    tech_stack.append({
+                        "component_id": cid,
+                        "component_name": b_comp["component_name"],
+                        "decision": b_comp["decision"],
+                        "technology": tech,
+                        "reason": decision.get("reason", "")
+                    })
+                
+                bp_dict["technology_stack"] = tech_stack
+                
+                # Rebuild reuse_summary to ensure 100% consistency with state
+                bp_dict["reuse_summary"] = self._build_reuse_summary(
+                    decisions=state.get("decisions", []),
+                    components=state.get("components", [])
+                ).model_dump()
+                
+                state["blueprint"] = bp_dict
+                state["status"] = "BLUEPRINT_CREATED"
+                state["agent_history"].append("BlueprintAgent")
+            else:
+                print("Error parsing BlueprintAgent response: Empty parsed object")
+                state["blueprint"] = {}
+                state["status"] = "BLUEPRINT_FAILED"
+        except Exception as e:
+            print(f"Error in BlueprintAgent: {e}")
             state["blueprint"] = {}
             state["status"] = "BLUEPRINT_FAILED"
 

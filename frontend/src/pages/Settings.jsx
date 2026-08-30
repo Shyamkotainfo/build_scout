@@ -90,7 +90,7 @@ const Settings = () => {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <RefreshCw className="h-8 w-8 text-blue-500 animate-spin" />
+        <RefreshCw className="h-8 w-8 text-[var(--bs-orange-500)] animate-spin" />
       </div>
     );
   }
@@ -106,10 +106,10 @@ const Settings = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-            <SettingsIcon className="text-blue-500" /> Settings
+          <h1 className="text-2xl font-bold text-[var(--bs-text-primary)] flex items-center gap-3">
+            <SettingsIcon className="text-[var(--bs-orange-500)]" /> Settings
           </h1>
-          <p className="text-slate-400 mt-1">Configure BuildSmart runtime and integrations</p>
+          <p className="text-[var(--bs-text-secondary)] mt-1">Configure BuildSmart runtime and integrations</p>
         </div>
       </div>
 
@@ -125,8 +125,8 @@ const Settings = () => {
                 onClick={() => setActiveCategory(category)}
                 className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors text-left ${
                   activeCategory === category
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                    ? 'bg-[var(--bs-orange-500)] text-[var(--bs-text-primary)]'
+                    : 'text-[var(--bs-text-secondary)] hover:bg-[var(--bs-bg-hover)] hover:text-[var(--bs-text-primary)]'
                 }`}
               >
                 {category}
@@ -136,21 +136,21 @@ const Settings = () => {
         </div>
 
         {/* Settings Panel */}
-        <div className="flex-1 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden flex flex-col">
+        <div className="flex-1 bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-medium)] rounded-xl overflow-hidden flex flex-col shadow-sm">
           {/* Action Bar */}
-          <div className="bg-slate-800/50 border-b border-slate-700 p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <h2 className="text-lg font-bold text-white">{activeCategory} Configuration</h2>
+          <div className="bg-[var(--bs-bg-tertiary)] border-b border-[var(--bs-border-light)] p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <h2 className="text-lg font-bold text-[var(--bs-text-primary)]">{activeCategory} Configuration</h2>
             
             <div className="flex items-center gap-3">
               {hasChanges && (
-                <span className="text-amber-400 text-sm font-medium flex items-center gap-1">
+                <span className="text-[var(--bs-status-warning)] text-sm font-medium flex items-center gap-1">
                   <AlertTriangle size={14} /> Unsaved changes
                 </span>
               )}
               <button
                 onClick={handleDiscard}
                 disabled={!hasChanges || isSaving}
-                className="inline-flex items-center px-3 py-1.5 border border-slate-600 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center px-3 py-1.5 border border-[var(--bs-border-medium)] rounded-md text-sm font-medium text-[var(--bs-text-secondary)] hover:bg-[var(--bs-bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <XCircle size={16} className="mr-2" />
                 Discard
@@ -158,7 +158,7 @@ const Settings = () => {
               <button
                 onClick={handleSave}
                 disabled={!hasChanges || isSaving}
-                className="inline-flex items-center px-4 py-1.5 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center px-4 py-1.5 bg-[var(--bs-orange-500)] border border-transparent rounded-md text-sm font-medium text-[var(--bs-text-primary)] hover:bg-[var(--bs-orange-600)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isSaving ? <RefreshCw size={16} className="mr-2 animate-spin" /> : <Save size={16} className="mr-2" />}
                 Save Changes
@@ -168,13 +168,13 @@ const Settings = () => {
 
           {/* Messages */}
           {error && (
-            <div className="bg-red-500/10 border-l-4 border-red-500 p-4 m-4 rounded-r-md">
-              <p className="text-red-400 text-sm">{error}</p>
+            <div className="bg-[var(--bs-status-critical-light)] border-l-4 border-[var(--bs-status-critical)] p-4 m-4 rounded-r-md">
+              <p className="text-[var(--bs-status-critical)] text-sm">{error}</p>
             </div>
           )}
           {successMsg && (
-            <div className="bg-blue-500/10 border-l-4 border-blue-500 p-4 m-4 rounded-r-md">
-              <p className="text-blue-400 text-sm">{successMsg}</p>
+            <div className="bg-[var(--bs-status-success-light)] border-l-4 border-[var(--bs-status-success)] p-4 m-4 rounded-r-md">
+              <p className="text-[var(--bs-status-success)] text-sm">{successMsg}</p>
             </div>
           )}
 
@@ -190,7 +190,7 @@ const Settings = () => {
               ))
             ) : (
               <div className="text-center py-12">
-                <p className="text-slate-500 text-sm">No settings available in this category.</p>
+                <p className="text-[var(--bs-text-secondary)] text-sm">No settings available in this category.</p>
               </div>
             )}
           </div>

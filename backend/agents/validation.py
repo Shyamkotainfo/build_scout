@@ -9,6 +9,7 @@ from agents.state import BuildSmartState
 from llm.client import get_llm
 from llm.prompts import VALIDATION_SYSTEM_PROMPT
 from llm.retry import ainvoke_with_retry
+from agents.context import build_validation_context
 
 
 class ValidationCategory(BaseModel):
@@ -35,19 +36,11 @@ class ValidationResult(BaseModel):
     uncovered_requirements: List[str] = Field(default_factory=list)
 
 
-class LLMValidationCategory(BaseModel):
-    score: int
-    findings: List[str] = Field(default_factory=list)
-
-
 class LLMValidationResult(BaseModel):
-    architecture_consistency: LLMValidationCategory
-    data_flow_consistency: LLMValidationCategory
-    integration_consistency: LLMValidationCategory
-    implementation_completeness: LLMValidationCategory
-    risk_completeness: LLMValidationCategory
-    recommendations: List[str] = Field(default_factory=list)
-
+    overall_architecture_score: int
+    reasoning: str
+    critical_issues: List[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
 
 class ValidationAgent:
     """Agent responsible for validating the generated blueprint."""
@@ -167,12 +160,12 @@ class ValidationAgent:
         # ---------------------------------------------------------------------
         # LLM CHECK: Architectural Coherence
         # ---------------------------------------------------------------------
-        payload = {
-            "requirements": requirements,
-            "components": state_components,
-            "decisions": state_decisions,
-            "blueprint": blueprint
-        }
+        payload = build_validation_context(
+            requirements=requirements,
+            components=state_components,
+            decisions=state_decisions,
+            blueprint=blueprint
+        )
         
         messages = [
             SystemMessage(content=VALIDATION_SYSTEM_PROMPT),
@@ -193,30 +186,33 @@ class ValidationAgent:
                 raise Exception("Empty parsed object from LLM.")
                 
         except Exception as e:
-            fallback_cat = LLMValidationCategory(score=0, findings=[f"LLM validation failed: {str(e)}"])
             llm_result = LLMValidationResult(
-                architecture_consistency=fallback_cat,
-                data_flow_consistency=fallback_cat,
-                integration_consistency=fallback_cat,
-                implementation_completeness=fallback_cat,
-                risk_completeness=fallback_cat,
-                recommendations=["Manual review required due to validation failure."]
+                overall_architecture_score=0,
+                reasoning=f"LLM validation failed: {str(e)}",
+                critical_issues=["LLM qualitative validation failed."],
+                warnings=[]
             )
             critical_issues.append("LLM qualitative validation failed.")
 
-        def map_llm_cat(llm_cat: LLMValidationCategory) -> ValidationCategory:
-            score = max(0, min(100, llm_cat.score))
+        def map_llm_cat(score: int, findings: List[str]) -> ValidationCategory:
+            s = max(0, min(100, score))
             return ValidationCategory(
-                status=self._determine_status(score),
-                score=score,
-                findings=llm_cat.findings
+                status=self._determine_status(s),
+                score=s,
+                findings=findings
             )
 
-        arch_cat = map_llm_cat(llm_result.architecture_consistency)
-        data_cat = map_llm_cat(llm_result.data_flow_consistency)
-        integ_cat = map_llm_cat(llm_result.integration_consistency)
-        impl_cat = map_llm_cat(llm_result.implementation_completeness)
-        risk_cat = map_llm_cat(llm_result.risk_completeness)
+        # Distribute the overall qualitative score across the required API categories
+        arch_cat = map_llm_cat(llm_result.overall_architecture_score, [llm_result.reasoning])
+        data_cat = map_llm_cat(llm_result.overall_architecture_score, [llm_result.reasoning])
+        integ_cat = map_llm_cat(llm_result.overall_architecture_score, [llm_result.reasoning])
+        impl_cat = map_llm_cat(llm_result.overall_architecture_score, [llm_result.reasoning])
+        risk_cat = map_llm_cat(llm_result.overall_architecture_score, [llm_result.reasoning])
+
+        if llm_result.critical_issues:
+            critical_issues.extend(llm_result.critical_issues)
+        if llm_result.warnings:
+            warnings.extend(llm_result.warnings)
 
         all_scores = [
             req_score, comp_score, decision_score,
@@ -247,7 +243,7 @@ class ValidationAgent:
             risk_completeness=risk_cat,
             critical_issues=critical_issues,
             warnings=warnings,
-            recommendations=llm_result.recommendations,
+            recommendations=llm_result.warnings, # Fallback mapping
             validated_requirements=[r["id"] for r in requirements],
             uncovered_requirements=[]
         )

@@ -1,102 +1,153 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Badge from '../ui/Badge';
+import { ArrowUpDown } from 'lucide-react';
+import { getConfidencePercent } from '../../utils/formatters';
 
 const DecisionsSection = ({ decisions }) => {
+  const [filter, setFilter] = useState('ALL');
+  
   if (!decisions || decisions.length === 0) {
-    return (
-      <div className="mb-8">
-        <h2 className="text-lg font-medium leading-6 text-slate-100 mb-4">Decisions</h2>
-        <div className="rounded-lg border border-slate-700 border-dashed bg-slate-800/30 p-8 text-center">
-          <p className="text-sm text-slate-500">No data available for this section.</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
-  const getDecisionStyle = (type) => {
-    switch (type?.toUpperCase()) {
-      case 'REUSE': return 'bg-green-900/40 text-green-400 border-green-800/60 ring-green-900/20';
-      case 'ADAPT': return 'bg-yellow-900/40 text-yellow-400 border-yellow-800/60 ring-yellow-900/20';
-      case 'BUILD': return 'bg-blue-900/40 text-blue-400 border-blue-800/60 ring-blue-900/20';
-      default: return 'bg-slate-800 text-slate-300 border-slate-700 ring-slate-800/50';
-    }
-  };
+  const normalizedDecisions = decisions.map(d => ({
+    ...d,
+    decisionType: (d.decision_type || d.decision || 'UNKNOWN').toUpperCase()
+  }));
+
+  const buildDecisions = normalizedDecisions.filter(d => d.decisionType === 'BUILD');
+  
+  const filteredDecisions = filter === 'ALL' 
+    ? normalizedDecisions 
+    : normalizedDecisions.filter(d => d.decisionType === filter);
 
   return (
-    <div className="mb-10">
-      <h2 className="text-xl font-semibold leading-6 text-white mb-6 flex items-center gap-2">
-        Architecture Decisions
-      </h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {decisions.map((decision, idx) => (
-          <div 
-            key={`${decision.component_id}-${idx}`} 
-            className={`rounded-lg border bg-slate-800/80 shadow-md flex flex-col overflow-hidden ring-1 ring-inset ${getDecisionStyle(decision.decision).replace(/bg-[^\s]+|text-[^\s]+/, '')}`}
-          >
-            {/* Header */}
-            <div className={`px-4 py-3 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/50`}>
-              <div className="font-mono text-sm font-medium text-slate-300 truncate pr-2">
-                {decision.component_id}
-              </div>
-              <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-bold border tracking-wide shadow-sm ${getDecisionStyle(decision.decision)}`}>
-                {decision.decision?.toUpperCase() || 'UNKNOWN'}
-              </span>
-            </div>
-            
-            {/* Content */}
-            <div className="p-4 flex-1 flex flex-col">
-              <div className="mb-4">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Implementation</span>
-                <div className="text-base font-semibold text-slate-100">
-                  {decision.selected_candidate_name || 'Custom Implementation'}
-                </div>
-              </div>
-
-              <div className="mb-4 flex-1">
-                <p className="text-sm text-slate-300">{decision.reason}</p>
-              </div>
-
-              <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-700/50 mb-4">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Confidence</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-24 h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700">
-                    <div 
-                      className={`h-full ${decision.confidence > 0.8 ? 'bg-green-500' : decision.confidence > 0.5 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                      style={{ width: `${Math.min(100, Math.max(0, decision.confidence * 100))}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-mono text-slate-300">{Math.round(decision.confidence * 100)}%</span>
-                </div>
-              </div>
-
-              {/* Collapsible details could go here, for now just show them if they exist */}
-              {(decision.risks?.length > 0 || decision.implementation_notes?.length > 0) && (
-                <div className="space-y-3 bg-slate-900/40 rounded p-3 text-xs border border-slate-700/50">
-                  {decision.risks?.length > 0 && (
-                    <div>
-                      <span className="font-semibold text-red-400/80 block mb-1">Risks</span>
-                      <ul className="space-y-1">
-                        {decision.risks.map((r, i) => (
-                          <li key={i} className="text-slate-400 before:content-['•'] before:mr-1.5 before:text-slate-600">{r}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {decision.implementation_notes?.length > 0 && (
-                    <div>
-                      <span className="font-semibold text-blue-400/80 block mb-1">Notes</span>
-                      <ul className="space-y-1">
-                        {decision.implementation_notes.map((n, i) => (
-                          <li key={i} className="text-slate-400 before:content-['•'] before:mr-1.5 before:text-slate-600">{n}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+    <div className="flex flex-col gap-10 mb-12">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold tracking-tight text-[var(--bs-text-primary)]">
+            DECISION TABLE
+          </h2>
+          <div className="flex items-center gap-2 bg-[var(--bs-bg-secondary)] p-1 rounded-md border border-[var(--bs-border-light)]">
+            {['ALL', 'REUSE', 'ADAPT', 'BUILD'].map(f => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-1 text-xs font-bold rounded transition-colors ${
+                  filter === f
+                    ? 'bg-[var(--bs-bg-tertiary)] text-[var(--bs-text-primary)] shadow-sm'
+                    : 'text-[var(--bs-text-tertiary)] hover:text-[var(--bs-text-secondary)]'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
           </div>
-        ))}
+        </div>
+        
+        <div className="overflow-x-auto rounded-lg border border-[var(--bs-border-light)] bg-[var(--bs-bg-primary)]">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-[var(--bs-bg-secondary)] border-b border-[var(--bs-border-light)] uppercase text-[10px] tracking-wider text-[var(--bs-text-tertiary)]">
+              <tr>
+                <th className="px-6 py-4 font-bold">Component</th>
+                <th className="px-6 py-4 font-bold">Decision</th>
+                <th className="px-6 py-4 font-bold">Selected Solution</th>
+                <th className="px-6 py-4 font-bold">Confidence</th>
+                <th className="px-6 py-4 font-bold max-w-xs truncate">Reasoning</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[var(--bs-border-light)]">
+              {filteredDecisions.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-8 text-center text-[var(--bs-text-secondary)]">
+                    No decisions found for this filter.
+                  </td>
+                </tr>
+              ) : (
+                filteredDecisions.map((decision, idx) => (
+                  <tr key={`${decision.component_id}-${idx}`} className="hover:bg-[var(--bs-bg-secondary)] transition-colors">
+                    <td className="px-6 py-4 font-mono font-medium text-[var(--bs-text-primary)]">
+                      {decision.component_id}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Badge
+                        variant={
+                          decision.decisionType === 'REUSE'
+                            ? 'success'
+                            : decision.decisionType === 'ADAPT'
+                            ? 'warning'
+                            : decision.decisionType === 'BUILD'
+                            ? 'orange'
+                            : 'default'
+                        }
+                      >
+                        {decision.decisionType}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-[var(--bs-text-primary)]">
+                      {decision.selected_candidate_name || 'Custom Implementation'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[var(--bs-text-secondary)]">
+                          {getConfidencePercent(decision.confidence)}%
+                        </span>
+                        <div className="w-16 h-1.5 bg-[var(--bs-bg-tertiary)] rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${getConfidencePercent(decision.confidence) > 80 ? 'bg-[var(--bs-status-success)]' : getConfidencePercent(decision.confidence) > 50 ? 'bg-[var(--bs-status-warning)]' : 'bg-[var(--bs-status-critical)]'}`}
+                            style={{ width: `${getConfidencePercent(decision.confidence)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-normal min-w-[250px] max-w-md text-xs text-[var(--bs-text-secondary)]">
+                      {decision.reason}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {buildDecisions.length > 0 && (
+        <div className="flex flex-col">
+          <h2 className="text-xl font-bold tracking-tight text-[var(--bs-text-primary)] mb-4">
+            WHY BUILD?
+          </h2>
+          <p className="text-sm text-[var(--bs-text-secondary)] mb-6">
+            These capabilities did not have sufficiently strong existing candidates.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {buildDecisions.map((decision, idx) => (
+              <div key={idx} className="bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] p-5 rounded-lg flex flex-col">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-mono font-bold text-[var(--bs-text-primary)]">{decision.component_id}</span>
+                  <span className="text-xs font-bold text-[var(--bs-orange-500)] bg-[var(--bs-bg-primary)] border border-[var(--bs-orange-500)] px-2 py-0.5 rounded">
+                    BUILD
+                  </span>
+                </div>
+                <p className="text-sm text-[var(--bs-text-secondary)] leading-relaxed flex-1">
+                  {decision.reason}
+                </p>
+                {decision.risks && decision.risks.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-[var(--bs-border-light)]">
+                    <span className="text-xs font-bold uppercase tracking-widest text-[var(--bs-text-tertiary)] mb-2 block">
+                      Build Risks
+                    </span>
+                    <ul className="list-disc pl-4 space-y-1 text-xs text-[var(--bs-text-secondary)]">
+                      {decision.risks.map((risk, i) => (
+                        <li key={i}>{risk}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

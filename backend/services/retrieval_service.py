@@ -102,11 +102,16 @@ def list_analyses() -> list[dict]:
                 # Count candidates
                 cand_count = len(repo.get_candidates(session, a.id))
                 
-                # Decision summary
+                # Count requirements
+                requirements = repo.get_requirements(session, a.id)
+                req_count = len(requirements)
+                
+                # Fetch validation results from blueprint or analysis if stored
+                # Fetch decisions to count them
                 decisions = repo.get_decisions(session, a.id)
-                reuse_count = sum(1 for d in decisions if d.decision == "REUSE")
-                adapt_count = sum(1 for d in decisions if d.decision == "ADAPT")
-                build_count = sum(1 for d in decisions if d.decision == "BUILD")
+                reuse_count = sum(1 for d in decisions if d.decision == 'REUSE')
+                adapt_count = sum(1 for d in decisions if d.decision == 'ADAPT')
+                build_count = sum(1 for d in decisions if d.decision == 'BUILD')
                 
                 result_list.append({
                     "analysis_id": str(a.id),
@@ -118,7 +123,10 @@ def list_analyses() -> list[dict]:
                     "updated_at": a.updated_at.isoformat() if a.updated_at else None,
                     "component_count": comp_count,
                     "candidate_count": cand_count,
-                    "decisions": {
+                    "requirements_count": req_count,
+                    "validation_score": a.validation_score,
+                    "validation_status": a.validation_status,
+                    "decision_summary": {
                         "reuse": reuse_count,
                         "adapt": adapt_count,
                         "build": build_count

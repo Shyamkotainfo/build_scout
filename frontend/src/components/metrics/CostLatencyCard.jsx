@@ -22,29 +22,29 @@ const CostLatencyCard = ({ metrics }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
       
       {/* Cost */}
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 shadow-sm flex items-center justify-between">
+      <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] rounded-lg p-6 shadow-sm flex items-center justify-between">
         <div>
-          <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5"><DollarSign className="h-4 w-4 text-emerald-500" /> Total Cost</h3>
-          <span className="text-4xl font-bold text-emerald-400">{cost}</span>
+          <h3 className="text-[10px] font-semibold text-[var(--bs-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5"><DollarSign className="h-4 w-4 text-[var(--bs-status-success)]" /> Total Cost</h3>
+          <span className="text-4xl font-bold text-[var(--bs-status-success)]">{cost}</span>
         </div>
         <div className="w-16 h-16 rounded-full bg-emerald-900/20 border border-emerald-900/50 flex items-center justify-center">
-          <DollarSign className="h-8 w-8 text-emerald-500/50" />
+          <DollarSign className="h-8 w-8 text-[var(--bs-status-success)]/50" />
         </div>
       </div>
 
       {/* Latency */}
-      <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 shadow-sm flex items-center justify-between">
+      <div className="bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] rounded-lg p-6 shadow-sm flex items-center justify-between">
         <div>
-          <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5"><Zap className="h-4 w-4 text-amber-500" /> Latency</h3>
+          <h3 className="text-[10px] font-semibold text-[var(--bs-text-secondary)] uppercase tracking-wider mb-2 flex items-center gap-1.5"><Zap className="h-4 w-4 text-amber-500" /> Latency</h3>
           <div className="flex gap-4 items-end">
             <div>
-              <span className="text-xs text-slate-500 block mb-1">Total</span>
+              <span className="text-xs text-[var(--bs-text-secondary)] block mb-1">Total</span>
               <span className="text-2xl font-bold text-amber-400">{totalLat}</span>
             </div>
-            <div className="w-px h-8 bg-slate-700/50 mb-1"></div>
+            <div className="w-px h-8 bg-[var(--bs-bg-hover)]/50 mb-1"></div>
             <div>
-              <span className="text-xs text-slate-500 block mb-1">Average</span>
-              <span className="text-xl font-bold text-slate-300">{avgLat}</span>
+              <span className="text-xs text-[var(--bs-text-secondary)] block mb-1">Average</span>
+              <span className="text-xl font-bold text-[var(--bs-text-secondary)]">{avgLat}</span>
             </div>
           </div>
         </div>

@@ -1,1 +1,0 @@
-# Placeholder for satisfying structural requirements. Frontend uses package.json.

@@ -10,6 +10,7 @@ from config.settings import get_settings
 from llm.client import get_llm
 from llm.prompts import DECISION_SYSTEM_PROMPT
 from llm.retry import invoke_with_retry
+from agents.context import build_decision_context
 
 
 class RawDecisionResult(BaseModel):
@@ -60,7 +61,9 @@ class DecisionAgent:
 
         components = state.get("components", [])
         evaluations = state.get("evaluations", [])
-        candidates = state.get("candidates", [])
+        evaluated_cand_ids = {ev["candidate_id"] for ev in evaluations}
+        all_candidates = state.get("candidates", [])
+        candidates = [c for c in all_candidates if c.get("id") in evaluated_cand_ids]
         
         # We process components individually or collectively.
         # It's better to isolate components that have no evaluations to decide deterministically.
@@ -94,12 +97,12 @@ class DecisionAgent:
 
         if components_with_evals:
             # 2. Prepare payload for the LLM for remaining components
-            payload = {
-                "requirements": state.get("requirements", []),
-                "components": components_with_evals,
-                "candidates": candidates,
-                "evaluations": [ev for comp in components_with_evals for ev in evals_by_comp.get(comp["id"], [])]
-            }
+            payload = build_decision_context(
+                requirements=state.get("requirements", []),
+                components=components_with_evals,
+                candidates=candidates,
+                evaluations=[ev for comp in components_with_evals for ev in evals_by_comp.get(comp["id"], [])]
+            )
 
             messages = [
                 SystemMessage(content=DECISION_SYSTEM_PROMPT),

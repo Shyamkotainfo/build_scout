@@ -1,96 +1,45 @@
 import React from 'react';
-import { CheckCircle2, Circle, Loader2, XCircle } from 'lucide-react';
+import Card from '../ui/Card';
+import { ArrowRight } from 'lucide-react';
 
-const STEPS = [
-  'Supervisor',
-  'Decomposition',
-  'Research',
-  'Evaluation',
-  'Decision',
-  'Blueprint',
-  'Validation'
-];
+const StageNode = ({ label }) => (
+  <div className="relative group shrink-0">
+    <div className="absolute inset-0 bg-gradient-to-br from-[var(--bs-orange-400)] to-[var(--bs-orange-600)] rounded-lg blur opacity-0 group-hover:opacity-20 transition-opacity duration-300 pointer-events-none"></div>
+    <div className="relative bg-[var(--bs-bg-primary)] border border-[var(--bs-border-light)] shadow-sm shadow-[var(--bs-bg-tertiary)] group-hover:shadow-md group-hover:-translate-y-0.5 group-hover:border-[var(--bs-orange-400)] transition-all duration-300 rounded-lg px-4 py-2.5 flex items-center justify-center">
+      <span className="text-[10px] md:text-xs font-bold text-[var(--bs-text-secondary)] group-hover:text-[var(--bs-orange-500)] uppercase tracking-widest transition-colors">{label}</span>
+    </div>
+  </div>
+);
 
-const AgentWorkflowVisualizer = ({ analysis }) => {
-  if (!analysis) {
-    return (
-      <div className="mb-8">
-        <h2 className="text-lg font-medium leading-6 text-slate-100 mb-4">Agent Workflow</h2>
-        <div className="rounded-lg border border-slate-700 border-dashed bg-slate-800/30 p-8 text-center">
-          <p className="text-sm text-slate-500">No agent trace available.</p>
+const Connector = () => (
+  <>
+    <div className="flex-1 min-w-[12px] h-0.5 bg-gradient-to-r from-[var(--bs-border-light)] to-[var(--bs-border-medium)] mx-1 hidden md:block rounded-full"></div>
+    <ArrowRight className="md:hidden w-3 h-3 text-[var(--bs-border-medium)] mx-1 shrink-0" />
+  </>
+);
+
+const AgentWorkflowVisualizer = () => {
+  return (
+    <Card className="mb-6 overflow-hidden bg-[var(--bs-bg-secondary)] border border-[var(--bs-border-light)] shadow-inner">
+      <div className="p-6 md:p-8 flex flex-col items-center justify-center relative">
+        <span className="text-[10px] md:text-xs font-bold text-[var(--bs-text-tertiary)] uppercase tracking-widest mb-6">
+          How BuildScout Works
+        </span>
+        <div className="flex items-center justify-between w-full max-w-4xl mx-auto overflow-x-auto pb-4 md:pb-0 scrollbar-hide">
+          <StageNode label="Prompt" />
+          <Connector />
+          <StageNode label="Discover" />
+          <Connector />
+          <StageNode label="Evaluate" />
+          <Connector />
+          <StageNode label="Decide" />
+          <Connector />
+          <StageNode label="Blueprint" />
+          <Connector />
+          <StageNode label="Validate" />
         </div>
       </div>
-    );
-  }
-
-  // Derive active steps from agent_history if available
-  const history = analysis.agent_history || [];
-  const status = analysis.status;
-
-  // For visualization, we'll map the history to steps.
-  // In a real LangGraph, we'd look for specific node names.
-  const completedNodes = new Set(history.map((h) => h.node));
-  const hasFailed = status === 'FAILED';
-  
-  // Basic heuristic for the visualizer state based on history
-  const getStepState = (stepName) => {
-    // Exact match or lowercase match
-    const isCompleted = Array.from(completedNodes).some(n => n.toLowerCase().includes(stepName.toLowerCase()));
-    if (isCompleted) return 'completed';
-    if (hasFailed) return 'pending'; // or failed if it was the last one, but we keep it simple
-    // If status is running and this is the first uncompleted, it's running
-    if (status !== 'COMPLETED' && status !== 'FAILED') {
-      // Find index of this step
-      const stepIndex = STEPS.indexOf(stepName);
-      // Check if previous step is completed
-      const prevStepCompleted = stepIndex === 0 || Array.from(completedNodes).some(n => n.toLowerCase().includes(STEPS[stepIndex - 1].toLowerCase()));
-      if (prevStepCompleted && !isCompleted) return 'running';
-    }
-    return 'pending';
-  };
-
-  return (
-    <div className="mb-8">
-      <h2 className="text-lg font-medium leading-6 text-slate-100 mb-4">Agent Workflow</h2>
-      <div className="rounded-lg border border-slate-700 bg-slate-800 p-6">
-        <nav aria-label="Progress">
-          <ol role="list" className="overflow-hidden flex flex-wrap gap-4 items-center justify-between">
-            {STEPS.map((step, stepIdx) => {
-              const state = getStepState(step);
-              return (
-                <li key={step} className="relative flex-1 flex flex-col items-center">
-                  <div className="group flex flex-col items-center">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 border-2 border-slate-700">
-                      {state === 'completed' ? (
-                        <CheckCircle2 className="h-6 w-6 text-green-500" />
-                      ) : state === 'running' ? (
-                        <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
-                      ) : (
-                        <Circle className="h-4 w-4 text-slate-600" />
-                      )}
-                    </span>
-                    <span
-                      className={`mt-2 text-xs font-medium ${
-                        state === 'completed'
-                          ? 'text-slate-300'
-                          : state === 'running'
-                          ? 'text-blue-400'
-                          : 'text-slate-500'
-                      }`}
-                    >
-                      {step}
-                    </span>
-                  </div>
-                  {stepIdx !== STEPS.length - 1 && (
-                    <div className="absolute top-5 left-1/2 w-full h-0.5 bg-slate-700 -z-10 mt-[1px]" />
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
-      </div>
-    </div>
+    </Card>
   );
 };
 
